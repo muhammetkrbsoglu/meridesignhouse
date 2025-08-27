@@ -48,7 +48,14 @@ export class ProductService {
   }
 
   static async getFeaturedProducts(limit: number = 8): Promise<Product[]> {
-    return this.makeRequest<Product[]>(`/products/featured?limit=${limit}`);
+    try {
+      return await this.makeRequest<Product[]>(`/products/featured?limit=${limit}`);
+    } catch (e) {
+      // Fallback to generic products endpoint with isFeatured filter if backend expects it
+      const params = new URLSearchParams({ limit: String(limit), isFeatured: 'true' });
+      const res = await this.makeRequest<ProductResponse>(`/products?${params.toString()}`);
+      return res.products;
+    }
   }
 
   static async getNewProducts(limit: number = 8): Promise<Product[]> {

@@ -10,6 +10,14 @@ export type DesignElement = {
   rotation?: number;
   opacity?: number;
   zIndex?: number;
+  // text-specific (optional)
+  content?: string;
+  fontFamily?: string;
+  fontSize?: number;
+  color?: string;
+  textAlign?: 'left' | 'center' | 'right';
+  // image-specific (optional)
+  src?: string;
 };
 
 export type DesignDocument = {

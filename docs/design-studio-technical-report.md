@@ -11,6 +11,40 @@ Phase 5 delivers a Canva-like design studio for personalized products. Users can
 - Auth: Clerk (route protection, ownership checks).
 - Backend: NestJS DesignsModule + Prisma; reuse `designData` fields on `CartItem`/`OrderItem` for order integration.
 
+## 2.1 Current Status & Pause Rationale (Why Phase 5 is paused)
+- We implemented an MVP editor: fixed 10×15 cm canvas, draggable elements, text editing (content, font, size, color, alignment), add-text, basic image swap (mock list), and add-to-cart with `designData`.
+- We paused because required vector assets and real templates were not delivered yet:
+  - Missing SVG element library (florals, rings, balloons, frames, icons) in production-ready folders.
+  - Missing canonical template JSON/SVG exports matching catalog SKUs (e.g., SN001, SN00x...).
+  - Pending font list and license confirmations for web embedding (+ fallback stack).
+  - ImageKit folder structure and uploads for backgrounds/thumbnails not finalized.
+- Without these, we cannot ship the real template gallery, element library, and preview pipeline. The mock setup works, but it’s not production-complete.
+
+## 2.2 How We Will Complete Phase 5 Once Assets Arrive
+Provide the following materials, then resume with these steps:
+
+1) Materials needed
+- SVG pack: `design-assets/` categorized as `backgrounds/`, `decorations/`, `frames/`, `icons/`. Each SVG optimized (SVGO), viewBox set, no embedded rasters.
+- Template bundle: For each catalog SKU (e.g., `SN001`), a JSON (our `DesignDocument`) or an SVG + mapping notes indicating editable text regions and default fonts/colors.
+- Fonts: Approved font families, licensing notes, and their CSS font-face or Google Fonts links; define fallbacks.
+- Brand specs: Color tokens, spacing, target card sizes list (e.g., 10×15, 5×5, 6×6 cm).
+- ImageKit: Target folders and upload credentials for admin; desired thumbnail sizes.
+
+2) Implementation steps
+- Wire assets: Upload SVGs to ImageKit under `design-assets/*` and set delivery params; store template thumbnails.
+- Template gallery: Seed `DesignTemplate` records including thumbnail URL and starter `elements` for text placeholders.
+- Elements library UI: Replace mock image list with ImageKit-backed browser and categories; enable drag-in.
+- Save/load: Enable authenticated create/update for designs; guest drafts via localStorage; add autosave toggle.
+- Preview/export: Canvas snapshot for PNG previews at 256/512; show in cart and order details.
+- Product → Customize flow: From product detail, deep-link to editor with selected template/size; return with `designData` on add-to-cart.
+- Mobile polish: Touch gestures, larger handles, responsive side panels.
+- QA/KPIs: Verify CRUD P95, FPS under load, JSON size caps; smoke E2E on core flows.
+
+3) Definition of done
+- Real templates visible and applicable; editable texts/images behave per catalog.
+- Designs save/load reliably; previews render in cart/orders.
+- Meets documented KPIs and accessibility targets on desktop and mobile.
+
 ## 3. Data Model (Design JSON)
 DesignDocument
 - id, name, width, height, background

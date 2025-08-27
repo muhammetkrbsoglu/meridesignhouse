@@ -45,18 +45,7 @@ export function useSyncCartWithAuth() {
           await new Promise(r => setTimeout(r, Math.pow(2, attempt) * 100));
         }
         if (cancelled) return;
-        if (!token) {
-          // Could not get token; schedule another attempt shortly and keep guest cart visible
-
-          if (!retryTimerRef.current) {
-            retryTimerRef.current = setTimeout(() => {
-              retryTimerRef.current = null;
-              // fire and forget
-              sync();
-            }, 1500);
-          }
-          return;
-        }
+        if (!token) return; // No token, skip syncing gracefully
 
         try {
           if (!mergedRef.current) {
@@ -73,11 +62,9 @@ export function useSyncCartWithAuth() {
           storage?.removeItem('guest_merge_lock');
         }
       } else {
-        // Signed out: reset to guest cart
-
+        // Signed out: keep guest cart silently (no server calls)
         mergedRef.current = false;
         resetCart();
-        await loadCart(undefined);
       }
     };
     sync();

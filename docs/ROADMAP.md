@@ -90,14 +90,28 @@
 
 ### Checklist:
 - [x] Tasarım şablonları sistemi (veritabanı modeli hazır)
-- [ ] Canvas tabanlı tasarım editörü
-- [ ] Özelleştirilebilir öğeler (isim, tarih, font, renk)
-- [ ] Hazır tasarım elementleri kütüphanesi
-- [ ] Tasarım kaydetme ve yükleme
-- [ ] Tasarım önizleme sistemi
-- [ ] Tasarım verilerinin siparişe entegrasyonu
-- [ ] Responsive tasarım editörü
-- [ ] Mobil tasarım deneyimi optimizasyonu
+- [x] Canvas tabanlı tasarım editörü (MVP: sabit 10×15 kart, sürükle, panel)
+- [x] Özelleştirilebilir öğeler (isim, tarih, font, renk, hizalama)
+- [x] Yeni metin ekleme (sol panel)
+- [x] Görsel öğe için temel swap (mock kategori/öğe)
+- [x] Sepete `designData` ile ekleme (ürün seçerek)
+- [ ] Hazır tasarım elementleri kütüphanesi (gerçek SVG/asset ile)
+- [ ] Tasarım kaydetme ve yükleme (manuel kayıt akışı)
+- [ ] Tasarım önizleme sistemi (PNG)
+- [ ] Ürün sayfasından “Özelleştir” akışı (route param)
+- [ ] Responsive/mobil düzen iyileştirmeleri
+
+#### Güncelleme Notu (TR) — Neden Durduk ve Nasıl Tamamlayacağız?
+- Mevcut durum: MVP editör hazır (sabit 10×15 cm kart, sürükle-bırak, metin düzenleme: içerik/font/boyut/renk/hizalama, yeni metin ekleme, temel görsel değişimi/mock, `designData` ile sepete ekleme).
+- Duruş nedeni: Üretim için gerekli vektörel materyaller henüz teslim edilmedi.
+  - SVG öğe kütüphanesi (çiçekler, yüzükler, balonlar, çerçeveler, ikonlar) eksik.
+  - Katalog SKU’larına (SN001 vb.) karşılık gelen şablon JSON/SVG ve varsayılan metin/font/renk tanımları yok.
+  - Web gömme için onaylı font listesi ve lisans bilgileri bekleniyor.
+  - ImageKit klasör yapısı ve yüklemeleri (background, thumbnail) netleşmedi.
+- Materyaller gelince izlenecek adımlar:
+  1) Girdiler: Optimize edilmiş SVG paketi (SVGO, viewBox), şablon bundle (DesignDocument veya SVG + editable bölgeler notları), onaylı fontlar (CSS/Google Fonts + fallback), marka renkleri/ölçüler (10×15, 5×5, 6×6 cm), ImageKit klasör ve upload erişimleri.
+  2) Uygulama: Asset’leri ImageKit’e yerleştir; `DesignTemplate` kayıtlarını seed et (thumbnail + placeholder text’ler); öğe kütüphanesi UI’sini ImageKit ile bağla; tasarım kaydet/yükle (auth + misafir); önizleme (PNG 256/512) ve sepet/sipariş görünümü; ürün → özelleştir derin bağ; mobil/touch iyileştirmeleri; KPI/E2E doğrulamaları.
+  3) Bitti Tanımı: Şablonlar uygulanabilir, metin/görsel düzenlenebilir; tasarımlar güvenilirce kaydedilip yüklenir; önizlemeler sepet/siparişte görünür; KPI ve erişilebilirlik hedefleri masaüstü + mobilde karşılanır.
 
 ## Faz 6: Admin Paneli ve Yönetim Sistemi
 **Süre**: 4-5 hafta
@@ -230,4 +244,5 @@
 ---
 
 *Son güncelleme: 25.08.2024 - 19:10 (Samsun, Türkiye) - FAZ 4 %90 - Sepet backend entegrasyonu tamamlandı! 🚀*
-*Son güncelleme: 25.08.2024 - 20:00 (Samsun, Türkiye) - FAZ 4 %100 - Favori sistemi tamamen tamamlandı! 🚀*
+*Son güncelleme: 25.08.2024 - 20:00 (Samsun, Türkiye) - FAZ 4 %100 - Sepet ve Favori sistemi tamamen tamamlandı! 🚀* 
+*Son güncelleme: 27.08.2024 - 18:00 (Samsun, Türkiye) - FAZ 5 %40 -  Tasarım Atölyesi için mvp 1.5 hazırlandı🚀*
