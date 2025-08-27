@@ -13,6 +13,7 @@ import { WhatsAppModule } from './whatsapp/whatsapp.module';
 import { ClerkWebhookModule } from './clerk/clerk.webhook.module';
 import { AddressesModule } from './addresses/addresses.module';
 import { WishlistModule } from './wishlist/wishlist.module';
+import { DesignsModule } from './designs/designs.module';
 
 @Module({
   imports: [
@@ -31,6 +32,7 @@ import { WishlistModule } from './wishlist/wishlist.module';
     ClerkWebhookModule,
     AddressesModule,
     WishlistModule,
+    DesignsModule,
   ],
   controllers: [AppController],
   providers: [AppService],

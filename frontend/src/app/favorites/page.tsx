@@ -5,7 +5,7 @@ import { useAuth } from '@clerk/nextjs';
 import { useWishlistStore } from '../../stores/wishlist.store';
 import { useCartStore } from '../../stores/cart.store';
 import { useToast, ToastContainer } from '../../components/ToastNotification';
-import { Product } from '../../../shared/types/product';
+import type { Product } from '@shared/types/product';
 import { motion } from 'framer-motion';
 import Image from 'next/image';
 import { calculatePriceInfo, formatPrice } from '../../utils/price.utils';
@@ -26,8 +26,12 @@ export default function FavoritesPage() {
   const handleRemoveFromWishlist = async (productId: string) => {
     try {
       const token = await getToken();
-      await removeItem(productId, token);
-      toast.showSuccess('Favorilerden Çıkarıldı', 'Ürün favorilerden başarıyla çıkarıldı.');
+      if (token) {
+        await removeItem(productId, token);
+        toast.showSuccess('Favorilerden Çıkarıldı', 'Ürün favorilerden başarıyla çıkarıldı.');
+      } else {
+        toast.showError('Hata', 'Kimlik doğrulama token\'ı bulunamadı.');
+      }
     } catch (error) {
       console.error('Failed to remove from wishlist:', error);
       toast.showError('Hata', 'Ürün favorilerden çıkarılırken bir hata oluştu.');
@@ -43,13 +47,13 @@ export default function FavoritesPage() {
         await addItem({
           productId: product.id,
           quantity: 1,
-          designData: null,
+          designData: undefined,
         }, token);
       } else {
         await addItem({
           productId: product.id,
           quantity: 1,
-          designData: null,
+          designData: undefined,
         });
       }
       

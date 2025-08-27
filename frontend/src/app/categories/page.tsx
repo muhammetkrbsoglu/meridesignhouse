@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Category } from '../../../shared/types/product';
+import { Category } from '../../../../shared/types/category';
 import { CategoryService } from '../../services/category.service';
 import Link from 'next/link';
 import Image from 'next/image';

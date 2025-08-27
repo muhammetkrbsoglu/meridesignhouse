@@ -1,4 +1,4 @@
-import { Category } from '../../../shared/types/product';
+import type { Category } from '@shared/types/category';
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
 

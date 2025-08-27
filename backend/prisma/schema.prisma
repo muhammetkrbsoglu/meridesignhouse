@@ -26,6 +26,7 @@ model User {
   feedbacks       CustomerFeedback[]
   wishlistItems   WishlistItem[]
   cartItems       CartItem[]
+  designs         Design[]
 
   @@map("users")
 }
@@ -174,7 +175,28 @@ model DesignTemplate {
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
+  // Relations
+  designs   Design[]
+
   @@map("design_templates")
+}
+
+model Design {
+  id          String   @id @default(cuid())
+  userId      String
+  name        String
+  description String?
+  designData  Json
+  templateId  String?
+  isPublic    Boolean  @default(false)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // Relations
+  user     User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  template DesignTemplate? @relation(fields: [templateId], references: [id])
+
+  @@map("designs")
 }
 
 model CustomerFeedback {

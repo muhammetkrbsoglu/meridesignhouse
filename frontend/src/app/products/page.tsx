@@ -1,7 +1,9 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Product, ProductFilters, Category } from '../../../shared/types/product';
+import type { Product } from '@shared/types/product';
+import type { Category } from '@shared/types/category';
+import type { ProductFilter as ProductFilters } from '@shared/types/product';
 import { ProductService } from '../../services/product.service';
 import { CategoryService } from '../../services/category.service';
 import ProductCard from '../../components/ProductCard';

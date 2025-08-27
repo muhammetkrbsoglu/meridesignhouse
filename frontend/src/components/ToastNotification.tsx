@@ -191,13 +191,10 @@ const Toast: React.FC<ToastProps> = ({ notification, onClose }) => {
 };
 
 // Toast Container
-export const ToastContainer: React.FC<{ notifications: ToastNotification[]; onClose: (id: string) => void }> = ({
-  notifications,
-  onClose
-}) => {
-  if (typeof window === 'undefined') return null;
+export function ToastContainer({ notifications, onClose }: { notifications: ToastNotification[]; onClose: (id: string) => void }) {
+  if (typeof window === 'undefined' || !document?.body) return null as any;
 
-  return createPortal(
+  return (typeof window !== 'undefined' && document?.body) ? createPortal(
     <div className="fixed top-0 right-0 z-[99999] p-4 space-y-4">
       {notifications.map((notification) => (
         <Toast
@@ -208,8 +205,8 @@ export const ToastContainer: React.FC<{ notifications: ToastNotification[]; onCl
       ))}
     </div>,
     document.body
-  );
-};
+  ) as any : null as any;
+}
 
 // Toast Hook
 export const useToast = () => {

@@ -1,4 +1,4 @@
-import { Product, ProductListResponse, ProductFilters } from '../../../shared/types/product';
+import type { Product, ProductResponse, ProductFilter as ProductFilters } from '@shared/types/product';
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
 
@@ -19,7 +19,7 @@ export class ProductService {
     return response.json();
   }
 
-  static async getProducts(filters: ProductFilters = {}): Promise<ProductListResponse> {
+  static async getProducts(filters: ProductFilters = {}): Promise<{ products: Product[]; pagination: { page: number; limit: number; total: number; totalPages: number } }> {
     const params = new URLSearchParams();
     
     Object.entries(filters).forEach(([key, value]) => {
@@ -31,7 +31,16 @@ export class ProductService {
     const queryString = params.toString();
     const endpoint = `/products${queryString ? `?${queryString}` : ''}`;
     
-    return this.makeRequest<ProductListResponse>(endpoint);
+    const res = await this.makeRequest<ProductResponse>(endpoint);
+    return {
+      products: res.products,
+      pagination: {
+        page: res.page,
+        limit: res.limit,
+        total: res.total,
+        totalPages: res.totalPages,
+      },
+    };
   }
 
   static async getProduct(id: string): Promise<Product> {
@@ -46,7 +55,7 @@ export class ProductService {
     return this.makeRequest<Product[]>(`/products/new?limit=${limit}`);
   }
 
-  static async getProductsByCategory(categoryId: string, filters: ProductFilters = {}): Promise<ProductListResponse> {
+  static async getProductsByCategory(categoryId: string, filters: ProductFilters = {}): Promise<{ products: Product[]; pagination: { page: number; limit: number; total: number; totalPages: number } }> {
     const params = new URLSearchParams();
     
     Object.entries(filters).forEach(([key, value]) => {
@@ -58,10 +67,19 @@ export class ProductService {
     const queryString = params.toString();
     const endpoint = `/products/category/${categoryId}${queryString ? `?${queryString}` : ''}`;
     
-    return this.makeRequest<ProductListResponse>(endpoint);
+    const res = await this.makeRequest<ProductResponse>(endpoint);
+    return {
+      products: res.products,
+      pagination: {
+        page: res.page,
+        limit: res.limit,
+        total: res.total,
+        totalPages: res.totalPages,
+      },
+    };
   }
 
-  static async searchProducts(query: string, filters: ProductFilters = {}): Promise<ProductListResponse> {
+  static async searchProducts(query: string, filters: ProductFilters = {}): Promise<{ products: Product[]; pagination: { page: number; limit: number; total: number; totalPages: number } }> {
     return this.getProducts({
       ...filters,
       search: query,

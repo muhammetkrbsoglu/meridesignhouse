@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { useAuth } from '@clerk/nextjs';
+import { useUser, useAuth } from '@clerk/nextjs';
 
 interface Message {
   id: string;
@@ -13,7 +13,8 @@ interface Message {
 }
 
 export default function MessagesPage() {
-  const { isSignedIn, user } = useAuth();
+  const { isSignedIn } = useAuth();
+  const { user } = useUser();
   const [messages, setMessages] = useState<Message[]>([]);
   const [newMessage, setNewMessage] = useState('');
   const [loading, setLoading] = useState(false);

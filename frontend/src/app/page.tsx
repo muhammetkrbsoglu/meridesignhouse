@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { Product } from '../../shared/types/product';
+import type { Product } from '@shared/types/product';
 import { ProductService } from '../services/product.service';
 import ProductCard from '../components/ProductCard';
 import EventQuiz from '../components/EventQuiz';
@@ -101,27 +101,33 @@ export default function HomePage() {
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
             <div className="text-center">
-              <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                <span className="text-2xl">🎨</span>
+              <div className="bg-blue-100 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
+                <svg className="w-8 h-8 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
+                </svg>
               </div>
               <h3 className="text-xl font-semibold text-gray-900 mb-2">Özel Tasarım</h3>
-              <p className="text-gray-600">Her ürün özenle tasarlanmış ve el işçiliği ile üretilmiştir</p>
+              <p className="text-gray-600">Her ürün özenle tasarlanmış ve el yapımıdır</p>
             </div>
 
             <div className="text-center">
-              <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                <span className="text-2xl">🌟</span>
+              <div className="bg-green-100 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
+                <svg className="w-8 h-8 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
               </div>
               <h3 className="text-xl font-semibold text-gray-900 mb-2">Kalite Garantisi</h3>
-              <p className="text-gray-600">En kaliteli malzemeler ve uzun ömürlü kullanım</p>
+              <p className="text-gray-600">En yüksek kalite standartlarında üretim</p>
             </div>
 
             <div className="text-center">
-              <div className="w-16 h-16 bg-purple-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                <span className="text-2xl">🚚</span>
+              <div className="bg-purple-100 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
+                <svg className="w-8 h-8 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
+                </svg>
               </div>
               <h3 className="text-xl font-semibold text-gray-900 mb-2">Hızlı Teslimat</h3>
-              <p className="text-gray-600">Türkiye geneli hızlı ve güvenli teslimat</p>
+              <p className="text-gray-600">Güvenli ve hızlı kargo ile teslimat</p>
             </div>
           </div>
         </div>

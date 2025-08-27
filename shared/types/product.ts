@@ -1,3 +1,5 @@
+import { Category } from './category';
+
 export interface Product {
   id: string;
   name: string;
@@ -18,19 +20,6 @@ export interface Product {
   createdAt: Date;
   updatedAt: Date;
   category?: Category;
-}
-
-export interface Category {
-  id: string;
-  name: string;
-  slug: string;
-  parentId?: string;
-  imageUrl?: string;
-  description?: string;
-  order: number;
-  isActive: boolean;
-  createdAt: Date;
-  updatedAt: Date;
 }
 
 export interface ProductFilter {

@@ -104,7 +104,7 @@ export default function OrderTrackingPage() {
  
        setOrder(orderData);
     } catch (error) {
-      setError(error.message);
+      setError(error instanceof Error ? error.message : 'Bilinmeyen bir hata oluştu');
     } finally {
       setLoading(false);
     }

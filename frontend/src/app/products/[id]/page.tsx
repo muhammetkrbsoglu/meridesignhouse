@@ -2,7 +2,8 @@
 
 import { useState, useEffect } from 'react';
 import { useParams, useRouter } from 'next/navigation';
-import { Product } from '../../../../shared/types/product';
+import { useAuth } from '@clerk/nextjs';
+import type { Product } from '@shared/types/product';
 import { ProductService } from '../../../services/product.service';
 import { useCartStore } from '../../../stores/cart.store';
 import { useWishlistStore } from '../../../stores/wishlist.store';
@@ -50,31 +51,28 @@ export default function ProductDetailPage() {
     }
   };
 
+  const { getToken } = useAuth();
+
   const handleAddToCart = async () => {
     if (!product) return;
     
     try {
       setAddingToCart(true);
-      const { getToken } = await import('@clerk/nextjs');
-      // Note: dynamic import to avoid SSR pitfalls; we only need token at click time
-      const tokenApi: any = getToken as any;
-      let token: string | null = null;
+      let token: string | undefined = undefined;
       try {
-        // If useAuth hook isn't available here, dynamic import path won't give instance token; fallback to store-only
-        // In our case, product page is client, so useAuth is safe; but guard anyway
-        token = (tokenApi && typeof tokenApi === 'function') ? await (tokenApi as any)() : null;
+        token = (await getToken()) ?? undefined;
       } catch {}
-      if (token) {
+      if (token !== undefined) {
         await addItem({
           productId: product.id,
           quantity,
-          designData: null,
+          designData: undefined,
         }, token as any);
       } else {
         await addItem({
           productId: product.id,
           quantity,
-          designData: null,
+          designData: undefined,
         });
       }
       alert('Ürün sepete eklendi!');
@@ -93,11 +91,9 @@ export default function ProductDetailPage() {
       setAddingToWishlist(true);
       
       // Get token if available
-      let token: string | null = null;
+      let token: string | undefined = undefined;
       try {
-        const { getToken } = await import('@clerk/nextjs');
-        const tokenApi: any = getToken as any;
-        token = (tokenApi && typeof tokenApi === 'function') ? await (tokenApi as any)() : null;
+        token = (await getToken()) ?? undefined;
       } catch {}
       
       if (isInWishlist(product.id)) {
@@ -176,7 +172,7 @@ export default function ProductDetailPage() {
                   <li>/</li>
                   <li>
                     <button 
-                      onClick={() => router.push(`/categories/${product.category.slug}`)} 
+                      onClick={() => router.push(`/categories/${product.category!.slug}`)} 
                       className="hover:text-gray-700"
                     >
                       {product.category.name}

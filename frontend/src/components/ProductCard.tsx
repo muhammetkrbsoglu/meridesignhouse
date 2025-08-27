@@ -1,6 +1,6 @@
 'use client';
 
-import { Product } from '../../../shared/types/product';
+import type { Product } from '@shared/types/product';
 import { useRouter } from 'next/navigation';
 import Image from 'next/image';
 import { useCartStore } from '../stores/cart.store';
@@ -140,7 +140,7 @@ export default function ProductCard({ product, className = '' }: ProductCardProp
                        e.stopPropagation();
                        try {
                          setIsAddingToCart(true);
-                         const token = await getToken();
+                         const token = (await getToken()) ?? undefined;
                          if (token) {
                            await addItem({
                              productId: product.id,
@@ -173,10 +173,10 @@ export default function ProductCard({ product, className = '' }: ProductCardProp
                          const token = await getToken();
                          
                          if (isInWishlist(product.id)) {
-                           await removeFromWishlist(product.id, token);
+                           await removeFromWishlist(product.id, token as any);
                            toast.showSuccess('Favorilerden Çıkarıldı', `${product.name} favorilerden çıkarıldı.`);
                          } else {
-                           await addToWishlist(product, token);
+                           await addToWishlist(product, token as any);
                            toast.showSuccess('Favorilere Eklendi! ❤️', `${product.name} favorilere başarıyla eklendi.`);
                          }
                        } catch (error) {

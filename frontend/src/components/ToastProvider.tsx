@@ -1,6 +1,6 @@
 'use client';
 
-import { createContext, useContext, ReactNode, useState, useEffect } from 'react';
+import React, { createContext, useContext, ReactNode, useState, useEffect } from 'react';
 import { useToast, ToastContainer } from './ToastNotification';
 
 interface ToastContextType {
@@ -25,7 +25,7 @@ interface ToastProviderProps {
   children: ReactNode;
 }
 
-export const ToastProvider = ({ children }: ToastProviderProps) => {
+export function ToastProvider({ children }: ToastProviderProps): JSX.Element {
   const [isMounted, setIsMounted] = useState(false);
   const toast = useToast();
 
@@ -52,4 +52,4 @@ export const ToastProvider = ({ children }: ToastProviderProps) => {
       )}
     </ToastContext.Provider>
   );
-};
+}
