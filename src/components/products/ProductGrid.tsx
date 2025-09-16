@@ -135,7 +135,7 @@ export function ProductGrid({ products }: ProductGridProps) {
   }
 
   return (
-    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-3 gap-6">
+    <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-3 gap-3 sm:gap-6">
       {products.map((product) => (
         <div key={product.id} className="group relative bg-white rounded-lg border hover:shadow-lg transition-shadow duration-300">
           {/* Product Image */}
@@ -146,7 +146,7 @@ export function ProductGrid({ products }: ProductGridProps) {
                   src={product.images[0]?.url || '/placeholder-product.svg'}
                   alt={product.name}
                   fill
-                  sizes="(min-width: 1280px) 33vw, (min-width: 640px) 50vw, 100vw"
+                  sizes="(min-width: 1280px) 33vw, (min-width: 1024px) 33vw, (min-width: 640px) 50vw, 50vw"
                   className="object-cover group-hover:scale-105 transition-transform duration-300"
                 />
               ) : (
@@ -161,19 +161,19 @@ export function ProductGrid({ products }: ProductGridProps) {
               type="button"
               onClick={() => toggleFavorite(product.id)}
               disabled={loadingStates.favorites.has(product.id)}
-              className="absolute top-3 right-3 z-10 p-2 bg-white rounded-full shadow-md hover:shadow-lg transition-shadow disabled:opacity-50"
+              className="absolute top-2 right-2 sm:top-3 sm:right-3 z-10 p-3 bg-white rounded-full shadow-md hover:shadow-lg transition-shadow disabled:opacity-50"
               aria-label={`${favorites.has(product.id) ? 'Favorilerden çıkar' : 'Favorilere ekle'}: ${product.name}`}
             >
               {favorites.has(product.id) ? (
-                <HeartSolidIcon className="h-5 w-5 text-red-500" />
+                <HeartSolidIcon className="h-5 w-5 sm:h-5 sm:w-5 text-red-500" />
               ) : (
-                <HeartIcon className="h-5 w-5 text-gray-400 hover:text-red-500" />
+                <HeartIcon className="h-5 w-5 sm:h-5 sm:w-5 text-gray-400 hover:text-red-500" />
               )}
             </button>
           </div>
 
           {/* Product Info */}
-          <div className="p-3">
+          <div className="p-2 sm:p-3">
             {/* Category */}
             <Link 
               href={`/categories/${product.category.slug}`}
@@ -185,14 +185,14 @@ export function ProductGrid({ products }: ProductGridProps) {
             
             {/* Product Name */}
             <Link href={`/products/${product.slug}`} aria-label={`Ürünü incele: ${product.name}`}>
-              <h3 className="mt-0.5 text-sm font-medium text-gray-900 line-clamp-2 group-hover:text-rose-600 transition-colors">
+              <h3 className="mt-0.5 text-sm sm:text-base font-medium text-gray-900 line-clamp-2 group-hover:text-rose-600 transition-colors">
                 {product.name}
               </h3>
             </Link>
             
             {/* Description */}
             {product.description && (
-              <p className="mt-1 text-xs text-gray-500 line-clamp-2">
+              <p className="mt-1 text-[11px] sm:text-xs text-gray-500 line-clamp-2">
                 {product.description}
               </p>
             )}
@@ -207,17 +207,17 @@ export function ProductGrid({ products }: ProductGridProps) {
               <button
                 onClick={() => handleAddToCart(product.id)}
                 disabled={loadingStates.cart.has(product.id)}
-                className="flex items-center space-x-1 px-3 py-1.5 bg-rose-600 text-white text-xs font-medium rounded-md hover:bg-rose-700 transition-colors disabled:opacity-50"
+                className="flex items-center space-x-1 px-3 py-2 sm:px-3 sm:py-1.5 bg-rose-600 text-white text-xs font-medium rounded-md hover:bg-rose-700 transition-colors disabled:opacity-50"
                 aria-label={`Sepete ekle: ${product.name}`}
               >
-                <ShoppingCartIcon className="h-4 w-4" />
+                <ShoppingCartIcon className="h-5 w-5 sm:h-4 sm:w-4" />
                 <span>{loadingStates.cart.has(product.id) ? 'Ekleniyor...' : 'Sepete Ekle'}</span>
               </button>
             </div>
           </div>
           
           {/* Quick View Overlay */}
-          <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-all duration-300 rounded-lg flex items-start justify-center pt-18 opacity-0 group-hover:opacity-100 pointer-events-none">
+          <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-all duration-300 rounded-lg hidden sm:flex items-start justify-center pt-18 opacity-0 group-hover:opacity-100 pointer-events-none">
             <Link
               href={`/products/${product.slug}`}
               className="px-4 py-2 bg-white text-gray-900 text-sm font-medium rounded-md shadow-lg hover:bg-gray-50 transition-transform duration-300 pointer-events-auto"
