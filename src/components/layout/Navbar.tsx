@@ -8,7 +8,8 @@ import { Badge } from '@/components/ui/badge'
 import { MagnifyingGlassIcon, UserIcon, Bars3Icon, XMarkIcon } from '@heroicons/react/24/outline'
 import { Sparkles, Heart, Star, ShoppingBag } from 'lucide-react'
 // Removed unused icons/components to satisfy ESLint unused rules
-import CategoryMegaMenu from './CategoryMegaMenu'
+import dynamic from 'next/dynamic'
+const CategoryMegaMenu = dynamic(() => import('./CategoryMegaMenu'), { ssr: false })
 import { SearchAutocomplete } from '@/components/ui/SearchAutocomplete'
 import { fetchAllMainCategoriesWithHierarchy } from '@/lib/actions/categories'
 import { getCartCount, getFavoriteCount } from '@/lib/actions/cart'
