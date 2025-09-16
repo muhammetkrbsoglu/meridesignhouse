@@ -43,7 +43,7 @@ type CategoryFormData = {
 
 interface CategoryFormProps {
   category?: Category
-  parentCategories: Category[]
+  parentCategories: any[]
 }
 
 export function CategoryForm({ category, parentCategories }: CategoryFormProps) {
@@ -140,7 +140,7 @@ export function CategoryForm({ category, parentCategories }: CategoryFormProps) 
                 .filter((parent) => parent.id !== category?.id) // Kendi kendini parent yapmasını engelle
                 .map((parent) => {
                   // Hiyerarşik gösterim için prefix ekle
-                  const getDisplayName = (category: any, level = 0): string => {
+                  const getDisplayName = (category: { name: string; parent?: { id: string } | null }, level = 0): string => {
                     const prefix = '  '.repeat(level) + (level > 0 ? '└─ ' : '');
                     return `${prefix}${category.name}`;
                   };

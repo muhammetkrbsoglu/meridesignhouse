@@ -56,6 +56,8 @@ export interface BaseProduct {
 export interface ProductWithCategory extends BaseProduct {
   category: Category;
   images: ProductImage[]; // Supabase'den gelen format
+  // Bazı bileşenler legacy alan adını kullanıyor
+  product_images?: ProductImage[];
 }
 
 // Detaylı Product tipi (image objeler ile)
@@ -146,7 +148,7 @@ export interface SupabaseProductResult {
   name: string;
   slug: string;
   description?: string | null;
-  price: number;
+  price: number | { toString(): string };
   gallery: string[]; // Supabase'deki gerçek field adı
   is_active?: boolean; // Supabase'deki gerçek field adı
   created_at?: string; // Supabase'deki gerçek field adı

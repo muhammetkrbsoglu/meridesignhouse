@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { getUserProfile, getUserOrders, getUserMessages, getOrderStats, updateUserProfile, UserProfile, listUserAddresses, createUserAddress, updateUserAddress, deleteUserAddress, setDefaultAddress, linkMyMessagesByEmail } from '@/lib/actions/profile'
+import { getUserProfile, getUserOrders, getUserMessages, getOrderStats, updateUserProfile, UserProfile, listUserAddresses, createUserAddress, deleteUserAddress, setDefaultAddress } from '@/lib/actions/profile'
 import { backfillMessageUserIds } from '@/lib/actions/messages'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
@@ -11,12 +11,11 @@ import { Textarea } from '@/components/ui/textarea'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Switch } from '@/components/ui/switch'
 import { Badge } from '@/components/ui/badge'
-import { Separator } from '@/components/ui/separator'
 import { WhatsAppButton } from '@/components/profile/WhatsAppButton'
 import { useToast } from '@/hooks/use-toast'
 import { formatCurrency } from '@/lib/utils'
 import Link from 'next/link'
-import { Calendar, MapPin, Phone, Mail, Package, MessageSquare, Edit3, Save, X, Plus, AlertCircle } from 'lucide-react'
+import { MapPin, Package, MessageSquare, Edit3, Save, X, Plus, AlertCircle } from 'lucide-react'
 import { supabase } from '@/lib/supabase-browser'
 
 interface ProfileContentProps {
@@ -179,7 +178,7 @@ export default function ProfileContent({ userId }: ProfileContentProps) {
     setEditingAddress(false)
   }
 
-  const handleAddressCancel = () => {
+  const _handleAddressCancel = () => {
     if (profile) {
       setFormData({
         ...formData,
@@ -208,7 +207,7 @@ export default function ProfileContent({ userId }: ProfileContentProps) {
       } else {
         toast({ title: 'Hata', description: r.error, variant: 'destructive' })
       }
-    } catch (error) {
+    } catch (_error) {
       toast({ title: 'Hata', description: 'Adres eklenirken hata oluştu', variant: 'destructive' })
     } finally {
       setAddressSubmitting(false)

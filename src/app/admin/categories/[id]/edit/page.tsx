@@ -10,14 +10,11 @@ export const metadata = {
 }
 
 interface EditCategoryPageProps {
-  params: {
-    id: string
-  }
+  params: Promise<{ id: string }>
 }
 
 export default async function EditCategoryPage({ params }: EditCategoryPageProps) {
-  const resolvedParams = await params;
-  const id = resolvedParams.id
+  const { id } = await params;
   
   const [category, parentCategories] = await Promise.all([
     fetchCategoryById(id),

@@ -2,7 +2,6 @@
 
 import { getSupabaseAdmin } from '@/lib/supabase'
 import { revalidatePath } from 'next/cache'
-import { Decimal } from '@prisma/client/runtime/library'
 import { PrismaClient } from '@prisma/client'
 
 const prisma = new PrismaClient()

@@ -140,7 +140,7 @@ export function FeaturedProducts({ products }: FeaturedProductsProps) {
           {products.map((product) => (
             <div key={product.id} className="group relative bg-white rounded-2xl shadow-lg hover:shadow-2xl transition-all duration-500 transform hover:-translate-y-2 overflow-hidden">
               <div className="relative aspect-square overflow-hidden rounded-t-2xl">
-                <Link href={`/products/${product.slug}`}>
+                <Link href={`/products/${product.slug}`} aria-label={`Ürün sayfasına git: ${product.name}`}>
                   <Image
                     src={product.imageUrl || '/placeholder-product.svg'}
                     alt={product.name}
@@ -154,7 +154,7 @@ export function FeaturedProducts({ products }: FeaturedProductsProps) {
                   onClick={() => toggleFavorite(product.id)}
                   disabled={loadingStates.favorites.has(product.id)}
                   className="absolute top-3 right-3 z-10 p-2 bg-white rounded-full shadow-md hover:shadow-lg transition-shadow disabled:opacity-50"
-                  aria-label="Favoriye ekle"
+                  aria-label={favorites.has(product.id) ? `Favorilerden çıkar: ${product.name}` : `Favorilere ekle: ${product.name}`}
                 >
                   {favorites.has(product.id) ? (
                     <HeartSolidIcon className="h-5 w-5 text-rose-500" />
@@ -167,7 +167,8 @@ export function FeaturedProducts({ products }: FeaturedProductsProps) {
                 <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-all duration-300 flex items-center justify-center opacity-0 group-hover:opacity-100 pointer-events-none">
                   <Link
                     href={`/products/${product.slug}`}
-                    className="px-4 py-2 bg-white text-gray-900 text-sm font-medium rounded-md shadow-lg hover:bg-gray-50 transition-colors pointer-events-auto"
+                    className="px-4 py-2 bg_white text-gray-900 text-sm font-medium rounded-md shadow-lg hover:bg-gray-50 transition-colors pointer-events-auto"
+                    aria-label={`Ürün detaylarını gör: ${product.name}`}
                   >
                     Ürün detaylarını gör
                   </Link>
@@ -182,7 +183,7 @@ export function FeaturedProducts({ products }: FeaturedProductsProps) {
               </div>
 
               <div className="p-6">
-                <Link href={`/products/${product.slug}`}>
+                <Link href={`/products/${product.slug}`} aria-label={`Ürünü incele: ${product.name}`}>
                   <h3 className="text-lg font-bold text-gray-900 mb-2 hover:text-rose-600 transition-colors line-clamp-1">
                     {product.name}
                   </h3>
@@ -211,6 +212,7 @@ export function FeaturedProducts({ products }: FeaturedProductsProps) {
                   onClick={() => handleAddToCart(product.id)}
                   disabled={loadingStates.cart.has(product.id)}
                   className="w-full bg-gradient-to-r from-rose-500 to-pink-500 hover:from-rose-600 hover:to-pink-600 text-white px-4 py-3 rounded-xl font-medium transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed transform hover:scale-105 shadow-lg hover:shadow-xl"
+                  aria-label={`Sepete ekle: ${product.name}`}
                 >
                   {loadingStates.cart.has(product.id) ? (
                     <div className="flex items-center justify-center">
@@ -230,7 +232,7 @@ export function FeaturedProducts({ products }: FeaturedProductsProps) {
         </div>
 
         <div className="text-center mt-16">
-          <Link href="/products">
+          <Link href="/products" aria-label="Tüm ürünleri keşfet sayfasına git">
             <button className="bg-gradient-to-r from-rose-500 to-pink-500 hover:from-rose-600 hover:to-pink-600 text-white px-10 py-4 rounded-2xl font-bold text-lg transition-all duration-300 transform hover:scale-105 shadow-xl hover:shadow-2xl">
               <span className="flex items-center justify-center">
                 Tüm Ürünleri Keşfet

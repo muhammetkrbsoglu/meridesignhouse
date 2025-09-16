@@ -18,6 +18,8 @@ import {
 } from '@/lib/actions/products';
 import { fetchBundlesByCategory } from '@/lib/actions/bundles';
 import { addBundleToCart } from '@/lib/actions/cart';
+import Image from 'next/image';
+const BLUR_DATA_URL = 'data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///ywAAAAAAQABAAACAUwAOw=='
 
 interface CategoryChild {
   id: string;
@@ -250,8 +252,7 @@ export default async function CategoryPage({ params, searchParams }: CategoryPag
                                         <div className="flex flex-col items-center gap-3">
                                           <div className="w-40 h-40 rounded-lg overflow-hidden flex items-center justify-center">
                                             {it.product?.images?.[0]?.url ? (
-                                              // eslint-disable-next-line @next/next/no-img-element
-                                              <img src={it.product.images[0].url} alt={it.product?.name || ''} className="w-full h-full object-cover" />
+                                              <Image src={it.product.images[0].url} alt={it.product?.name || ''} width={160} height={160} className="w-full h-full object-cover" placeholder="blur" blurDataURL={BLUR_DATA_URL} />
                                             ) : (
                                               <div className="w-full h-full bg-gray-100" />
                                             )}

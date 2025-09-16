@@ -5,6 +5,8 @@ import { FavoriteItems } from '@/components/favorites/FavoriteItems';
 import { Breadcrumb } from '@/components/ui/Breadcrumb';
 import { getFavoriteItems } from '@/lib/actions/cart';
 
+export const dynamic = 'force-dynamic'
+
 export const metadata: Metadata = {
   title: 'Favorilerim | Meri Design House',
   description: 'Favori ürünlerinizi görüntüleyin ve yönetin.',

@@ -4,7 +4,7 @@ import { fetchBundleById } from '@/lib/actions/bundles'
 import { AdminGuard } from '@/components/auth/AuthGuard'
 import { AdminLayout } from '@/components/admin/AdminLayout'
 
-interface Props { params: { id: string } }
+interface Props { params: Promise<{ id: string }> }
 
 export default async function EditBundlePage({ params }: Props) {
   const { id } = await params

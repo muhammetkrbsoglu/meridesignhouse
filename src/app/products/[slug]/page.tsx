@@ -1,4 +1,6 @@
 import { Metadata } from 'next';
+export const revalidate = 60
+
 import { notFound } from 'next/navigation';
 import { CustomerLayout } from '@/components/layout/CustomerLayout';
 import { ProductDetail } from '@/components/products/ProductDetail';
@@ -28,7 +30,7 @@ export async function generateMetadata({ params }: ProductPageProps): Promise<Me
     openGraph: {
       title: product.name,
       description: product.description || `${product.name} - Meri Design House'da satışta`,
-      type: 'product',
+      type: 'website',
       images: product.product_images?.length > 0
         ? [{ url: product.product_images[0].url, width: 1200, height: 630, alt: product.name }]
         : [{ url: '/placeholder-product.jpg', width: 1200, height: 630, alt: 'Ürün görseli' }],

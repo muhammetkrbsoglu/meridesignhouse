@@ -18,7 +18,8 @@ const contactSchema = z.object({
   name: z.string().min(2, 'İsim en az 2 karakter olmalıdır'),
   email: z.string().email('Geçerli bir email adresi giriniz'),
   phone: z
-    .string({ required_error: 'Telefon numarası zorunludur' })
+    .string()
+    .min(1, 'Telefon numarası zorunludur')
     .min(10, 'Telefon numarası en az 10 haneli olmalıdır')
     .refine((val) => isValidTurkishPhone(val), 'Geçerli bir telefon numarası girin'),
   subject: z.string().min(5, 'Konu en az 5 karakter olmalıdır'),

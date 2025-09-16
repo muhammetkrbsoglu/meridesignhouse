@@ -21,10 +21,10 @@ export async function addToFavorites(productId: string) {
     // Check if item already exists in favorites
     const { data: existingItem, error: checkError } = await supabase
       .from('favorites')
-      .select('*')
+      .select('id')
       .eq('userId', user.id)
       .eq('productId', productId)
-      .single()
+      .maybeSingle()
     console.log('[favorites.add] existingItem', { existingItem, checkError })
 
     if (checkError && checkError.code !== 'PGRST116') {

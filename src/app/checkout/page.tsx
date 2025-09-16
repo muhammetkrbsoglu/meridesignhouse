@@ -491,6 +491,7 @@ export default function CheckoutPage() {
                           className="mt-1 w-full border rounded-md h-10 px-3"
                           value={selectedCityId}
                           onChange={(e) => onSelectCity(e.target.value)}
+                          aria-label="PTT şehir seçimi"
                         >
                           <option value="">Seçiniz</option>
                           {cities.map(c => (
@@ -501,10 +502,11 @@ export default function CheckoutPage() {
                       <div>
                         <Label>İlçe (PTT)</Label>
                         <select
-                          className="mt-1 w-full border rounded-md h-10 px-3"
+                          className="mt-1 w-full border rounded_md h-10 px-3"
                           value={selectedDistrictId}
                           onChange={(e) => onSelectDistrict(e.target.value)}
                           disabled={!selectedCityId}
+                          aria-label="PTT ilçe seçimi"
                         >
                           <option value="">Seçiniz</option>
                           {districts.map(d => (
@@ -522,6 +524,8 @@ export default function CheckoutPage() {
                             if (nb) onSelectNeighborhood(nb.postal_code, nb.name);
                           }}
                           disabled={!selectedDistrictId}
+                          aria-label="PTT mahalle ve posta kodu seçimi"
+                          aria-describedby="ptt-help"
                         >
                           <option value="">Seçiniz</option>
                           {neighborhoods.map(n => (

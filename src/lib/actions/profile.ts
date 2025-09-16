@@ -3,7 +3,6 @@
 import { getSupabaseAdmin } from '@/lib/supabase'
 import { createServerClient } from '@/lib/supabase'
 import { revalidatePath } from 'next/cache'
-import { redirect } from 'next/navigation'
 
 export interface UserProfile {
   id: string
@@ -30,7 +29,7 @@ export async function getUserProfile(userId: string): Promise<UserProfile | null
     
     const { data, error } = await supabase
       .from('users')
-      .select('*')
+      .select('id, email, name, phone, address, city, state, zip_code, country, birth_date, gender, preferences, newsletter_subscription, profile_image, createdAt, updatedAt')
       .eq('id', userId)
       .single()
 
@@ -67,7 +66,7 @@ export async function listUserAddresses(userId: string): Promise<UserAddress[]> 
   const supabase = getSupabaseAdmin()
   const { data, error } = await supabase
     .from('user_addresses')
-    .select('*')
+    .select('id, user_id, label, full_name, phone, address, city, state, postal_code, country, is_default_shipping, is_default_billing, created_at, updated_at')
     .eq('user_id', userId)
     .order('created_at', { ascending: false })
   if (error) {

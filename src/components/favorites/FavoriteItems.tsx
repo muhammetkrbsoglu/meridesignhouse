@@ -79,19 +79,18 @@ export function FavoriteItems({ items }: FavoriteItemsProps) {
           <div key={item.id} className="bg-white rounded-lg shadow-sm border hover:shadow-md transition-shadow">
             <div className="relative">
               {/* Product Image */}
-              <Link href={`/products/${item.product.slug}`}>
+              <Link href={`/products/${item.product.slug}`} aria-label={`Ürün sayfasına git: ${item.product.name}`}>
                 <div className="aspect-square bg-gray-100 rounded-t-lg overflow-hidden group">
                   {item.product.product_images && item.product.product_images.length > 0 ? (
-                    <img
+                    <Image
                       src={item.product.product_images[0].url}
                       alt={item.product.product_images[0].alt || item.product.name}
+                      width={800}
+                      height={800}
                       className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-                      onError={(e) => {
-                        e.currentTarget.style.display = 'none';
-                      }}
                     />
                   ) : (
-                    <div className="w-full h-full flex items-center justify-center">
+                    <div className="w-full h-full flex items-center justify-center" aria-hidden="true">
                       <svg className="w-16 h-16 text-gray-400" fill="currentColor" viewBox="0 0 20 20">
                         <path fillRule="evenodd" d="M4 3a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V5a2 2 0 00-2-2H4zm12 12H4l4-8 3 6 2-4 3 6z" clipRule="evenodd" />
                       </svg>
@@ -150,6 +149,7 @@ export function FavoriteItems({ items }: FavoriteItemsProps) {
                 <Link
                   href={`/products/${item.product.slug}`}
                   className="block w-full bg-gray-100 text-gray-700 py-2 px-4 rounded-md text-sm font-medium text-center hover:bg-gray-200 transition-colors"
+                  aria-label={`Ürünü incele: ${item.product.name}`}
                 >
                   Ürünü İncele
                 </Link>
@@ -157,7 +157,7 @@ export function FavoriteItems({ items }: FavoriteItemsProps) {
 
               {/* Added Date */}
               <p className="text-xs text-gray-500 mt-3">
-                Favorilere eklendi: {new Date(item.created_at).toLocaleDateString('tr-TR')}
+                Favorilere eklendi: {new Date(item.createdAt).toLocaleDateString('tr-TR')}
               </p>
             </div>
           </div>

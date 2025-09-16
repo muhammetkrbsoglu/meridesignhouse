@@ -9,7 +9,6 @@ import {
   ProductWithCategory, 
   SimpleProduct, 
   FeaturedProduct,
-  SupabaseProductResult,
   convertSupabaseToProductWithCategory,
   convertToSimpleProduct,
   convertToFeaturedProduct
@@ -118,7 +117,7 @@ export async function createProduct(prevState: State, formData: FormData): Promi
     const productId = randomUUID()
     const now = new Date().toISOString()
     
-    const { data: product, error: productError } = await supabase
+    const { data: _product, error: productError } = await supabase
       .from('products')
       .insert({
         id: productId,
@@ -497,7 +496,7 @@ export async function fetchCategories() {
     
     const { data: categories, error } = await supabase
       .from('categories')
-      .select('*')
+      .select('id, name, parentId')
       .eq('isActive', true)
       .order('name', { ascending: true })
 

@@ -8,7 +8,7 @@ import { createClient } from '@/lib/supabase'
 
 export default function AuthCallbackPage() {
   const router = useRouter()
-  const { user, loading } = useAuth()
+  const { user: _user, loading: _loading } = useAuth()
   const [status, setStatus] = useState<'loading' | 'success' | 'error'>('loading')
   const [errorMessage, setErrorMessage] = useState<string>('')
 

@@ -19,7 +19,7 @@ import {
 import { Switch } from '@/components/ui/switch'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
-import { GripVertical, X, Image as ImageIcon } from 'lucide-react'
+import { GripVertical, X } from 'lucide-react'
 
 import { createProduct, updateProduct } from '@/lib/actions/products'
 import { Alert, AlertDescription } from '@/components/ui/alert'
@@ -159,20 +159,9 @@ export function ProductForm({ categories, product, colors = [] }: ProductFormPro
     setValue('images', updatedImages)
   }
 
-  const handleImageReorder = (fromIndex: number, toIndex: number) => {
-    const updatedImages = [...uploadedImages]
-    const [movedImage] = updatedImages.splice(fromIndex, 1)
-    updatedImages.splice(toIndex, 0, movedImage)
-    
-    // Update sortOrder
-    const reorderedImages = updatedImages.map((img, index) => ({
-      ...img,
-      sortOrder: index
-    }))
-    
-    setUploadedImages(reorderedImages)
-    setValue('images', reorderedImages)
-  }
+  // Reordering UI henüz bağlı değil; kullanılmadığı için geçici olarak kaldırıldı
+  // const handleImageReorder = (fromIndex: number, toIndex: number) => {
+  // }
 
   const onSubmit = async (data: ProductFormData) => {
     setIsLoading(true)
@@ -257,7 +246,7 @@ export function ProductForm({ categories, product, colors = [] }: ProductFormPro
           <Label>Renkler</Label>
           {colors.length === 0 && (
             <div className="text-xs text-gray-500">
-              Henüz aktif renk yok. <a href="/admin/settings/colors" className="text-rose-600 hover:underline">Renk Yöneticisi</a>'nden renk ekleyebilirsiniz.
+              Henüz aktif renk yok. <a href="/admin/settings/colors" className="text-rose-600 hover:underline">Renk Yöneticisi</a>&rsquo;nden renk ekleyebilirsiniz.
             </div>
           )}
           <div className="flex flex-wrap gap-2">

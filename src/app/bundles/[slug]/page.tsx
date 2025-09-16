@@ -1,14 +1,19 @@
 import { notFound } from 'next/navigation'
 import type { Metadata } from 'next'
+export const revalidate = 120
+
 import { fetchBundleBySlug, fetchBundlesByCategory } from '@/lib/actions/bundles'
-import { addBundleToCart, addToCart } from '@/lib/actions/cart'
-import { fetchProductsFiltered, fetchFeaturedProducts, fetchNewArrivals } from '@/lib/actions/products'
+import { addToCart } from '@/lib/actions/cart'
+import { fetchFeaturedProducts, fetchNewArrivals } from '@/lib/actions/products'
 import Link from 'next/link'
 import { CustomerLayout } from '@/components/layout/CustomerLayout'
 import { ProductMiniCard } from '@/components/products/ProductMiniCard'
 import { AddBundleButton } from '@/components/bundles/AddBundleButton'
 import { BundleStructuredData } from '@/components/seo/BundleStructuredData'
 import { generateAltText } from '@/lib/seo/alt'
+import Image from 'next/image'
+
+const BLUR_DATA_URL = 'data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///ywAAAAAAQABAAACAUwAOw=='
 
 interface Props { params: Promise<{ slug: string }> }
 
@@ -16,9 +21,8 @@ export default async function BundleDetailPage({ params }: Props) {
   const { slug } = await params
   const bundle = await fetchBundleBySlug(slug)
   if (!bundle) return notFound()
-  const [similarBundles, complementaryProducts, featured, newArrivals] = await Promise.all([
+  const [similarBundles, featured, newArrivals] = await Promise.all([
     bundle.categoryId ? fetchBundlesByCategory(bundle.categoryId) : Promise.resolve([]),
-    Promise.resolve([] as any[]),
     fetchFeaturedProducts(6),
     fetchNewArrivals(6),
   ])
@@ -68,21 +72,18 @@ export default async function BundleDetailPage({ params }: Props) {
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                   <div className="md:col-span-2 aspect-[4/3] rounded-xl overflow-hidden shadow-lg bg-stone-100">
                     {a && (
-                      // eslint-disable-next-line @next/next/no-img-element
-                      <img src={a} alt={generateAltText({ prefix: 'Set görseli', fallback: 'Set görseli' })} className="w-full h-full object-contain md:object-cover" />
+                      <Image src={a} alt={generateAltText({ prefix: 'Set görseli', fallback: 'Set görseli' })} fill sizes="(min-width: 768px) 66vw, 100vw" className="object-contain md:object-cover" placeholder="blur" blurDataURL={BLUR_DATA_URL} priority />
                     )}
                   </div>
                   <div className="grid grid-rows-2 gap-4">
                     <div className="aspect-[4/3] rounded-xl overflow-hidden bg-stone-100">
                       {b1 && (
-                        // eslint-disable-next-line @next/next/no-img-element
-                        <img src={b1} alt={generateAltText({ prefix: 'Set görseli', fallback: 'Set görseli' })} className="w-full h-full object-contain md:object-cover" />
+                        <Image src={b1} alt={generateAltText({ prefix: 'Set görseli', fallback: 'Set görseli' })} fill sizes="(min-width: 768px) 33vw, 100vw" className="object-contain md:object-cover" placeholder="blur" blurDataURL={BLUR_DATA_URL} />
                       )}
                     </div>
                     <div className="aspect-[4/3] rounded-xl overflow-hidden bg-stone-100">
                       {c && (
-                        // eslint-disable-next-line @next/next/no-img-element
-                        <img src={c} alt={generateAltText({ prefix: 'Set görseli', fallback: 'Set görseli' })} className="w-full h-full object-contain md:object-cover" />
+                        <Image src={c} alt={generateAltText({ prefix: 'Set görseli', fallback: 'Set görseli' })} fill sizes="(min-width: 768px) 33vw, 100vw" className="object-contain md:object-cover" placeholder="blur" blurDataURL={BLUR_DATA_URL} />
                       )}
                     </div>
                   </div>
@@ -98,8 +99,7 @@ export default async function BundleDetailPage({ params }: Props) {
                   <div className="flex items-center gap-3 min-w-0">
                     <div className="w-14 h-14 sm:w-16 sm:h-16 rounded bg-gray-100 overflow-hidden">
                       {it.product?.images?.[0]?.url && (
-                        // eslint-disable-next-line @next/next/no-img-element
-                        <img src={it.product.images[0].url} alt={generateAltText({ name: it.product?.name, prefix: 'Ürün görseli' })} className="w-full h-full object-cover" />
+                        <Image src={it.product.images[0].url} alt={generateAltText({ name: it.product?.name, prefix: 'Ürün görseli' })} width={64} height={64} className="w-full h-full object-cover" placeholder="blur" blurDataURL={BLUR_DATA_URL} />
                       )}
                     </div>
                     <div className="min-w-0">
@@ -126,8 +126,7 @@ export default async function BundleDetailPage({ params }: Props) {
                   <div key={it.id} className="flex items-center gap-4 p-4 rounded-lg border border-stone-200 bg-white hover:border-rose-200 transition-colors">
                     <div className="w-16 h-16 rounded-lg overflow-hidden bg-stone-100">
                       {it.product?.images?.[0]?.url && (
-                        // eslint-disable-next-line @next/next/no-img-element
-                        <img src={it.product.images[0].url} alt={generateAltText({ name: it.product?.name, prefix: 'Ürün görseli' })} className="w-full h-full object-cover" />
+                        <Image src={it.product.images[0].url} alt={generateAltText({ name: it.product?.name, prefix: 'Ürün görseli' })} width={64} height={64} className="w-full h-full object-cover" placeholder="blur" blurDataURL={BLUR_DATA_URL} />
                       )}
                     </div>
                     <div className="min-w-0">
@@ -211,21 +210,20 @@ export default async function BundleDetailPage({ params }: Props) {
           <h2 className="text-2xl font-bold text-stone-900 mb-6">Benzer Setler</h2>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
             {(similarBundles || [])
-              .filter((b:any) => b.id !== bundle.id)
+              .filter((b) => b.id !== bundle.id)
               .slice(0,4)
-              .map((b:any) => (
+              .map((b) => (
                 <div key={b.id} className="bg-white rounded-lg shadow-md overflow-hidden border border-stone-200">
                   <Link href={`/bundles/${b.slug}`} className="block p-4">
                     <div className="flex items_center justify-center gap-6">
                       {(() => {
                         const items = (b.items || []).slice(0, 3)
-                        return items.map((it:any, idx:number) => (
+                        return items.map((it, idx: number) => (
                           <div key={it.id} className="flex items-center gap-6">
                             <div className="flex flex-col items-center gap-2">
                               <div className="w-28 h-28 rounded-lg overflow-hidden flex items-center justify-center bg-stone-100">
                                 {it.product?.images?.[0]?.url ? (
-                                  // eslint-disable-next-line @next/next/no-img-element
-                                  <img src={it.product.images[0].url} alt={generateAltText({ name: it.product?.name, prefix: 'Ürün görseli' })} className="w-full h-full object_cover" />
+                                  <Image src={it.product.images[0].url} alt={generateAltText({ name: it.product?.name, prefix: 'Ürün görseli' })} width={160} height={160} className="w-full h-full object_cover" placeholder="blur" blurDataURL={BLUR_DATA_URL} />
                                 ) : (
                                   <div className="w-full h-full bg-gray-100" />
                                 )}
@@ -255,24 +253,31 @@ export default async function BundleDetailPage({ params }: Props) {
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
             {(() => {
               // Kategoriden bağımsız: anasayfadaki öne çıkanlardan 2 + yeni gelenlerden 2
-              const excludeIds = new Set<string>((bundle.items || []).map((it:any) => it.productId))
+              const excludeIds = new Set<string>((bundle.items || []).map((it: { productId: string }) => it.productId))
               // Rastgele sırala, tekrarı engelle
-              const shuffle = (arr: any[]) => arr.map(v => ({ v, r: Math.random() }))
+              const shuffle = <T,>(arr: T[]) => arr.map(v => ({ v, r: Math.random() }))
                 .sort((a,b) => a.r - b.r).map(({ v }) => v)
-              const a = shuffle((featured || []).filter((p:any)=>!excludeIds.has(p.id))).slice(0,2)
-              const seen = new Set<string>(a.map((p:any)=>p.id))
-              const b = shuffle((newArrivals || []).filter((p:any)=>!excludeIds.has(p.id) && !seen.has(p.id))).slice(0,2)
+              const a = shuffle((featured || []).filter((p)=>!excludeIds.has(p.id))).slice(0,2)
+              const seen = new Set<string>(a.map((p)=>p.id))
+              const b = shuffle((newArrivals || []).filter((p)=>!excludeIds.has(p.id) && !seen.has(p.id))).slice(0,2)
               const items = [...a, ...b]
-              return items.map((p:any) => {
-                const img = p.imageUrl || (Array.isArray(p.images) ? p.images[0] : undefined)
+              return items.map((p) => {
+                const hasImageUrl = (obj: unknown): obj is { imageUrl: string } =>
+                  !!obj && typeof (obj as { imageUrl?: unknown }).imageUrl === 'string'
+                const hasImagesArray = (obj: unknown): obj is { images: string[] } =>
+                  !!obj && Array.isArray((obj as { images?: unknown }).images)
+                const img = hasImageUrl(p)
+                  ? p.imageUrl
+                  : hasImagesArray(p)
+                    ? p.images[0]
+                    : undefined
                 const priceNum = typeof p.price === 'number' ? p.price : Number(p.price)
                 return (
                 <div key={p.id} className="bg-white rounded-lg shadow-md overflow-hidden border border-stone-200">
                   <Link href={`/products/${p.slug}`} className="block">
                     <div className="relative h-40 bg-stone-100 overflow-hidden">
                       {img ? (
-                        // eslint-disable-next-line @next/next/no-img-element
-                        <img src={img} alt={generateAltText({ name: p.name, prefix: 'Ürün görseli' })} className="w-full h-full object-cover" />
+                        <Image src={img} alt={generateAltText({ name: p.name, prefix: 'Ürün görseli' })} fill sizes="(min-width: 1024px) 50vw, 100vw" className="object-cover" placeholder="blur" blurDataURL={BLUR_DATA_URL} />
                       ) : null}
                     </div>
                   </Link>

@@ -140,16 +140,17 @@ export function ProductGrid({ products }: ProductGridProps) {
         <div key={product.id} className="group relative bg-white rounded-lg border hover:shadow-lg transition-shadow duration-300">
           {/* Product Image */}
           <div className="aspect-[3/4] relative overflow-hidden rounded-t-lg">
-            <Link href={`/products/${product.slug}`}>
+            <Link href={`/products/${product.slug}`} aria-label={`Ürün sayfasına git: ${product.name}`}>
               {product.images.length > 0 ? (
                 <Image
                   src={product.images[0]?.url || '/placeholder-product.svg'}
                   alt={product.name}
                   fill
+                  sizes="(min-width: 1280px) 33vw, (min-width: 640px) 50vw, 100vw"
                   className="object-cover group-hover:scale-105 transition-transform duration-300"
                 />
               ) : (
-                <div className="w-full h-full bg-gray-200 flex items-center justify-center">
+                <div className="w-full h-full bg-gray-200 flex items-center justify-center" aria-hidden="true">
                   <span className="text-gray-400 text-sm">Resim Yok</span>
                 </div>
               )}
@@ -161,6 +162,7 @@ export function ProductGrid({ products }: ProductGridProps) {
               onClick={() => toggleFavorite(product.id)}
               disabled={loadingStates.favorites.has(product.id)}
               className="absolute top-3 right-3 z-10 p-2 bg-white rounded-full shadow-md hover:shadow-lg transition-shadow disabled:opacity-50"
+              aria-label={`${favorites.has(product.id) ? 'Favorilerden çıkar' : 'Favorilere ekle'}: ${product.name}`}
             >
               {favorites.has(product.id) ? (
                 <HeartSolidIcon className="h-5 w-5 text-red-500" />
@@ -176,12 +178,13 @@ export function ProductGrid({ products }: ProductGridProps) {
             <Link 
               href={`/categories/${product.category.slug}`}
               className="text-xs text-gray-700 font-medium hover:text-rose-600 transition-colors"
+              aria-label={`Kategoriye git: ${product.category.name}`}
             >
               Kategori: {product.category.name}
             </Link>
             
             {/* Product Name */}
-            <Link href={`/products/${product.slug}`}>
+            <Link href={`/products/${product.slug}`} aria-label={`Ürünü incele: ${product.name}`}>
               <h3 className="mt-0.5 text-sm font-medium text-gray-900 line-clamp-2 group-hover:text-rose-600 transition-colors">
                 {product.name}
               </h3>
@@ -205,6 +208,7 @@ export function ProductGrid({ products }: ProductGridProps) {
                 onClick={() => handleAddToCart(product.id)}
                 disabled={loadingStates.cart.has(product.id)}
                 className="flex items-center space-x-1 px-3 py-1.5 bg-rose-600 text-white text-xs font-medium rounded-md hover:bg-rose-700 transition-colors disabled:opacity-50"
+                aria-label={`Sepete ekle: ${product.name}`}
               >
                 <ShoppingCartIcon className="h-4 w-4" />
                 <span>{loadingStates.cart.has(product.id) ? 'Ekleniyor...' : 'Sepete Ekle'}</span>
@@ -217,6 +221,7 @@ export function ProductGrid({ products }: ProductGridProps) {
             <Link
               href={`/products/${product.slug}`}
               className="px-4 py-2 bg-white text-gray-900 text-sm font-medium rounded-md shadow-lg hover:bg-gray-50 transition-transform duration-300 pointer-events-auto"
+              aria-label={`Ürün detaylarını gör: ${product.name}`}
             >
               Ürün detaylarını gör
             </Link>

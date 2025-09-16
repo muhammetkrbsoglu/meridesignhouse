@@ -43,14 +43,14 @@ export function CartItems({ items }: CartItemsProps) {
       const result = await updateCartItemQuantity(itemId, newQuantity);
       
       if (result.success) {
-        toast({ intent: 'success', description: 'Miktar güncellendi' });
+        toast.success('Miktar güncellendi');
         setDraftQuantities(prev => ({ ...prev, [itemId]: String(newQuantity) }));
         window.dispatchEvent(new Event('cartUpdated'));
       } else {
-        toast({ intent: 'error', description: result.error || 'Bir hata oluştu' });
+        toast.error(result.error || 'Bir hata oluştu');
       }
     } catch (_) {
-      toast({ intent: 'error', description: 'Bir hata oluştu' });
+      toast.error('Bir hata oluştu');
     } finally {
       setLoadingItems(prev => {
         const newSet = new Set(prev);
@@ -67,13 +67,13 @@ export function CartItems({ items }: CartItemsProps) {
       const result = await removeFromCart(itemId);
       
       if (result.success) {
-        toast({ intent: 'success', description: 'Ürün sepetten çıkarıldı' });
+        toast.success('Ürün sepetten çıkarıldı');
         window.dispatchEvent(new Event('cartUpdated'));
       } else {
-        toast({ intent: 'error', description: result.error || 'Bir hata oluştu' });
+        toast.error(result.error || 'Bir hata oluştu');
       }
     } catch (_) {
-      toast({ intent: 'error', description: 'Bir hata oluştu' });
+      toast.error('Bir hata oluştu');
     } finally {
       setLoadingItems(prev => {
         const newSet = new Set(prev);

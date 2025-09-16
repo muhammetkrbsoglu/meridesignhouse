@@ -61,7 +61,7 @@ export function BundleForm({ defaultValues, bundleId }: BundleFormProps) {
   const [productOptions, setProductOptions] = useState<ProductOption[]>([])
 
   const form = useForm<BundleFormData>({
-    resolver: zodResolver(bundleSchema),
+    resolver: zodResolver(bundleSchema) as unknown as import('react-hook-form').Resolver<BundleFormData>,
     defaultValues: {
       name: '',
       description: '',
@@ -90,7 +90,7 @@ export function BundleForm({ defaultValues, bundleId }: BundleFormProps) {
         setThemeStyles(tss)
         setCategories(cats)
         setProductOptions(
-          prods.map((p: any) => ({
+          prods.map((p: { id: string | number; name: string; price: number | { toString(): string }; images?: Array<{ url: string }>; product_images?: Array<{ url: string }> }) => ({
             id: String(p.id),
             name: p.name,
             price: typeof p.price === 'object' ? parseFloat(p.price.toString()) : Number(p.price) || 0,
@@ -104,11 +104,11 @@ export function BundleForm({ defaultValues, bundleId }: BundleFormProps) {
     load()
   }, [])
 
-  const watchedItems = form.watch('items') || []
+  const watchedItems = (form.watch('items') || []) as NonNullable<BundleFormData['items']>
   const selectedCount = watchedItems.length
   const selectedTotal = useMemo(() => {
     const map = new Map(productOptions.map(p => [String(p.id), p]))
-    return watchedItems.reduce((acc: number, it: any) => {
+    return watchedItems.reduce((acc: number, it: NonNullable<BundleFormData['items']>[number]) => {
       const p = map.get(String(it.productId))
       const qty = Number(it.quantity) || 1
       return acc + (p ? p.price * qty : 0)
@@ -167,9 +167,11 @@ export function BundleForm({ defaultValues, bundleId }: BundleFormProps) {
     )
   }
 
+  const submitHandler = form.handleSubmit(onSubmit)
+
   return (
     <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+      <form onSubmit={submitHandler} className="space-y-6">
         <Card>
           <CardHeader>
             <CardTitle>Set Bilgileri</CardTitle>

@@ -162,7 +162,7 @@ export function WhatsAppTemplateSelector({
       return
     }
 
-    const phone = orderContext?.customerPhone || messageContext?.telefon
+    const phone = orderContext?.customerPhone || ''
     if (!phone) {
       toast({
         title: 'Hata',

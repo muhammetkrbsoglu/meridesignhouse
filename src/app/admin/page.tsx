@@ -1,7 +1,6 @@
 import { AdminGuard } from '@/components/auth/AuthGuard'
 import { AdminLayout } from '@/components/admin/AdminLayout'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import { Button } from '@/components/ui/button'
 import { getDashboardStats, getRecentActivity } from '@/lib/actions/dashboard'
 import { Suspense } from 'react'
 import { DashboardStats } from '@/components/admin/DashboardStats'

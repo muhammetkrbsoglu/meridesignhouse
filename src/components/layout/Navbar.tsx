@@ -7,9 +7,7 @@ import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { MagnifyingGlassIcon, UserIcon, Bars3Icon, XMarkIcon } from '@heroicons/react/24/outline'
 import { Sparkles, Heart, Star, ShoppingBag } from 'lucide-react'
-import { CartIcon } from '@/components/ui/CartIcon'
-import { FavoriteIcon } from '@/components/ui/FavoriteIcon'
-import MegaMenu from './MegaMenu'
+// Removed unused icons/components to satisfy ESLint unused rules
 import CategoryMegaMenu from './CategoryMegaMenu'
 import { SearchAutocomplete } from '@/components/ui/SearchAutocomplete'
 import { fetchAllMainCategoriesWithHierarchy } from '@/lib/actions/categories'
@@ -22,7 +20,7 @@ interface Category {
   slug: string
   description?: string
   image?: string
-  children: any[]
+  children: unknown[]
   level: number
 }
 
@@ -211,7 +209,7 @@ export function Navbar() {
 
       {/* Main Header */}
       <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex justify-between items-center h-16">
+        <div className="flex justify-between items-center h-16" role="navigation" aria-label="Üst gezinme">
           {/* Logo */}
           <motion.div 
             className="flex-shrink-0"
@@ -354,6 +352,8 @@ export function Navbar() {
               onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
               whileHover={{ scale: 1.1 }}
               whileTap={{ scale: 0.95 }}
+              aria-label={isMobileMenuOpen ? 'Mobil menüyü kapat' : 'Mobil menüyü aç'}
+              type="button"
             >
               {isMobileMenuOpen ? (
                 <XMarkIcon className="h-5 w-5" />

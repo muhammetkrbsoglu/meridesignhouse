@@ -15,6 +15,7 @@ import {
   DropdownMenuTrigger 
 } from '@/components/ui/dropdown-menu'
 import { MoreHorizontal, Edit, Trash2, Eye, EyeOff } from 'lucide-react'
+import Image from 'next/image'
 
 interface WhatsAppMessagesTableProps {
   messages: WhatsAppMessage[]
@@ -139,9 +140,11 @@ export function WhatsAppMessagesTable({ messages }: WhatsAppMessagesTableProps) 
                 </div>
               </td>
               <td className="px-6 py-4 whitespace-nowrap">
-                <img 
+                <Image 
                   src={message.screenshot_url} 
                   alt={message.alt_text}
+                  width={64}
+                  height={64}
                   className="w-16 h-16 object-cover rounded-lg border"
                 />
               </td>

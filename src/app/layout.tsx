@@ -21,6 +21,7 @@ const isStaging = process.env.NEXT_PUBLIC_ENV === 'staging' || process.env.VERCE
 export const metadata: Metadata = {
   title: 'Meri Design House - E-Ticaret',
   description: 'Meri Design House e-ticaret sitesi',
+  metadataBase: new URL('https://meridesignhouse.com'),
   robots: isStaging
     ? { index: false, follow: true }
     : { index: true, follow: true },
@@ -43,6 +44,11 @@ export default function RootLayout({
 }) {
   return (
     <html lang="tr">
+      <head>
+        <link rel="preconnect" href="https://ik.imagekit.io" crossOrigin="anonymous" />
+        <link rel="preconnect" href="https://images.unsplash.com" crossOrigin="anonymous" />
+        <link rel="preconnect" href="https://lh3.googleusercontent.com" crossOrigin="anonymous" />
+      </head>
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >

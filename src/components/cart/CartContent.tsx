@@ -16,6 +16,8 @@ import { CartSkeleton } from './CartSkeleton'
 import Image from 'next/image'
 import { useRouter } from 'next/navigation'
 
+const BLUR_DATA_URL = 'data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///ywAAAAAAQABAAACAUwAOw=='
+
 export function CartContent() {
   const router = useRouter()
   const [cartItems, setCartItems] = useState<CartItem[]>([])
@@ -284,7 +286,7 @@ export function CartContent() {
                           <div key={it.id} className="flex items-center gap-3 border rounded-lg px-3 py-2">
                             <div className="w-16 h-16 rounded-md bg-gray-100 overflow-hidden">
                               {it.product?.product_images?.[0]?.url && (
-                                <img src={it.product.product_images[0].url} alt={it.product?.name || ''} className="w-full h-full object-cover" />
+                                <Image src={it.product.product_images[0].url} alt={it.product?.name || ''} width={64} height={64} className="w-full h-full object-cover" placeholder="blur" blurDataURL={BLUR_DATA_URL} />
                               )}
                             </div>
                             <div className="min-w-0">
@@ -368,12 +370,15 @@ export function CartContent() {
                   <div className="flex-shrink-0">
                     <div className="w-20 h-20 bg-gray-100 rounded-lg flex items-center justify-center overflow-hidden">
                       {item.product.product_images && item.product.product_images.length > 0 ? (
-                        <img
+                        <Image
                           src={item.product.product_images[0].url}
                           alt={item.product.product_images[0].alt || item.product.name}
+                          width={80}
+                          height={80}
                           className="w-full h-full object-cover"
+                          placeholder="blur" blurDataURL={BLUR_DATA_URL}
                           onError={(e) => {
-                            e.currentTarget.style.display = 'none';
+                            (e.currentTarget as HTMLImageElement).style.display = 'none';
                           }}
                         />
                       ) : (

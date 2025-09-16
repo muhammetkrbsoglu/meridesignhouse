@@ -1,8 +1,8 @@
 'use client';
 
-import { useState } from 'react';
+// Removed unused useState
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
+// Removed unused router
 import {
   UserIcon,
   EnvelopeIcon,
@@ -18,22 +18,15 @@ import { User } from '@/lib/actions/users';
 import { formatDate } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
+// Removed unused select components
 // Alert dialog components not available
-import { toast } from 'sonner';
+// Removed unused toast import
 
 interface UserDetailProps {
   user: User;
 }
 
 export function UserDetail({ user }: UserDetailProps) {
-  const router = useRouter();
   // Rol yönetimi devre dışı bırakıldı
 
   const getRoleBadge = (userRole: string) => {
@@ -167,7 +160,7 @@ export function UserDetail({ user }: UserDetailProps) {
                 <div>
                   <p className="text-sm font-medium text-gray-700">Kayıt Tarihi</p>
                   <p className="text-sm text-gray-600">
-                    {formatDate(user.created_at)}
+                    {formatDate(user.createdAt)}
                   </p>
                 </div>
               </div>
@@ -177,7 +170,7 @@ export function UserDetail({ user }: UserDetailProps) {
                 <div>
                   <p className="text-sm font-medium text-gray-700">Son Güncelleme</p>
                   <p className="text-sm text-gray-600">
-                    {formatDate(user.updated_at)}
+                    {formatDate(user.updatedAt)}
                   </p>
                 </div>
               </div>

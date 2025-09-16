@@ -45,7 +45,7 @@ export async function fetchUsers({
 
     let query = supabase
       .from('users')
-      .select('*', { count: 'exact' })
+      .select('id, email, full_name, phone, address, city, postal_code, country, role, createdAt, updatedAt, last_sign_in_at', { count: 'exact' })
       .order('createdAt', { ascending: false });
 
     // Apply search filter
@@ -87,7 +87,7 @@ export async function fetchUserById(id: string): Promise<User | null> {
     
     const { data, error } = await supabase
       .from('users')
-      .select('*')
+      .select('id, email, full_name, phone, address, city, postal_code, country, role, createdAt, updatedAt, last_sign_in_at')
       .eq('id', id)
       .single();
 
@@ -142,18 +142,18 @@ export async function getUserStats() {
       // Total users count
       supabase
         .from('users')
-        .select('*', { count: 'exact', head: true }),
+        .select('id', { count: 'exact', head: true }),
       
       // Admin users count
       supabase
         .from('users')
-        .select('*', { count: 'exact', head: true })
+        .select('id', { count: 'exact', head: true })
         .eq('role', 'admin'),
       
       // Recent users (last 30 days)
       supabase
         .from('users')
-        .select('*', { count: 'exact', head: true })
+        .select('id', { count: 'exact', head: true })
         .gte('createdAt', new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString()),
     ]);
 

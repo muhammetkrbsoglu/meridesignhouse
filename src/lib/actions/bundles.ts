@@ -460,12 +460,30 @@ export async function deleteBundle(id: string): Promise<{ success: true } | { su
 
 export async function fetchBundleById(id: string): Promise<Bundle | null> {
   const supabase = getSupabaseAdmin() as any
-  const { data: bData, error } = await supabase.from('bundles').select('*').eq('id', id).maybeSingle()
+  const { data: bData, error } = await supabase
+    .from('bundles')
+    .select(`
+      id,
+      name,
+      slug,
+      description,
+      image,
+      eventtypeid,
+      themestyleid,
+      categoryid,
+      bundleprice,
+      isactive,
+      sortorder,
+      createdat,
+      updatedat
+    `)
+    .eq('id', id)
+    .maybeSingle()
   if (error || !bData) return null
 
   const { data: items, error: itemsError } = await supabase
     .from('bundle_items')
-    .select('*')
+    .select('id, bundleid, productid, quantity, sortorder')
     .eq('bundleid', id)
     .order('sortorder', { ascending: true })
   if (itemsError) return null
@@ -532,7 +550,21 @@ export interface FetchBundlesOptions {
 
 export async function fetchBundles(options: FetchBundlesOptions = {}): Promise<Bundle[]> {
   const supabase = getSupabaseAdmin() as any
-  let query = supabase.from('bundles').select('*')
+  let query = supabase.from('bundles').select(`
+    id,
+    name,
+    slug,
+    description,
+    image,
+    eventtypeid,
+    themestyleid,
+    categoryid,
+    bundleprice,
+    isactive,
+    sortorder,
+    createdat,
+    updatedat
+  `)
   if (options.activeOnly) query = query.eq('isactive', true)
   if (options.eventTypeId) query = query.eq('eventtypeid', options.eventTypeId)
   if (options.themeStyleId) query = query.eq('themestyleid', options.themeStyleId)
@@ -542,7 +574,7 @@ export async function fetchBundles(options: FetchBundlesOptions = {}): Promise<B
   const bundleIds = (bundles || []).map((b: any) => b.id)
   const { data: items } = await supabase
     .from('bundle_items')
-    .select('*')
+    .select('id, bundleid, productid, quantity, sortorder')
     .in('bundleid', bundleIds)
     .order('sortorder', { ascending: true })
 

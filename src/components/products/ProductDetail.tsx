@@ -5,7 +5,7 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { HeartIcon, ShoppingCartIcon, ShareIcon } from '@heroicons/react/24/outline';
 import { HeartIcon as HeartSolidIcon } from '@heroicons/react/24/solid';
-import { ProductWithCategory, ProductImage } from '@/types/product';
+import { ProductWithCategory } from '@/types/product';
 import { addToCart, addToFavorites, removeFromFavorites, isProductInFavorites } from '@/lib/actions/cart';
 import { formatCurrency } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
@@ -134,14 +134,14 @@ export function ProductDetail({ product }: ProductDetailProps) {
           {product.product_images && product.product_images.length > 1 && (
             <>
               <button
-                onClick={() => setSelectedImageIndex((prev) => (prev - 1 + product.product_images.length) % product.product_images.length)}
+                onClick={() => setSelectedImageIndex((prev) => (prev - 1 + (product.product_images?.length || 0)) % (product.product_images?.length || 1))}
                 className={`absolute left-3 top-1/2 -translate-y-1/2 h-10 w-10 rounded-full bg-black/40 text-white flex items-center justify-center transition-all duration-300 ${isHover ? 'opacity-100 translate-x-0' : 'opacity-0 -translate-x-2'}`}
                 aria-label="Önceki görsel"
               >
                 ‹
               </button>
               <button
-                onClick={() => setSelectedImageIndex((prev) => (prev + 1) % product.product_images.length)}
+                onClick={() => setSelectedImageIndex((prev) => (prev + 1) % (product.product_images?.length || 1))}
                 className={`absolute right-3 top-1/2 -translate-y-1/2 h-10 w-10 rounded-full bg-black/40 text-white flex items-center justify-center transition-all duration-300 ${isHover ? 'opacity-100 translate-x-0' : 'opacity-0 translate-x-2'}`}
                 aria-label="Sonraki görsel"
               >
@@ -154,9 +154,10 @@ export function ProductDetail({ product }: ProductDetailProps) {
         {/* Image Thumbnails */}
         {product.product_images && product.product_images.length > 1 && (
           <div className="grid grid-cols-4 gap-2">
-            {product.product_images
+            {((product.product_images as Array<{ id?: string; url: string; alt?: string; sortOrder?: number }>) ?? [])
+              .slice()
               .sort((a, b) => (a.sortOrder || 0) - (b.sortOrder || 0))
-              .map((image: any, index: number) => (
+              .map((image, index: number) => (
               <button
                 key={image.id || index}
                 onClick={() => setSelectedImageIndex(index)}

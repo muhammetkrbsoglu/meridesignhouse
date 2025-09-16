@@ -98,7 +98,7 @@ async function importPTTData() {
         }
       });
 
-      for (const [ilceName, ilceData] of ilData.ilceler) {
+      for (const [_ilceName, ilceData] of ilData.ilceler) {
         // İlçe oluştur
         const ilce = await prisma.ilce.create({
           data: {

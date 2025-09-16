@@ -16,10 +16,10 @@ export const metadata = {
 }
 
 interface PageProps {
-  searchParams?: {
+  searchParams?: Promise<{
     query?: string
     page?: string
-  }
+  }>
 }
 
 export default async function CategoriesPage({ searchParams }: PageProps) {

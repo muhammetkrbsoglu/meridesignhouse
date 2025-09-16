@@ -11,9 +11,9 @@ import { Label } from '@/components/ui/label';
 import { getOrderById, cancelOrder, type Order } from '@/lib/actions/orders';
 import { supabase } from '@/lib/supabase-browser';
 import { 
-  Loader2, Package, Truck, CheckCircle, Clock, XCircle, ArrowLeft, Copy, Check, X, 
+  Loader2, Package, Truck, CheckCircle, Clock, XCircle, ArrowLeft, Copy, Check, 
   MapPin, CreditCard, Phone, Calendar, User, ShoppingBag, 
-  TrendingUp, MessageCircle, Download, AlertCircle
+  TrendingUp, MessageCircle
 } from 'lucide-react';
 import Link from 'next/link';
 import Image from 'next/image';
@@ -98,7 +98,7 @@ export default function OrderDetailPage() {
   
   const [order, setOrder] = useState<Order | null>(null);
   const [loading, setLoading] = useState(true);
-  const [cancelling, setCancelling] = useState(false);
+  const [_cancelling, setCancelling] = useState(false);
   const [copied, setCopied] = useState(false);
 
   const loadOrder = useCallback(async () => {
@@ -177,7 +177,7 @@ export default function OrderDetailPage() {
     }
   }, [isSuccess, order?.orderNumber, orderNumberFromQuery]);
 
-  const handleCancelOrder = async () => {
+  const _handleCancelOrder = async () => {
     setCancelling(true);
     try {
       const result = await cancelOrder(orderId);
@@ -242,18 +242,6 @@ export default function OrderDetailPage() {
   const status = statusConfig[order.status];
   const paymentStatus = paymentStatusConfig[order.paymentStatus || 'PENDING'];
   const StatusIcon = status.icon;
-  const buildSupportMessage = (reason: string) => {
-    const lines = [
-      'Merhaba, siparişim hakkında destek istiyorum.',
-      `Konu: ${reason}`,
-      `Sipariş No: ${order.orderNumber}`,
-      `Tarih: ${format(new Date(order.createdAt), 'dd MMMM yyyy, HH:mm', { locale: tr })}`,
-      `Toplam: ₺${order.totalAmount?.toLocaleString('tr-TR') || '0'}`,
-      `Müşteri Adı: ${order.customerName || '-'}`,
-      `Müşteri Telefon: ${order.customerPhone || '-'}`,
-    ];
-    return lines.join('\n');
-  };
 
   return (
     <CustomerLayout>
@@ -337,7 +325,7 @@ export default function OrderDetailPage() {
                 </CardHeader>
                 <CardContent className="p-6">
                   <div className="space-y-6">
-                    {order.items.map((item, index) => (
+                    {order.items.map((item) => (
                       <div key={item.id} className="flex items-center space-x-4 p-4 bg-gray-50 rounded-xl hover:bg-gray-100 transition-colors">
                         <div className="relative w-20 h-20 bg-white rounded-xl overflow-hidden shadow-sm border border-gray-200">
                           {item.product.product_images && item.product.product_images.length > 0 ? (

@@ -38,7 +38,7 @@ export default async function EditProductPage({ params }: PageProps) {
             <h1 className="text-2xl font-bold">Ürün Düzenle</h1>
           </div>
           <div className="mt-4 md:mt-8">
-            <ProductForm categories={categories} product={product} colors={colors} />
+            <ProductForm categories={categories} product={product as unknown as Parameters<typeof ProductForm>[0]['product']} colors={colors} />
           </div>
         </div>
       </AdminLayout>

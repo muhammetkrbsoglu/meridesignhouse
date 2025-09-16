@@ -23,13 +23,13 @@ async function uploadDesignStudioImage() {
       'design-studio'
     )
     
-    if (result.success) {
+    if (result.success && result.data) {
       console.log('✅ Görsel başarıyla yüklendi!')
       console.log('📁 Dosya ID:', result.data.fileId)
       console.log('🔗 URL:', result.data.url)
-      console.log('📂 Klasör:', result.data.folderPath)
+      console.log('📂 Yol:', (result.data as any).filePath)
     } else {
-      console.error('❌ Yükleme hatası:', result.error)
+      console.error('❌ Yükleme hatası:', result.error || 'Bilinmeyen hata')
     }
     
   } catch (error) {

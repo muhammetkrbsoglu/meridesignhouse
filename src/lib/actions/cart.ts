@@ -88,7 +88,7 @@ export async function addToCart(productId: string, quantity: number = 1) {
     // Check if item already exists in cart
     const { data: existingItems, error: checkError } = await supabase
       .from('cart_items')
-      .select('*')
+      .select('id, quantity')
       .eq('userId', user.id)
       .eq('productId', productId);
     console.log('[cart.addToCart] existingItems', { existingItems, checkError });
@@ -162,10 +162,10 @@ export async function addManyToCart(items: { productId: string; quantity: number
     for (const { productId, quantity } of items) {
       const { data: existingItem, error: checkError } = await supabase
         .from('cart_items')
-        .select('*')
+        .select('id, quantity')
         .eq('userId', user.id)
         .eq('productId', productId)
-        .single();
+        .maybeSingle();
 
       if (checkError && checkError.code !== 'PGRST116') {
         console.error('[cart.addManyToCart] check error', checkError);
@@ -245,7 +245,7 @@ export async function addBundleToCart(bundleId: string) {
     // If bundle already in cart, just increase quantity
     const { data: existing, error: existingErr } = await supabase
       .from('cart_bundles')
-      .select('*')
+      .select('id, quantity')
       .eq('userid', user.id)
       .eq('bundleid', bundleId)
       .maybeSingle()
@@ -306,7 +306,7 @@ export async function getCartBundles(): Promise<CartBundleLine[]> {
     const supabase = getSupabaseAdmin();
     const { data: bundles, error } = await supabase
       .from('cart_bundles')
-      .select('*')
+      .select('id, userid, bundleid, quantity, price, createdat, updatedat')
       .eq('userid', user.id)
       .order('createdat', { ascending: false })
 
@@ -321,7 +321,7 @@ export async function getCartBundles(): Promise<CartBundleLine[]> {
       ids.length
         ? supabase
             .from('cart_bundle_items')
-            .select('*')
+            .select('id, cartbundleid, productid, quantity')
             .in('cartbundleid', ids)
         : Promise.resolve({ data: [] as any[] } as any),
       bundleIds.length
@@ -536,7 +536,12 @@ export async function getCartItems(): Promise<CartItem[]> {
     const { data, error } = await supabase
       .from('cart_items')
       .select(`
-        *,
+        id,
+        userId,
+        productId,
+        quantity,
+        createdAt,
+        updatedAt,
         product:products (
           id,
           name,
@@ -583,7 +588,7 @@ export async function getCartCount(): Promise<number> {
     const [itemsRes, bundlesRes] = await Promise.all([
       supabase
         .from('cart_items')
-        .select('*', { count: 'exact', head: true })
+        .select('id', { count: 'exact', head: true })
         .eq('userId', user.id),
       supabase
         .from('cart_bundles')

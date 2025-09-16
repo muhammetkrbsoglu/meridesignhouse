@@ -87,7 +87,7 @@ export const getDashboardStats = unstable_cache(
     ).length
     const totalRevenue = ordersData
       .filter(o => o.status === 'DELIVERED')
-      .reduce((sum, o) => sum + o.totalAmount, 0)
+      .reduce((sum, o) => sum + Number(o.totalAmount), 0)
 
     // Messages
     const totalMessages = messagesStats.length
@@ -185,7 +185,7 @@ export const getRecentActivity = unstable_cache(
         })
       ])
 
-      const activities = []
+      const activities: Array<{ id: string; type: string; title: string; description: string; amount?: number; status?: string; time: Date; href: string }> = []
 
       // Sipariş aktiviteleri
       recentOrders.forEach(order => {
@@ -194,7 +194,7 @@ export const getRecentActivity = unstable_cache(
           type: 'order',
           title: 'Yeni Sipariş',
           description: `${order.customerName} - ${order.orderNumber}`,
-          amount: order.totalAmount,
+          amount: Number(order.totalAmount),
           status: order.status,
           time: order.createdAt,
           href: `/admin/orders/${order.id}`

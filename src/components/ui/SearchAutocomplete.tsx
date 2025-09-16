@@ -30,6 +30,7 @@ export function SearchAutocomplete({
   const debouncedQuery = useDebounce(query, 300)
   const searchRef = useRef<HTMLDivElement>(null)
   const inputRef = useRef<HTMLInputElement>(null)
+  const listboxId = 'search-suggestions'
 
   // Load recent searches from localStorage
   useEffect(() => {
@@ -133,7 +134,10 @@ export function SearchAutocomplete({
   return (
     <div ref={searchRef} className={`relative ${className}`}>
       <div className="relative">
+        {/* Visible label for accessibility but visually hidden */}
+        <label htmlFor="site-search" className="sr-only">Site içi arama</label>
         <input
+          id="site-search"
           ref={inputRef}
           type="text"
           value={query}
@@ -141,6 +145,10 @@ export function SearchAutocomplete({
           onFocus={() => setIsOpen(true)}
           onKeyDown={handleKeyDown}
           placeholder={placeholder}
+          aria-label="Site içi arama"
+          aria-expanded={showDropdown}
+          aria-haspopup="listbox"
+          aria-controls={showDropdown ? listboxId : undefined}
           className="w-full pl-4 pr-10 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
         />
         
@@ -153,6 +161,8 @@ export function SearchAutocomplete({
                 inputRef.current?.focus()
               }}
               className="p-1 hover:bg-gray-100 rounded-full transition-colors"
+              type="button"
+              aria-label="Arama metnini temizle"
             >
               <XMarkIcon className="h-4 w-4 text-gray-400" />
             </button>
@@ -160,6 +170,8 @@ export function SearchAutocomplete({
           <button
             onClick={() => handleSearch(query)}
             className="p-1 hover:bg-gray-100 rounded-full transition-colors"
+            type="button"
+            aria-label="Ara"
           >
             <MagnifyingGlassIcon className="h-5 w-5 text-gray-400" />
           </button>
@@ -168,11 +180,17 @@ export function SearchAutocomplete({
 
       {/* Dropdown */}
       {showDropdown && (
-        <div className="absolute top-full left-0 right-0 mt-1 bg-white border border-gray-200 rounded-lg shadow-lg z-[100000000] max-h-96 overflow-y-auto">
+        <div
+          id={listboxId}
+          role="listbox"
+          aria-label="Arama önerileri"
+          className="absolute top-full left-0 right-0 mt-1 bg-white border border-gray-200 rounded-lg shadow-lg z-[100000000] max-h-96 overflow-y-auto"
+        >
           {/* Loading */}
           {isLoading && (
-            <div className="p-4 text-center text-gray-500">
-              <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-500 mx-auto"></div>
+            <div className="p-4 text-center text-gray-500" aria-live="polite">
+              <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-500 mx-auto" aria-hidden="true"></div>
+              <span className="sr-only">Yükleniyor</span>
             </div>
           )}
 
@@ -187,9 +205,12 @@ export function SearchAutocomplete({
                   key={`${suggestion.type}-${suggestion.id}`}
                   onClick={() => handleSuggestionClick(suggestion)}
                   className="w-full px-4 py-3 text-left hover:bg-gray-50 flex items-center space-x-3 transition-colors"
+                  role="option"
+                  aria-selected="false"
+                  aria-label={`${suggestion.name} - ${suggestion.type === 'product' ? 'Ürün' : suggestion.type === 'category' ? 'Kategori' : 'Set'}`}
                 >
                   {suggestion.image && (
-                    <div className="flex-shrink-0 w-10 h-10 bg-gray-100 rounded-md overflow-hidden">
+                    <div className="flex-shrink-0 w-10 h-10 bg-gray-100 rounded-md overflow-hidden" aria-hidden="true">
                       <Image
                         src={suggestion.image}
                         alt={suggestion.name}
@@ -235,6 +256,8 @@ export function SearchAutocomplete({
                 <button
                   onClick={clearRecentSearches}
                   className="text-xs text-blue-600 hover:text-blue-800"
+                  type="button"
+                  aria-label="Son aramaları temizle"
                 >
                   Temizle
                 </button>
@@ -244,8 +267,11 @@ export function SearchAutocomplete({
                   key={index}
                   onClick={() => handleRecentSearchClick(search)}
                   className="w-full px-4 py-2 text-left hover:bg-gray-50 flex items-center space-x-3 transition-colors"
+                  role="option"
+                  aria-selected="false"
+                  aria-label={`Son arama: ${search}`}
                 >
-                  <ClockIcon className="h-4 w-4 text-gray-400 flex-shrink-0" />
+                  <ClockIcon className="h-4 w-4 text-gray-400 flex-shrink-0" aria-hidden="true" />
                   <span className="text-sm text-gray-700">{search}</span>
                 </button>
               ))}
@@ -263,8 +289,11 @@ export function SearchAutocomplete({
                   key={index}
                   onClick={() => handleRecentSearchClick(search)}
                   className="w-full px-4 py-2 text-left hover:bg-gray-50 flex items-center space-x-3 transition-colors"
+                  role="option"
+                  aria-selected="false"
+                  aria-label={`Popüler arama: ${search}`}
                 >
-                  <MagnifyingGlassIcon className="h-4 w-4 text-gray-400 flex-shrink-0" />
+                  <MagnifyingGlassIcon className="h-4 w-4 text-gray-400 flex-shrink-0" aria-hidden="true" />
                   <span className="text-sm text-gray-700">{search}</span>
                 </button>
               ))}
@@ -273,8 +302,8 @@ export function SearchAutocomplete({
 
           {/* No Results */}
           {!isLoading && query.length >= 2 && suggestions.length === 0 && (
-            <div className="px-4 py-8 text-center text-gray-500">
-              <MagnifyingGlassIcon className="h-8 w-8 mx-auto mb-2 text-gray-300" />
+            <div className="px-4 py-8 text-center text-gray-500" aria-live="polite">
+              <MagnifyingGlassIcon className="h-8 w-8 mx-auto mb-2 text-gray-300" aria-hidden="true" />
               <p className="text-sm">&quot;<span className="font-medium">{query}</span>&quot; için sonuç bulunamadı</p>
               <p className="text-xs mt-1">Farklı anahtar kelimeler deneyebilirsiniz</p>
             </div>

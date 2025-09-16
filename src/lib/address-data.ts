@@ -125,7 +125,8 @@ export class AddressDataManager {
   // Veri güncelle
   async updateData(): Promise<void> {
     console.log('🔄 Adres verileri güncelleniyor...');
-    await this.runScraping();
+    // Scraper kaldırıldı. Şimdilik sadece veriyi yeniden yükle.
+    await this.loadData();
   }
 }
 

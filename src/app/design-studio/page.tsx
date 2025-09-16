@@ -1,6 +1,5 @@
 import { CustomerLayout } from '@/components/layout/CustomerLayout'
 import Image from 'next/image'
-import { getPresetImageUrl } from '@/lib/imagekit'
 
 export default function DesignStudioComingSoon() {
   return (

@@ -3,8 +3,8 @@
 import { revalidatePath } from 'next/cache'
 import { z } from 'zod'
 import { prisma } from '../prisma'
-import { getSupabaseAdmin, createServerClient, createAnonClient } from '@/lib/supabase'
-import { MessageType, MessageStatus } from '@prisma/client'
+import { createServerClient, createAnonClient } from '@/lib/supabase'
+import { MessageStatus } from '@prisma/client'
 import { sendContactFormResponse } from '../whatsapp'
 import { formatPhoneForWhatsApp, isValidTurkishPhone } from '../whatsapp-utils'
 
@@ -13,7 +13,8 @@ const contactSchema = z.object({
   name: z.string().min(2, 'İsim en az 2 karakter olmalıdır'),
   email: z.string().email('Geçerli bir email adresi giriniz'),
   phone: z
-    .string({ required_error: 'Telefon numarası zorunludur' })
+    .string()
+    .min(1, 'Telefon numarası zorunludur')
     .min(10, 'Telefon numarası en az 10 haneli olmalıdır')
     .refine((val) => isValidTurkishPhone(val), 'Geçerli bir telefon numarası girin'),
   subject: z.string().min(5, 'Konu en az 5 karakter olmalıdır'),
@@ -39,7 +40,7 @@ export async function createContactMessage(data: ContactFormData) {
         userId = auth.user.id
         client = serverClient // Use server client if authenticated
       }
-    } catch (authError) {
+    } catch {
       // If auth fails, continue with anon client
       console.log('No authenticated user, using anon client')
     }

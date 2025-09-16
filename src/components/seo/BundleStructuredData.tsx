@@ -15,7 +15,7 @@ type BundleData = {
   description?: string | null
   sku?: string | null
   slug?: string
-  bundlePrice?: number
+  bundlePrice?: number | null
   items?: BundleItem[]
 }
 

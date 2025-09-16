@@ -237,7 +237,7 @@ export function OrdersTable({ orders }: OrdersTableProps) {
                     )}
 
                     {/* Delete order */}
-                    <form action={deleteOrderAction} onSubmit={(e) => {
+                    <form action={deleteOrderAction} onSubmit={(e: React.FormEvent<HTMLFormElement>) => {
                       if (!confirm('Bu siparişi silmek istediğinize emin misiniz? İşlem geri alınamaz.')) {
                         e.preventDefault();
                       }

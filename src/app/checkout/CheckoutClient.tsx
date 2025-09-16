@@ -8,15 +8,12 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
-import { Badge } from '@/components/ui/badge';
-import { Checkbox } from '@/components/ui/checkbox';
 import { createOrderFromCart } from '@/lib/actions/orders';
 import { getCartItems, getFavoriteItems, addToCart } from '@/lib/actions/cart';
 import { listUserAddresses } from '@/lib/actions/profile';
 import { supabase } from '@/lib/supabase-browser';
-import { Loader2, Truck, ArrowLeft, Copy, Check, Clock, Shield, Phone, Heart, Info, ShoppingCart } from 'lucide-react';
+import { Loader2, ArrowLeft, ShoppingCart } from 'lucide-react';
 import Link from 'next/link';
-import Image from 'next/image';
 import { toast } from 'sonner';
 
 interface CheckoutClientProps {
@@ -64,11 +61,11 @@ export default function CheckoutClient({ initialAddresses }: CheckoutClientProps
   const [cartItems, setCartItems] = useState<CartItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
-  const [addresses, setAddresses] = useState<any[]>(initialAddresses || []);
-  const [favoriteItems, setFavoriteItems] = useState<any[]>([]);
+  const [_addresses, setAddresses] = useState<any[]>(initialAddresses || []);
+  const [_favoriteItems, setFavoriteItems] = useState<any[]>([]);
   const [showSuccessModal, setShowSuccessModal] = useState(false);
   const [orderNumber, setOrderNumber] = useState('');
-  const [copied, setCopied] = useState(false);
+  // removed copied state as it's not used
 
   const [formData, setFormData] = useState<CheckoutFormData>({
     shippingFullName: '',
@@ -90,6 +87,7 @@ export default function CheckoutClient({ initialAddresses }: CheckoutClientProps
   });
 
   // Seed form from initialAddresses on mount
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(() => {
     if (initialAddresses && initialAddresses.length > 0) {
       const defaultShipping = initialAddresses.find((a: any) => a.is_default_shipping) || initialAddresses[0];
@@ -153,7 +151,7 @@ export default function CheckoutClient({ initialAddresses }: CheckoutClientProps
     try {
       const items = await getCartItems();
       setCartItems(items);
-    } catch (error) {
+    } catch (_error) {
       toast.error('Sepet yüklenirken hata oluştu');
     } finally {
       setLoading(false);
@@ -167,7 +165,7 @@ export default function CheckoutClient({ initialAddresses }: CheckoutClientProps
     } catch {}
   };
 
-  const handleAddFavoriteToCart = async (productId: string) => {
+  const _handleAddFavoriteToCart = async (productId: string) => {
     try {
       await addToCart(productId, 1);
       toast.success('Ürün sepete eklendi');
@@ -233,7 +231,7 @@ export default function CheckoutClient({ initialAddresses }: CheckoutClientProps
     }
   };
 
-  const { subtotal, shipping, tax, total } = calculateTotals();
+  const { total } = calculateTotals();
 
   if (loading) {
     return (

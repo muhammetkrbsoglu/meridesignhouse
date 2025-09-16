@@ -37,7 +37,7 @@ export default function OrderTrackingPage() {
       } else {
         setResult(res.order)
       }
-    } catch (err) {
+    } catch (_err) {
       toast.error('Bir hata oluştu')
     } finally {
       setLoading(false)

@@ -29,7 +29,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     // Get initial session
     const getInitialSession = async () => {
-      let timeoutId: any
       try {
         // Skip refresh if no stored supabase keys
         let hasStoredSession = false
@@ -183,7 +182,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       console.log('Redirect URL:', redirectTo)
       
       const { error } = await supabase.auth.signInWithOAuth({
-        provider: provider as any,
+        provider,
         options: {
           redirectTo,
           queryParams: {
@@ -217,7 +216,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       console.log('Redirect URL:', redirectTo)
       
       const { error } = await supabase.auth.signInWithOAuth({
-        provider: provider as any,
+        provider,
         options: {
           redirectTo,
           queryParams: {
@@ -317,7 +316,6 @@ export function useRequireAuth(requiredRole?: 'ADMIN' | 'CUSTOMER') {
   const isAuthorized = isAuthenticated && hasRequiredRole
   
   return {
-    user,
     user,
     userProfile,
     loading,

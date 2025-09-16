@@ -3,7 +3,7 @@
 import { z } from 'zod'
 import { revalidatePath } from 'next/cache'
 import { redirect } from 'next/navigation'
-import { getSupabaseAdmin } from '@/lib/supabase'
+import { getSupabaseAdmin, createServerClient } from '@/lib/supabase'
 import { randomUUID } from 'crypto'
 
 const CategorySchema = z.object({
@@ -50,9 +50,9 @@ export async function createCategory(data: z.infer<typeof CreateCategory>) {
   const slug = generateSlug(name);
 
   try {
-    const supabase = getSupabaseAdmin()
+    const _supabase = getSupabaseAdmin()
     
-    const { error } = await supabase
+    const { error } = await _supabase
       .from('categories')
       .insert({
         id: randomUUID(),

@@ -13,6 +13,7 @@ import { Switch } from '@/components/ui/switch'
 import { toast } from '@/hooks/use-toast'
 import { useImageKitUpload } from '@/hooks/use-imagekit'
 import { getPresetImageUrl } from '@/lib/imagekit'
+import Image from 'next/image'
 
 interface Product {
   id: string
@@ -75,7 +76,7 @@ export function HappyCustomerForm({ message, products: initialProducts }: HappyC
       // Upload new image if file selected
       if (screenshotFile) {
         try {
-          const uploadResult = await new Promise((resolve, reject) => {
+          const uploadResult = await new Promise<{ success: boolean; url: string }>((resolve, reject) => {
             uploadFile(screenshotFile, {
               folder: 'whatsapp-screenshots',
               onSuccess: (result) => resolve({ success: true, url: result.url }),
@@ -191,9 +192,11 @@ export function HappyCustomerForm({ message, products: initialProducts }: HappyC
           />
           {formData.screenshot_url && (
             <div className="mt-2">
-              <img 
+              <Image 
                 src={getPresetImageUrl(formData.screenshot_url, 'whatsappMessage')} 
                 alt="Mevcut görsel" 
+                width={128}
+                height={256}
                 className="w-32 h-64 object-cover rounded-lg border"
               />
             </div>

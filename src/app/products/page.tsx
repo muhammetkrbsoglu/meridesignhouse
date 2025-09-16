@@ -6,18 +6,20 @@ import { ProductGrid } from '@/components/products/ProductGrid'
 import { CustomerLayout } from '@/components/layout/CustomerLayout'
 import type { Metadata } from 'next'
 import Link from 'next/link'
-import { addBundleToCart } from '@/lib/actions/cart'
 import { AddBundleButton } from '@/components/bundles/AddBundleButton'
-import { Badge } from '@/components/ui/badge'
 import { listActiveColors } from '@/lib/actions/colors'
 import { ColorFilter } from '@/components/products/ColorFilter'
 import { SearchAutocomplete } from '@/components/ui/SearchAutocomplete'
 import { AutoSubmitNumberInput } from '@/components/products/AutoSubmitField'
 import { SortDropdown } from '@/components/products/SortDropdown'
+import Image from 'next/image'
+const BLUR_DATA_URL = 'data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///ywAAAAAAQABAAACAUwAOw=='
 
 type Props = {
   searchParams: Promise<{ [key: string]: string | string[] | undefined }>
 }
+
+export const revalidate = 120
 
 export default async function ProductsPage({ searchParams }: Props) {
   const sp = await searchParams
@@ -128,8 +130,9 @@ export default async function ProductsPage({ searchParams }: Props) {
 
   return (
     <CustomerLayout>
+    <main role="main" aria-labelledby="products-heading">
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
-      <h1 className="text-2xl sm:text-3xl font-bold mb-6">
+      <h1 id="products-heading" className="text-2xl sm:text-3xl font-bold mb-6">
         {query ? `"${query}" için arama sonuçları` : 'Tüm Ürünler'}
       </h1>
       {query && (
@@ -182,7 +185,7 @@ export default async function ProductsPage({ searchParams }: Props) {
 
       <div className="grid grid-cols-12 gap-6">
         {/* Sidebar Filters */}
-        <aside className="col-span-12 md:col-span-3 lg:col-span-3">
+        <aside className="col-span-12 md:col-span-3 lg:col-span-3" aria-label="Filtreler">
           <div className="bg-white rounded-xl border p-4">
             {/* Arama Terimi */}
             <div className="mb-4">
@@ -332,9 +335,9 @@ export default async function ProductsPage({ searchParams }: Props) {
         <div className="col-span-12 md:col-span-9 lg:col-span-9">
 
           {showBundles && Array.isArray(bundles) && bundles.length > 0 && (
-            <section className="mb-10">
+            <section className="mb-10" aria-labelledby="bundles-heading">
               <div className="flex items-center justify-between mb-4">
-                <h2 className="text-xl font-semibold">Setler</h2>
+                <h2 id="bundles-heading" className="text-xl font-semibold">Setler</h2>
                 <span className="text-sm text-gray-500">{bundles.length} set</span>
               </div>
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
@@ -383,8 +386,7 @@ export default async function ProductsPage({ searchParams }: Props) {
                                 <div className="flex flex-col items-center gap-3">
                                   <div className="w-40 h-40 rounded-lg overflow-hidden flex items-center justify-center">
                                     {it.product?.images?.[0]?.url ? (
-                                      // eslint-disable-next-line @next/next/no-img-element
-                                      <img src={it.product.images[0].url} alt={it.product?.name || ''} className="w-full h-full object-cover" />
+                                      <Image src={it.product.images[0].url} alt={it.product?.name || ''} width={112} height={112} className="w-full h-full object-cover" placeholder="blur" blurDataURL={BLUR_DATA_URL} />
                                     ) : (
                                       <div className="w-full h-full bg-gray-100" />
                                     )}
@@ -438,10 +440,15 @@ export default async function ProductsPage({ searchParams }: Props) {
             </section>
           )}
 
-          {showProducts && <ProductGrid products={products as any} />}
+          {showProducts && (
+            <section aria-label="Ürünler">
+              <ProductGrid products={products as any} />
+            </section>
+          )}
         </div>
       </div>
     </div>
+    </main>
     </CustomerLayout>
   )
 }
