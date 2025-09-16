@@ -10,6 +10,7 @@ import { addToCart, addToFavorites, removeFromFavorites, isProductInFavorites } 
 import { formatCurrency } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
+import { useRef } from 'react';
 
 interface ProductDetailProps {
   product: ProductWithCategory;
@@ -22,6 +23,9 @@ export function ProductDetail({ product }: ProductDetailProps) {
   const [quantity, setQuantity] = useState(1);
   const [isLoading, setIsLoading] = useState(false);
   const [isFavoriteLoading, setIsFavoriteLoading] = useState(false);
+  const touchStartX = useRef<number | null>(null);
+  const touchStartY = useRef<number | null>(null);
+  const SWIPE_THRESHOLD = 40;
 
   // Check if product is in favorites on component mount
   useEffect(() => {
@@ -107,14 +111,38 @@ export function ProductDetail({ product }: ProductDetailProps) {
   };
 
   return (
-    <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-12">
+    <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 lg:gap-12">
       {/* Product Images */}
-      <div className="space-y-4">
+      <div className="space-y-3 lg:space-y-4">
         {/* Main Image */}
         <div
           className="aspect-square relative overflow-hidden rounded-lg bg-gray-100"
           onMouseEnter={() => setIsHover(true)}
           onMouseLeave={() => setIsHover(false)}
+          onTouchStart={(e) => {
+            const t = e.touches[0];
+            touchStartX.current = t.clientX;
+            touchStartY.current = t.clientY;
+          }}
+          onTouchEnd={(e) => {
+            if (touchStartX.current === null || touchStartY.current === null) return;
+            const t = e.changedTouches[0];
+            const dx = t.clientX - touchStartX.current;
+            const dy = t.clientY - touchStartY.current;
+            // Horizontal swipe with minimal vertical movement
+            if (Math.abs(dx) > Math.abs(dy) && Math.abs(dx) > SWIPE_THRESHOLD) {
+              const total = product.product_images?.length || 0;
+              if (total > 1) {
+                if (dx < 0) {
+                  setSelectedImageIndex((prev) => (prev + 1) % total);
+                } else {
+                  setSelectedImageIndex((prev) => (prev - 1 + total) % total);
+                }
+              }
+            }
+            touchStartX.current = null;
+            touchStartY.current = null;
+          }}
         >
           {product.product_images && product.product_images.length > 0 ? (
             <Image
@@ -122,6 +150,7 @@ export function ProductDetail({ product }: ProductDetailProps) {
               alt={product.product_images[selectedImageIndex]?.alt || product.name}
               fill
               className="object-cover transition-transform duration-300"
+              sizes="(min-width:1024px) 50vw, 100vw"
               priority
             />
           ) : (
@@ -135,14 +164,14 @@ export function ProductDetail({ product }: ProductDetailProps) {
             <>
               <button
                 onClick={() => setSelectedImageIndex((prev) => (prev - 1 + (product.product_images?.length || 0)) % (product.product_images?.length || 1))}
-                className={`absolute left-3 top-1/2 -translate-y-1/2 h-10 w-10 rounded-full bg-black/40 text-white flex items-center justify-center transition-all duration-300 ${isHover ? 'opacity-100 translate-x-0' : 'opacity-0 -translate-x-2'}`}
+                className={`hidden lg:flex absolute left-3 top-1/2 -translate-y-1/2 h-10 w-10 rounded-full bg-black/40 text-white items-center justify-center transition-all duration-300 ${isHover ? 'opacity-100 translate-x-0' : 'opacity-0 -translate-x-2'}`}
                 aria-label="Önceki görsel"
               >
                 ‹
               </button>
               <button
                 onClick={() => setSelectedImageIndex((prev) => (prev + 1) % (product.product_images?.length || 1))}
-                className={`absolute right-3 top-1/2 -translate-y-1/2 h-10 w-10 rounded-full bg-black/40 text-white flex items-center justify-center transition-all duration-300 ${isHover ? 'opacity-100 translate-x-0' : 'opacity-0 translate-x-2'}`}
+                className={`hidden lg:flex absolute right-3 top-1/2 -translate-y-1/2 h-10 w-10 rounded-full bg-black/40 text-white items-center justify-center transition-all duration-300 ${isHover ? 'opacity-100 translate-x-0' : 'opacity-0 translate-x-2'}`}
                 aria-label="Sonraki görsel"
               >
                 ›
@@ -153,7 +182,7 @@ export function ProductDetail({ product }: ProductDetailProps) {
 
         {/* Image Thumbnails */}
         {product.product_images && product.product_images.length > 1 && (
-          <div className="grid grid-cols-4 gap-2">
+          <div className="grid grid-cols-5 sm:grid-cols-6 lg:grid-cols-4 gap-2">
             {((product.product_images as Array<{ id?: string; url: string; alt?: string; sortOrder?: number }>) ?? [])
               .slice()
               .sort((a, b) => (a.sortOrder || 0) - (b.sortOrder || 0))
@@ -161,7 +190,7 @@ export function ProductDetail({ product }: ProductDetailProps) {
               <button
                 key={image.id || index}
                 onClick={() => setSelectedImageIndex(index)}
-                className={`aspect-square relative overflow-hidden rounded-md border-2 ${
+                className={`aspect-square relative overflow-hidden rounded-md border-2 focus:outline-none focus:ring-2 focus:ring-rose-500 ${
                   selectedImageIndex === index
                     ? 'border-rose-500'
                     : 'border-gray-200 hover:border-gray-300'
@@ -180,7 +209,7 @@ export function ProductDetail({ product }: ProductDetailProps) {
       </div>
 
       {/* Product Info */}
-      <div className="space-y-6">
+      <div className="space-y-5 pb-28 lg:pb-0">
         {/* Category */}
         <Link 
           href={`/categories/${product.category.slug}`}
@@ -190,12 +219,12 @@ export function ProductDetail({ product }: ProductDetailProps) {
         </Link>
 
         {/* Product Name */}
-        <h1 className="text-3xl font-bold text-gray-900">
+        <h1 className="text-2xl lg:text-3xl font-bold text-gray-900">
           {product.name}
         </h1>
 
         {/* Price */}
-        <div className="text-3xl font-bold text-rose-600">
+        <div className="text-2xl lg:text-3xl font-bold text-rose-600">
           {formatCurrency(typeof product.price === 'number' ? product.price : product.price.toNumber())}
         </div>
 
@@ -209,7 +238,7 @@ export function ProductDetail({ product }: ProductDetailProps) {
         )}
 
         {/* Quantity Selector */}
-        <div className="space-y-3">
+        <div className="space-y-3 hidden lg:block">
           <label className="text-sm font-medium text-gray-900">
             Adet
           </label>
@@ -231,7 +260,7 @@ export function ProductDetail({ product }: ProductDetailProps) {
         </div>
 
         {/* Action Buttons */}
-        <div className="space-y-4">
+        <div className="space-y-4 hidden lg:block">
           {/* Add to Cart */}
           <Button
             onClick={handleAddToCart}
@@ -293,6 +322,56 @@ export function ProductDetail({ product }: ProductDetailProps) {
               Hızlı teslimat
             </li>
           </ul>
+        </div>
+      </div>
+
+      {/* Sticky Bottom CTA (Mobile) */}
+      <div className="lg:hidden fixed bottom-0 left-0 right-0 z-[999] bg-white/95 backdrop-blur supports-[padding:max(0px)]:pb-[env(safe-area-inset-bottom)] border-t">
+        <div className="max-w-7xl mx-auto px-4 py-3 space-y-3">
+          <div className="flex items-center justify-between">
+            <div className="text-lg font-semibold text-rose-600">
+              {formatCurrency(typeof product.price === 'number' ? product.price : product.price.toNumber())}
+            </div>
+            <div className="flex items-center space-x-2">
+              <button
+                onClick={() => setQuantity(Math.max(1, quantity - 1))}
+                className="w-10 h-10 rounded-md border border-gray-300 flex items-center justify-center"
+                aria-label="Adet azalt"
+              >
+                -
+              </button>
+              <span className="w-10 text-center">{quantity}</span>
+              <button
+                onClick={() => setQuantity(quantity + 1)}
+                className="w-10 h-10 rounded-md border border-gray-300 flex items-center justify-center"
+                aria-label="Adet artır"
+              >
+                +
+              </button>
+            </div>
+          </div>
+          <div className="flex gap-2">
+            <button
+              onClick={toggleFavorite}
+              disabled={isFavoriteLoading}
+              className="shrink-0 w-12 h-12 rounded-lg border border-gray-300 flex items-center justify-center disabled:opacity-50"
+              aria-label={isFavorite ? 'Favorilerden çıkar' : 'Favorilere ekle'}
+            >
+              {isFavorite ? (
+                <HeartSolidIcon className="h-6 w-6 text-red-500" />
+              ) : (
+                <HeartIcon className="h-6 w-6" />
+              )}
+            </button>
+            <button
+              onClick={handleAddToCart}
+              disabled={isLoading}
+              className="flex-1 h-12 rounded-lg bg-rose-600 text-white font-semibold disabled:opacity-50"
+              aria-label="Sepete ekle"
+            >
+              {isLoading ? 'Ekleniyor...' : 'Sepete Ekle'}
+            </button>
+          </div>
         </div>
       </div>
     </div>
