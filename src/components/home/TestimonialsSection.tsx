@@ -74,16 +74,18 @@ export function TestimonialsSection() {
               {/* Customer Info */}
               <div className="flex items-center">
                 <div className="flex-shrink-0">
-                  <div className="h-10 w-10 bg-blue-600 rounded-full flex items-center justify-center">
+                  <div className="h-10 w-10 bg-blue-600 rounded-full flex items-center justify-center" aria-hidden="true">
                     <span className="text-white font-semibold text-sm">
-                      {testimonial.name.charAt(0)}
+                      {(testimonial.name?.charAt(0) ?? '?')}
                     </span>
                   </div>
                 </div>
                 <div className="ml-3">
-                  <p className="text-sm font-semibold text-gray-900">
-                    {testimonial.name}
-                  </p>
+                  {testimonial.name && (
+                    <p className="text-sm font-semibold text-gray-900">
+                      {testimonial.name}
+                    </p>
+                  )}
                   {testimonial.location && (
                     <p className="text-sm text-gray-500">
                       {testimonial.location}
