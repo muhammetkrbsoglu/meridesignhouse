@@ -2,31 +2,32 @@
 
 import Link from 'next/link'
 import { Button } from '@/components/ui/button'
-import { motion } from 'framer-motion'
+import { motion, useReducedMotion } from 'framer-motion'
 import { Sparkles, Heart, Star } from 'lucide-react'
 
 export function HeroSection() {
+  const shouldReduceMotion = useReducedMotion()
   return (
     <section className="relative min-h-screen bg-gradient-to-br from-rose-50 via-pink-50 to-purple-50 overflow-hidden" style={{ zIndex: 1 }}>
       {/* Background Elements */}
-      <div className="absolute inset-0">
+      <div className="absolute inset-0 hidden md:block" aria-hidden="true">
         <motion.div 
           className="absolute top-20 left-10 text-rose-200"
-          animate={{ rotate: 360, scale: [1, 1.2, 1] }}
+          animate={shouldReduceMotion ? undefined : { rotate: 360, scale: [1, 1.2, 1] }}
           transition={{ duration: 8, repeat: Infinity, ease: "linear" }}
         >
           <Sparkles size={24} />
         </motion.div>
         <motion.div 
           className="absolute top-40 right-20 text-pink-200"
-          animate={{ rotate: -360, scale: [1, 1.3, 1] }}
+          animate={shouldReduceMotion ? undefined : { rotate: -360, scale: [1, 1.3, 1] }}
           transition={{ duration: 10, repeat: Infinity, ease: "linear" }}
         >
           <Heart size={32} />
         </motion.div>
         <motion.div 
           className="absolute bottom-32 left-20 text-purple-200"
-          animate={{ rotate: 360, scale: [1, 1.1, 1] }}
+          animate={shouldReduceMotion ? undefined : { rotate: 360, scale: [1, 1.1, 1] }}
           transition={{ duration: 6, repeat: Infinity, ease: "linear" }}
         >
           <Star size={28} />
@@ -109,13 +110,13 @@ export function HeroSection() {
               {/* Main Visual Card */}
               <motion.div 
                 className="bg-white rounded-3xl shadow-2xl p-8 transform rotate-3 hover:rotate-0 transition-transform duration-500"
-                whileHover={{ scale: 1.02 }}
+                whileHover={shouldReduceMotion ? undefined : { scale: 1.02 }}
               >
                 <div className="aspect-square bg-gradient-to-br from-rose-100 to-pink-100 rounded-2xl flex items-center justify-center">
                   <div className="text-center">
                     <motion.div 
                       className="text-6xl mb-4"
-                      animate={{ rotate: [0, 10, -10, 0] }}
+                      animate={shouldReduceMotion ? undefined : { rotate: [0, 10, -10, 0] }}
                       transition={{ duration: 2, repeat: Infinity }}
                     >
                       🎨
@@ -128,16 +129,16 @@ export function HeroSection() {
               
               {/* Floating Cards */}
               <motion.div 
-                className="absolute -top-4 -right-4 bg-rose-500 text-white p-4 rounded-2xl shadow-lg"
-                animate={{ y: [-5, 5, -5] }}
+                className="absolute -top-4 -right-4 bg-rose-500 text-white p-4 rounded-2xl shadow-lg hidden md:block"
+                animate={shouldReduceMotion ? undefined : { y: [-5, 5, -5] }}
                 transition={{ duration: 3, repeat: Infinity }}
               >
                 <Heart className="h-6 w-6" />
               </motion.div>
               
               <motion.div 
-                className="absolute -bottom-4 -left-4 bg-purple-500 text-white p-4 rounded-2xl shadow-lg"
-                animate={{ y: [5, -5, 5] }}
+                className="absolute -bottom-4 -left-4 bg-purple-500 text-white p-4 rounded-2xl shadow-lg hidden md:block"
+                animate={shouldReduceMotion ? undefined : { y: [5, -5, 5] }}
                 transition={{ duration: 4, repeat: Infinity }}
               >
                 <Star className="h-6 w-6" />
