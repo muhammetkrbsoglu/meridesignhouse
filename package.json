@@ -11,7 +11,8 @@
     "test": "jest",
     "test:watch": "jest --watch",
     "db:seed": "tsx prisma/seed.ts",
-    "ptt:import": "tsx scripts/import-ptt-data.ts"
+    "ptt:import": "tsx scripts/import-ptt-data.ts",
+    "postinstall": "prisma generate"
   },
   "prisma": {
     "seed": "tsx prisma/seed.ts"
