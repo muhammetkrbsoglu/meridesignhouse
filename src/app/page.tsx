@@ -7,7 +7,9 @@ const HappyCustomers = dynamic(() => import('@/components/home/HappyCustomers'),
 import { fetchNewArrivals, fetchFeaturedProducts } from '@/lib/actions/products'
 import { CustomerLayout } from '@/components/layout/CustomerLayout'
 import { Suspense } from 'react'
-
+const TestimonialsSection = dynamic(() => import('@/components/home/TestimonialsSection'), { ssr: false })
+const InstagramTemplate = dynamic(() => import('@/components/home/InstagramTemplate'), { ssr: false })
+const WhatsAppTemplate = dynamic(() => import('@/components/home/WhatsAppTemplate'), { ssr: false })
 
 
 export default async function Home() {
@@ -71,6 +73,17 @@ export default async function Home() {
 
       {/* Happy Customers Section */}
       <HappyCustomers />
+
+      {/* Other below-the-fold sections */}
+      <Suspense fallback={null}>
+        <TestimonialsSection />
+      </Suspense>
+      <Suspense fallback={null}>
+        <InstagramTemplate />
+      </Suspense>
+      <Suspense fallback={null}>
+        <WhatsAppTemplate />
+      </Suspense>
     </CustomerLayout>
   )
 }
