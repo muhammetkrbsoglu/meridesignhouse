@@ -12,7 +12,7 @@ import CategoryMegaMenu from './CategoryMegaMenu'
 import { SearchAutocomplete } from '@/components/ui/SearchAutocomplete'
 import { fetchAllMainCategoriesWithHierarchy } from '@/lib/actions/categories'
 import { getCartCount, getFavoriteCount } from '@/lib/actions/cart'
-import { motion } from 'framer-motion'
+import { motion, useReducedMotion } from 'framer-motion'
 
 interface Category {
   id: string
@@ -34,6 +34,7 @@ export function Navbar() {
   const [hoverTimeout, setHoverTimeout] = useState<NodeJS.Timeout | null>(null)
   const [cartCount, setCartCount] = useState(0)
   const [favoriteCount, setFavoriteCount] = useState(0)
+  const shouldReduceMotion = useReducedMotion()
 
   useEffect(() => {
     const loadCategories = async () => {
@@ -95,6 +96,17 @@ export function Navbar() {
     }
   }, [user])
 
+  // Lock body scroll when mobile menu is open
+  useEffect(() => {
+    if (isMobileMenuOpen) {
+      const originalOverflow = document.body.style.overflow
+      document.body.style.overflow = 'hidden'
+      return () => {
+        document.body.style.overflow = originalOverflow
+      }
+    }
+  }, [isMobileMenuOpen])
+
   const handleCategoryMouseEnter = (categoryId: string) => {
     if (hoverTimeout) {
       clearTimeout(hoverTimeout)
@@ -143,27 +155,27 @@ export function Navbar() {
   }, [hoverTimeout])
 
   return (
-    <header className="relative bg-gradient-to-br from-rose-50 via-pink-50 to-purple-50 shadow-lg border-b border-rose-200/30 overflow-visible">
+    <header className="sticky top-0 z-[1000] pt-[env(safe-area-inset-top)] relative bg-gradient-to-br from-rose-50 via-pink-50 to-purple-50 shadow-lg border-b border-rose-200/30 overflow-visible">
       {/* Background Elements */}
-      <div className="absolute inset-0">
-        <motion.div 
+      <div className="absolute inset-0 hidden md:block" aria-hidden="true">
+        <motion.div
           className="absolute top-2 left-4 text-rose-200/40"
-          animate={{ rotate: 360, scale: [1, 1.2, 1] }}
-          transition={{ duration: 8, repeat: Infinity, ease: "linear" }}
+          animate={shouldReduceMotion ? undefined : { rotate: 360, scale: [1, 1.2, 1] }}
+          transition={{ duration: 8, repeat: Infinity, ease: 'linear' }}
         >
           <Sparkles size={16} />
         </motion.div>
-        <motion.div 
+        <motion.div
           className="absolute top-3 right-8 text-pink-200/40"
-          animate={{ rotate: -360, scale: [1, 1.3, 1] }}
-          transition={{ duration: 10, repeat: Infinity, ease: "linear" }}
+          animate={shouldReduceMotion ? undefined : { rotate: -360, scale: [1, 1.3, 1] }}
+          transition={{ duration: 10, repeat: Infinity, ease: 'linear' }}
         >
           <Heart size={20} />
         </motion.div>
-        <motion.div 
+        <motion.div
           className="absolute top-1 right-20 text-purple-200/40"
-          animate={{ rotate: 360, scale: [1, 1.1, 1] }}
-          transition={{ duration: 6, repeat: Infinity, ease: "linear" }}
+          animate={shouldReduceMotion ? undefined : { rotate: 360, scale: [1, 1.1, 1] }}
+          transition={{ duration: 6, repeat: Infinity, ease: 'linear' }}
         >
           <Star size={18} />
         </motion.div>
@@ -249,7 +261,7 @@ export function Navbar() {
           >
             {/* Search - Mobile */}
             <motion.button 
-              className="md:hidden p-2 rounded-full bg-gradient-to-r from-rose-500 to-pink-500 text-white shadow-lg hover:shadow-xl"
+              className="md:hidden p-3 rounded-full bg-gradient-to-r from-rose-500 to-pink-500 text-white shadow-lg hover:shadow-xl"
               whileHover={{ scale: 1.1 }}
               whileTap={{ scale: 0.95 }}
             >
@@ -348,11 +360,12 @@ export function Navbar() {
 
             {/* Mobile Menu Button */}
             <motion.button
-              className="md:hidden p-2 rounded-full bg-gradient-to-r from-rose-500 to-pink-500 text-white shadow-lg hover:shadow-xl"
+              className="md:hidden p-3 rounded-full bg-gradient-to-r from-rose-500 to-pink-500 text-white shadow-lg hover:shadow-xl"
               onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
               whileHover={{ scale: 1.1 }}
               whileTap={{ scale: 0.95 }}
               aria-label={isMobileMenuOpen ? 'Mobil menüyü kapat' : 'Mobil menüyü aç'}
+              aria-expanded={isMobileMenuOpen}
               type="button"
             >
               {isMobileMenuOpen ? (
