@@ -258,7 +258,7 @@ export default function CheckoutClient({ initialAddresses }: CheckoutClientProps
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 py-8">
+    <div className="min-h-screen bg-gray-50 py-8 pb-28 lg:pb-8">
       <div className="max-w-3xl mx-auto px-4">
         <h1 className="text-2xl font-bold mb-4">Sipariş Oluştur</h1>
         <form id="checkout-form" onSubmit={handleSubmit} className="space-y-4">
@@ -270,29 +270,29 @@ export default function CheckoutClient({ initialAddresses }: CheckoutClientProps
               <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                 <div>
                   <Label htmlFor="shippingFullName">Ad Soyad *</Label>
-                  <Input id="shippingFullName" value={formData.shippingFullName} onChange={(e) => handleInputChange('shippingFullName', e.target.value)} required />
+                  <Input id="shippingFullName" value={formData.shippingFullName} onChange={(e) => handleInputChange('shippingFullName', e.target.value)} required autoComplete="name" inputMode="text" />
                 </div>
                 <div>
                   <Label htmlFor="shippingPhone">Telefon *</Label>
-                  <Input id="shippingPhone" value={formData.shippingPhone} onChange={(e) => handleInputChange('shippingPhone', e.target.value)} required />
+                  <Input id="shippingPhone" value={formData.shippingPhone} onChange={(e) => handleInputChange('shippingPhone', e.target.value)} required type="tel" inputMode="tel" autoComplete="tel" placeholder="05xx xxx xx xx" />
                 </div>
               </div>
               <div>
                 <Label htmlFor="shippingAddress">Adres *</Label>
-                <Textarea id="shippingAddress" value={formData.shippingAddress} onChange={(e) => handleInputChange('shippingAddress', e.target.value)} required rows={3} />
+                <Textarea id="shippingAddress" value={formData.shippingAddress} onChange={(e) => handleInputChange('shippingAddress', e.target.value)} required rows={3} autoComplete="street-address" />
               </div>
               <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
                 <div>
                   <Label htmlFor="shippingCity">Şehir *</Label>
-                  <Input id="shippingCity" value={formData.shippingCity} onChange={(e) => handleInputChange('shippingCity', e.target.value)} required />
+                  <Input id="shippingCity" value={formData.shippingCity} onChange={(e) => handleInputChange('shippingCity', e.target.value)} required autoComplete="address-level2" />
                 </div>
                 <div>
                   <Label htmlFor="shippingDistrict">İlçe *</Label>
-                  <Input id="shippingDistrict" value={formData.shippingDistrict} onChange={(e) => handleInputChange('shippingDistrict', e.target.value)} required />
+                  <Input id="shippingDistrict" value={formData.shippingDistrict} onChange={(e) => handleInputChange('shippingDistrict', e.target.value)} required autoComplete="address-level3" />
                 </div>
                 <div>
                   <Label htmlFor="shippingPostalCode">Posta Kodu *</Label>
-                  <Input id="shippingPostalCode" value={formData.shippingPostalCode} onChange={(e) => handleInputChange('shippingPostalCode', e.target.value)} required />
+                  <Input id="shippingPostalCode" value={formData.shippingPostalCode} onChange={(e) => handleInputChange('shippingPostalCode', e.target.value)} required inputMode="numeric" autoComplete="postal-code" />
                 </div>
               </div>
             </CardContent>
@@ -316,10 +316,23 @@ export default function CheckoutClient({ initialAddresses }: CheckoutClientProps
             </CardContent>
           </Card>
 
-          <Button type="submit" disabled={submitting} className="w-full">
+          <Button type="submit" disabled={submitting} className="w-full hidden lg:inline-flex">
             {submitting ? 'Sipariş Oluşturuluyor...' : `Sipariş Oluştur - ₺${total.toLocaleString('tr-TR')}`}
           </Button>
         </form>
+      </div>
+
+      {/* Sticky submit bar (mobile) */}
+      <div className="lg:hidden fixed bottom-0 left-0 right-0 z-[999] bg-white/95 backdrop-blur supports-[padding:max(0px)]:pb-[env(safe-area-inset-bottom)] border-t">
+        <div className="max-w-3xl mx-auto px-4 py-3 flex items-center gap-3">
+          <div className="flex-1">
+            <div className="text-xs text-gray-500">Ödenecek Tutar</div>
+            <div className="text-lg font-semibold">₺{total.toLocaleString('tr-TR')}</div>
+          </div>
+          <Button form="checkout-form" type="submit" disabled={submitting} className="flex-1">
+            {submitting ? 'Oluşturuluyor...' : 'Siparişi Tamamla'}
+          </Button>
+        </div>
       </div>
 
       {showSuccessModal && (
