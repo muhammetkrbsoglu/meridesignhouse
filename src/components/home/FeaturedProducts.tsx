@@ -145,6 +145,7 @@ export function FeaturedProducts({ products }: FeaturedProductsProps) {
                     src={product.imageUrl || '/placeholder-product.svg'}
                     alt={product.name}
                     fill
+                    sizes="(min-width:1024px) 25vw, (min-width:640px) 50vw, 100vw"
                     className="object-cover group-hover:scale-105 transition-transform duration-300"
                   />
                 </Link>
@@ -153,7 +154,7 @@ export function FeaturedProducts({ products }: FeaturedProductsProps) {
                   type="button"
                   onClick={() => toggleFavorite(product.id)}
                   disabled={loadingStates.favorites.has(product.id)}
-                  className="absolute top-3 right-3 z-10 p-2 bg-white rounded-full shadow-md hover:shadow-lg transition-shadow disabled:opacity-50"
+                  className="absolute top-2 right-2 sm:top-3 sm:right-3 z-10 p-3 bg-white rounded-full shadow-md hover:shadow-lg transition-shadow disabled:opacity-50"
                   aria-label={favorites.has(product.id) ? `Favorilerden çıkar: ${product.name}` : `Favorilere ekle: ${product.name}`}
                 >
                   {favorites.has(product.id) ? (
@@ -164,7 +165,7 @@ export function FeaturedProducts({ products }: FeaturedProductsProps) {
                 </button>
                 
                 {/* Overlay Quick View only */}
-                <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-all duration-300 flex items-center justify-center opacity-0 group-hover:opacity-100 pointer-events-none">
+                <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-all duration-300 hidden sm:flex items-center justify-center opacity-0 group-hover:opacity-100 pointer-events-none">
                   <Link
                     href={`/products/${product.slug}`}
                     className="px-4 py-2 bg_white text-gray-900 text-sm font-medium rounded-md shadow-lg hover:bg-gray-50 transition-colors pointer-events-auto"
