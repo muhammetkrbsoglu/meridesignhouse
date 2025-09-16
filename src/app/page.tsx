@@ -3,13 +3,13 @@ import { EventConceptDesigner } from '@/components/home/EventConceptDesigner'
 import { NewArrivals } from '@/components/home/NewArrivals'
 import { FeaturedProducts } from '@/components/home/FeaturedProducts'
 import dynamic from 'next/dynamic'
-const HappyCustomers = dynamic(() => import('@/components/home/HappyCustomers'), { ssr: false })
+const HappyCustomers = dynamic(() => import('@/components/home/HappyCustomers'))
 import { fetchNewArrivals, fetchFeaturedProducts } from '@/lib/actions/products'
 import { CustomerLayout } from '@/components/layout/CustomerLayout'
 import { Suspense } from 'react'
-const TestimonialsSection = dynamic(() => import('@/components/home/TestimonialsSection'), { ssr: false })
-const InstagramTemplate = dynamic(() => import('@/components/home/InstagramTemplate'), { ssr: false })
-const WhatsAppTemplate = dynamic(() => import('@/components/home/WhatsAppTemplate'), { ssr: false })
+const TestimonialsSection = dynamic(() => import('@/components/home/TestimonialsSection'))
+const InstagramTemplate = dynamic(() => import('@/components/home/InstagramTemplate'))
+const WhatsAppTemplate = dynamic(() => import('@/components/home/WhatsAppTemplate'))
 
 
 export default async function Home() {
