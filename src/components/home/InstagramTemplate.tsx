@@ -20,13 +20,15 @@ export default function InstagramTemplate({
       <div className="instagram-header">
         <div className="instagram-back-arrow">←</div>
         <div className="instagram-contact-info">
-          <div className="instagram-avatar">
+          <div className="instagram-avatar" aria-hidden="true">
             <div className="instagram-avatar-initial">
-              {customerName.charAt(0).toUpperCase()}
+              {(customerName?.charAt(0)?.toUpperCase?.() ?? '?')}
             </div>
           </div>
           <div className="instagram-contact-details">
-            <div className="instagram-contact-name">{customerName}</div>
+            {customerName && (
+              <div className="instagram-contact-name">{customerName}</div>
+            )}
           </div>
         </div>
         <div className="instagram-actions">

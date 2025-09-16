@@ -20,13 +20,15 @@ export default function WhatsAppTemplate({
       <div className="whatsapp-header">
         <div className="whatsapp-back-arrow">←</div>
         <div className="whatsapp-contact-info">
-          <div className="whatsapp-avatar">
+          <div className="whatsapp-avatar" aria-hidden="true">
             <div className="whatsapp-avatar-initial">
-              {customerName.charAt(0).toUpperCase()}
+              {(customerName?.charAt(0)?.toUpperCase?.() ?? '?')}
             </div>
           </div>
           <div className="whatsapp-contact-details">
-            <div className="whatsapp-contact-name">{customerName}</div>
+            {customerName && (
+              <div className="whatsapp-contact-name">{customerName}</div>
+            )}
           </div>
         </div>
         <div className="whatsapp-actions">
