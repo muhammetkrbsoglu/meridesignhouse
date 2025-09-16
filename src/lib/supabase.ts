@@ -1,6 +1,5 @@
 import { createClient as createSupabaseClient } from '@supabase/supabase-js'
 import { createServerClient as createSSRServerClient } from '@supabase/ssr'
-import { cookies } from 'next/headers'
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!
 const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
@@ -10,6 +9,8 @@ if (!supabaseUrl || !supabaseAnonKey) {
 }
 
 // IMPORTANT: Do not export a browser client from this module. It is imported by client components.
+
+type CookieOptions = Record<string, string | number | boolean | Date>
 
 // For server-side usage (client-side compatible)
 export const createClient = () => {
@@ -21,10 +22,10 @@ export const createClient = () => {
           .find(row => row.startsWith(`${name}=`))
           ?.split('=')[1]
       },
-      set(name: string, value: string, options: any) {
+      set(name: string, value: string, options: CookieOptions) {
         document.cookie = `${name}=${value}; ${Object.entries(options).map(([k, v]) => `${k}=${v}`).join('; ')}`
       },
-      remove(name: string, options: any) {
+      remove(name: string, options: CookieOptions) {
         document.cookie = `${name}=; ${Object.entries(options).map(([k, v]) => `${k}=${v}`).join('; ')}; max-age=0`
       }
     }
@@ -32,17 +33,24 @@ export const createClient = () => {
 }
 
 // For server-side usage with service role key (bypasses RLS)
+type CookieStore = {
+  get: (name: string) => { name: string; value: string } | undefined
+  set: (opts: { name: string; value: string } & Partial<CookieOptions & { maxAge?: number }>) => void
+}
+
 export const createServerClient = async () => {
-  const cookieStore: any = await (cookies as any)()
+  // Dynamically import next/headers to avoid bundling server-only API in client builds
+  const { cookies } = await import('next/headers')
+  const cookieStore = (cookies() as unknown) as CookieStore
   return createSSRServerClient(supabaseUrl, supabaseAnonKey, {
     cookies: {
       get(name: string) {
         return cookieStore.get(name)?.value
       },
-      set(name: string, value: string, options: any) {
+      set(name: string, value: string, options: Partial<CookieOptions & { maxAge?: number }>) {
         cookieStore.set({ name, value, ...options })
       },
-      remove(name: string, options: any) {
+      remove(name: string, options: Partial<CookieOptions & { maxAge?: number }>) {
         cookieStore.set({ name, value: '', ...options, maxAge: 0 })
       }
     }

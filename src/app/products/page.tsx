@@ -409,7 +409,7 @@ export default async function ProductsPage({ searchParams }: Props) {
                         <div className="w-12"></div>
                         <div>
                           {/* Client button for toast and UI refresh */}
-                          {/* eslint-disable-next-line react/no-unknown-property */}
+                          { }
                           <AddBundleButton bundleId={b.id} fullWidth={false} />
                         </div>
                         <div className="text-left">

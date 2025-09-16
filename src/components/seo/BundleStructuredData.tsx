@@ -1,7 +1,26 @@
 'use client'
 
+type BundleItem = {
+  product?: {
+    name?: string
+    slug?: string
+    sku?: string | null
+  } | null
+  productId?: string
+}
+
+type BundleData = {
+  id?: string
+  name?: string
+  description?: string | null
+  sku?: string | null
+  slug?: string
+  bundlePrice?: number
+  items?: BundleItem[]
+}
+
 interface BundleStructuredDataProps {
-  bundle: any
+  bundle: BundleData
 }
 
 export function BundleStructuredData({ bundle }: BundleStructuredDataProps) {
@@ -19,7 +38,7 @@ export function BundleStructuredData({ bundle }: BundleStructuredDataProps) {
       price: bundle?.bundlePrice,
       availability: 'https://schema.org/InStock',
     },
-    isRelatedTo: (bundle?.items || []).map((it: any) => ({
+    isRelatedTo: (bundle?.items || []).map((it: BundleItem) => ({
       '@type': 'Product',
       name: it?.product?.name,
       sku: it?.product?.sku || it?.productId,

@@ -1,4 +1,9 @@
-import { AddressData } from './ptt-scraper';
+export interface AddressData {
+  il: string;
+  ilce: string;
+  mahalle: string;
+  postaKodu: string;
+}
 
 // Adres verilerini yöneten sınıf
 export class AddressDataManager {
@@ -18,31 +23,33 @@ export class AddressDataManager {
   // Veri yükle
   async loadData(): Promise<void> {
     try {
-      // En son veri dosyasını bul
-      const fs = require('fs');
-      const path = require('path');
+      // En son veri dosyasını bul (dinamik import ile Node built-in)
+      const fs = await import('fs');
+      const path = await import('path');
       
       const dataDir = path.join(process.cwd(), 'data', 'ptt');
-      if (!fs.existsSync(dataDir)) {
-        console.log('📁 Veri klasörü bulunamadı, PTT scraper çalıştırılıyor...');
-        await this.runScraping();
+      if (!fs.existsSync(dataDir as unknown as string)) {
+        console.log('📁 Veri klasörü bulunamadı (scraper devre dışı). Boş veri ile devam ediliyor.');
+        this.data = [];
+        this.lastUpdate = null;
         return;
       }
 
-      const files = fs.readdirSync(dataDir)
+      const files = fs.readdirSync(dataDir as unknown as string)
         .filter((file: string) => file.startsWith('ptt-addresses-') && file.endsWith('.json'))
         .sort()
         .reverse();
 
       if (files.length === 0) {
-        console.log('📁 Veri dosyası bulunamadı, PTT scraper çalıştırılıyor...');
-        await this.runScraping();
+        console.log('📁 Veri dosyası bulunamadı (scraper devre dışı). Boş veri ile devam ediliyor.');
+        this.data = [];
+        this.lastUpdate = null;
         return;
       }
 
       const latestFile = files[0];
-      const filePath = path.join(dataDir, latestFile);
-      const fileContent = fs.readFileSync(filePath, 'utf8');
+      const filePath = path.join(dataDir as unknown as string, latestFile);
+      const fileContent = fs.readFileSync(filePath as unknown as string, 'utf8');
       const parsedData = JSON.parse(fileContent);
 
       this.data = parsedData.data || [];
@@ -55,19 +62,7 @@ export class AddressDataManager {
     }
   }
 
-  // PTT scraper çalıştır
-  private async runScraping(): Promise<void> {
-    try {
-      const { runScraping } = await import('./ptt-scraper');
-      const result = await runScraping();
-      this.data = result.data;
-      this.lastUpdate = new Date(result.timestamp);
-      console.log(`✅ PTT scraping tamamlandı: ${this.data.length} adres`);
-    } catch (error) {
-      console.error('❌ PTT scraping hatası:', error);
-      throw error;
-    }
-  }
+  // Scraper kaldırıldı: runScraping devre dışı
 
   // İl listesi
   getIller(): string[] {

@@ -3,27 +3,15 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "next dev",
+    "dev": "next dev --turbopack",
     "build": "next build",
+    "build:turbo": "next build --turbopack",
     "start": "next start",
     "lint": "eslint",
     "test": "jest",
     "test:watch": "jest --watch",
     "db:seed": "tsx prisma/seed.ts",
-    "scrape-ptt": "tsx scripts/scrape-ptt.ts",
-    "ptt:scrape": "tsx src/lib/ptt-scraper/index.ts scrape",
-    "ptt:cron": "tsx src/lib/ptt-scraper/index.ts cron",
-    "ptt:test": "tsx src/lib/ptt-scraper/simple-test.ts",
-    "ptt:import": "tsx scripts/import-ptt-data.ts",
-    "ptt:playwright": "tsx src/lib/ptt-scraper/playwright-scraper.ts",
-    "ptt:test-fixed": "tsx src/lib/ptt-scraper/playwright-fixed.ts",
-    "ptt:debug": "tsx src/lib/ptt-scraper/playwright-debug.ts",
-    "ptt:working": "tsx src/lib/ptt-scraper/playwright-working.ts",
-    "ptt:rebrowser": "tsx src/lib/ptt-scraper/playwright-rebrowser.ts",
-    "ptt:quick": "tsx src/lib/ptt-scraper/playwright-rebrowser-quick.ts",
-    "ptt:debug-rebrowser": "tsx src/lib/ptt-scraper/playwright-rebrowser-debug.ts",
-    "ptt:clean": "tsx src/lib/ptt-scraper/data-cleaner.ts",
-    "ptt:validate": "tsx src/lib/ptt-scraper/data-validator.ts"
+    "ptt:import": "tsx scripts/import-ptt-data.ts"
   },
   "prisma": {
     "seed": "tsx prisma/seed.ts"
