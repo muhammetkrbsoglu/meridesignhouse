@@ -34,3 +34,32 @@ You can check out [the Next.js GitHub repository](https://github.com/vercel/next
 The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
 
 Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+
+## Environment
+
+Create a `.env.local` with the following keys:
+
+```env
+NEXT_PUBLIC_SITE_URL=http://localhost:3000
+SUPABASE_URL=
+SUPABASE_ANON_KEY=
+SUPABASE_SERVICE_ROLE_KEY=
+
+# Logging
+LOG_LEVEL=info
+
+# Cron / tracking polling
+CRON_SECRET=change_me
+SHIPPING_ENABLE_POLLING=true
+SHIPPING_ESTIMATE_ONLY=true
+
+# DHL (optional for live integration)
+DHL_API_KEY=
+DHL_API_SECRET=
+DHL_ACCOUNT_NUMBER=
+
+# Sürat Kargo (optional for live integration)
+SURAT_USERNAME=
+SURAT_PASSWORD=
+SURAT_CUSTOMER_CODE=
+```

@@ -1,26 +1,644 @@
 @import "tailwindcss";
+@import "tw-animate-css";
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
+/* Tasarım Atölyesi için özel stiller */
+.font-playfair {
+  font-family: 'Playfair Display', serif;
 }
+
+.bg-cream {
+  background-color: #FDF8F5;
+}
+
+.text-brown-dark {
+  color: #4A2E2E;
+}
+
+.border-olive {
+  border-color: #6B7260;
+}
+
+.btn-primary {
+  background-color: #D1A3A4;
+  color: white;
+  transition: background-color 0.3s ease;
+}
+
+.btn-primary:hover {
+  background-color: #BF8A8B;
+}
+
+.btn-secondary {
+  background-color: transparent;
+  border: 1px solid #D1A3A4;
+  color: #D1A3A4;
+  transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+.btn-secondary:hover {
+  background-color: #D1A3A4;
+  color: white;
+}
+
+.category-card {
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.category-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+}
+
+#canvas-container {
+  background-image: url("data:image/svg+xml,%3csvg width='100%25' height='100%25' xmlns='http://www.w3.org/2000/svg'%3e%3crect width='100%25' height='100%25' fill='none' stroke='%23D1D5DB' stroke-width='4' stroke-dasharray='6%2c 14' stroke-dashoffset='0' stroke-linecap='square'/%3e%3c/svg%3e");
+}
+
+/* Happy Customers Component Styles */
+.phone-mockup {
+  position: relative;
+  width: 300px;
+  height: 600px;
+  background: linear-gradient(145deg, #2d2d2d, #1a1a1a);
+  border-radius: 40px;
+  box-shadow: 
+    0 0 0 3px #e11d48,
+    0 20px 40px rgba(225, 29, 72, 0.3),
+    0 0 60px rgba(225, 29, 72, 0.1);
+  padding: 15px;
+  transition: all 0.3s ease;
+}
+
+.phone-mockup:hover {
+  transform: translateY(-5px);
+  box-shadow: 
+    0 0 0 3px #e11d48,
+    0 25px 50px rgba(225, 29, 72, 0.4),
+    0 0 80px rgba(225, 29, 72, 0.2);
+}
+
+.phone-screen {
+  background-color: #e5ddd5;
+  height: 100%;
+  width: 100%;
+  border-radius: 25px;
+  overflow: hidden;
+  position: relative;
+}
+
+
+.image-gallery {
+  position: relative;
+  height: 100%;
+  width: 100%;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+}
+
+.image-gallery img {
+  max-width: 100%;
+  max-height: 100%;
+  width: auto;
+  height: auto;
+  object-fit: contain;
+  border-radius: 8px;
+}
+
+/* Screenshot Image Styles - Tam ekran doldurma */
+
+/* WhatsApp Template Styles */
+.whatsapp-template {
+  width: 100%;
+  height: 100%;
+  background: #075e54;
+  display: flex;
+  flex-direction: column;
+  border-radius: 20px;
+  overflow: hidden;
+}
+
+.whatsapp-header {
+  background: #075e54;
+  padding: 4px 8px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-bottom: 1px solid #2a2a2a;
+}
+
+.whatsapp-back-arrow {
+  color: white;
+  font-size: 18px;
+  font-weight: bold;
+  cursor: pointer;
+}
+
+.whatsapp-contact-info {
+  display: flex;
+  align-items: center;
+  flex: 1;
+  margin-left: 12px;
+}
+
+.whatsapp-avatar {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: #25d366;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-right: 6px;
+}
+
+.whatsapp-avatar-initial {
+  color: white;
+  font-weight: bold;
+  font-size: 12px;
+}
+
+.whatsapp-contact-details {
+  display: flex;
+  align-items: center;
+}
+
+.whatsapp-contact-name {
+  color: white;
+  font-weight: 600;
+  font-size: 14px;
+}
+
+.whatsapp-contact-status {
+  color: #a7a7a7;
+  font-size: 12px;
+}
+
+.whatsapp-actions {
+  display: flex;
+  gap: 16px;
+}
+
+.whatsapp-action-icon {
+  color: white;
+  font-size: 18px;
+  cursor: pointer;
+}
+
+.whatsapp-messages {
+  flex: 1;
+  background: #e5ddd5;
+  background-image: url("data:image/svg+xml,%3Csvg width='100' height='100' xmlns='http://www.w3.org/2000/svg'%3E%3Cdefs%3E%3Cpattern id='a' patternUnits='userSpaceOnUse' width='20' height='20' patternTransform='scale(0.5) rotate(0)'%3E%3Crect x='0' y='0' width='10' height='10' fill='%23ffffff'/%3E%3Crect x='10' y='10' width='10' height='10' fill='%23ffffff'/%3E%3C/pattern%3E%3C/defs%3E%3Crect width='100%25' height='100%25' fill='url(%23a)'/%3E%3C/svg%3E");
+  padding: 0;
+  overflow: hidden;
+}
+
+.whatsapp-message-container {
+  position: relative;
+  width: 100%;
+  height: 100%;
+}
+
+.whatsapp-screenshot {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100% !important;
+  height: 100% !important;
+  object-fit: cover !important;
+  border-radius: 0;
+  box-shadow: none;
+  z-index: 1;
+}
+
+.whatsapp-input-area {
+  background: #f0f0f0;
+  padding: 4px 8px;
+  border-top: 1px solid #e0e0e0;
+}
+
+.whatsapp-input-container {
+  background: white;
+  border-radius: 15px;
+  padding: 4px 8px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.whatsapp-input-icon {
+  font-size: 14px;
+  cursor: pointer;
+}
+
+.whatsapp-input-field {
+  flex: 1;
+  padding: 8px 0;
+}
+
+.whatsapp-input-placeholder {
+  color: #999;
+  font-size: 14px;
+}
+
+.whatsapp-send-button {
+  background: #25d366;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  font-size: 14px;
+  cursor: pointer;
+}
+
+/* Instagram Template Styles */
+.instagram-template {
+  width: 100%;
+  height: 100%;
+  background: #fff;
+  display: flex;
+  flex-direction: column;
+  border-radius: 20px;
+  overflow: hidden;
+}
+
+.instagram-header {
+  background: #fff;
+  padding: 4px 8px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-bottom: 1px solid #e0e0e0;
+}
+
+.instagram-back-arrow {
+  color: #000;
+  font-size: 18px;
+  font-weight: bold;
+  cursor: pointer;
+}
+
+.instagram-contact-info {
+  display: flex;
+  align-items: center;
+  flex: 1;
+  margin-left: 12px;
+}
+
+.instagram-avatar {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: linear-gradient(45deg, #f09433 0%, #e6683c 25%, #dc2743 50%, #cc2366 75%, #bc1888 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-right: 6px;
+  padding: 2px;
+}
+
+.instagram-avatar-initial {
+  background: #000;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  font-weight: bold;
+  font-size: 12px;
+}
+
+.instagram-contact-details {
+  display: flex;
+  align-items: center;
+}
+
+.instagram-contact-name {
+  color: #000;
+  font-weight: 600;
+  font-size: 14px;
+}
+
+.instagram-contact-status {
+  color: #8e8e8e;
+  font-size: 12px;
+}
+
+.instagram-actions {
+  display: flex;
+  gap: 16px;
+}
+
+.instagram-action-icon {
+  color: #000;
+  font-size: 18px;
+  cursor: pointer;
+}
+
+.instagram-messages {
+  flex: 1;
+  background: #fff;
+  padding: 0;
+  overflow: hidden;
+}
+
+.instagram-message-container {
+  position: relative;
+  width: 100%;
+  height: 100%;
+}
+
+.instagram-screenshot {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100% !important;
+  height: 100% !important;
+  object-fit: cover !important;
+  border-radius: 0;
+  box-shadow: none;
+  z-index: 1;
+}
+
+.instagram-input-area {
+  background: #fff;
+  padding: 4px 8px;
+  border-top: 1px solid #e0e0e0;
+}
+
+.instagram-input-container {
+  background: #f5f5f5;
+  border-radius: 15px;
+  padding: 4px 8px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.instagram-input-icon {
+  color: #000;
+  font-size: 14px;
+  cursor: pointer;
+}
+
+.instagram-input-field {
+  flex: 1;
+  padding: 8px 0;
+}
+
+.instagram-input-placeholder {
+  color: #666;
+  font-size: 14px;
+}
+
+.instagram-send-button {
+  background: #0095f6;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  font-size: 14px;
+  cursor: pointer;
+}
+
+/* Scrollbar utilities */
+.scrollbar-hide {
+  -ms-overflow-style: none;  /* Internet Explorer 10+ */
+  scrollbar-width: none;  /* Firefox */
+}
+.scrollbar-hide::-webkit-scrollbar { 
+  display: none;  /* Safari and Chrome */
+}
+
+@custom-variant dark (&:is(.dark *));
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
+  --color-sidebar-ring: var(--sidebar-ring);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar: var(--sidebar);
+  --color-chart-5: var(--chart-5);
+  --color-chart-4: var(--chart-4);
+  --color-chart-3: var(--chart-3);
+  --color-chart-2: var(--chart-2);
+  --color-chart-1: var(--chart-1);
+  --color-ring: var(--ring);
+  --color-input: var(--input);
+  --color-border: var(--border);
+  --color-destructive: var(--destructive);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-accent: var(--accent);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-muted: var(--muted);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-secondary: var(--secondary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-primary: var(--primary);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-popover: var(--popover);
+  --color-card-foreground: var(--card-foreground);
+  --color-card: var(--card);
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+:root {
+  --radius: 0.625rem;
+  --background: oklch(1 0 0);
+  --foreground: oklch(0.145 0 0);
+  --card: oklch(1 0 0);
+  --card-foreground: oklch(0.145 0 0);
+  --popover: oklch(1 0 0);
+  --popover-foreground: oklch(0.145 0 0);
+  --primary: oklch(0.647 0.162 12.57); /* Rose-600 */
+  --primary-foreground: oklch(0.985 0 0);
+  --secondary: oklch(0.97 0 0);
+  --secondary-foreground: oklch(0.205 0 0);
+  --muted: oklch(0.97 0 0);
+  --muted-foreground: oklch(0.556 0 0);
+  --accent: oklch(0.976 0.013 17.38); /* Rose-50 */
+  --accent-foreground: oklch(0.647 0.162 12.57); /* Rose-600 */
+  --destructive: oklch(0.577 0.245 27.325);
+  --border: oklch(0.922 0 0);
+  --input: oklch(0.922 0 0);
+  --ring: oklch(0.708 0 0);
+  --chart-1: oklch(0.646 0.222 41.116);
+  --chart-2: oklch(0.6 0.118 184.704);
+  --chart-3: oklch(0.398 0.07 227.392);
+  --chart-4: oklch(0.828 0.189 84.429);
+  --chart-5: oklch(0.769 0.188 70.08);
+  --sidebar: oklch(0.985 0 0);
+  --sidebar-foreground: oklch(0.145 0 0);
+  --sidebar-primary: oklch(0.205 0 0);
+  --sidebar-primary-foreground: oklch(0.985 0 0);
+  --sidebar-accent: oklch(0.97 0 0);
+  --sidebar-accent-foreground: oklch(0.205 0 0);
+  --sidebar-border: oklch(0.922 0 0);
+  --sidebar-ring: oklch(0.708 0 0);
+  /* Scrollbar fallback colors */
+  --scroll-thumb: #fb7185; /* rose-400 */
+  --scroll-track: #ffe4e6; /* rose-100 */
+}
+
+.dark {
+  --background: oklch(0.145 0 0);
+  --foreground: oklch(0.985 0 0);
+  --card: oklch(0.205 0 0);
+  --card-foreground: oklch(0.985 0 0);
+  --popover: oklch(0.205 0 0);
+  --popover-foreground: oklch(0.985 0 0);
+  --primary: oklch(0.922 0 0);
+  --primary-foreground: oklch(0.205 0 0);
+  --secondary: oklch(0.269 0 0);
+  --secondary-foreground: oklch(0.985 0 0);
+  --muted: oklch(0.269 0 0);
+  --muted-foreground: oklch(0.708 0 0);
+  --accent: oklch(0.269 0 0);
+  --accent-foreground: oklch(0.985 0 0);
+  --destructive: oklch(0.704 0.191 22.216);
+  --border: oklch(1 0 0 / 10%);
+  --input: oklch(1 0 0 / 15%);
+  --ring: oklch(0.556 0 0);
+  --chart-1: oklch(0.488 0.243 264.376);
+  --chart-2: oklch(0.696 0.17 162.48);
+  --chart-3: oklch(0.769 0.188 70.08);
+  --chart-4: oklch(0.627 0.265 303.9);
+  --chart-5: oklch(0.645 0.246 16.439);
+  --sidebar: oklch(0.205 0 0);
+  --sidebar-foreground: oklch(0.985 0 0);
+  --sidebar-primary: oklch(0.488 0.243 264.376);
+  --sidebar-primary-foreground: oklch(0.985 0 0);
+  --sidebar-accent: oklch(0.269 0 0);
+  --sidebar-accent-foreground: oklch(0.985 0 0);
+  --sidebar-border: oklch(1 0 0 / 10%);
+  --sidebar-ring: oklch(0.556 0 0);
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+  body {
+    @apply bg-background text-foreground;
+  }
+
+  /* Global Scrollbar Styling */
+  html {
+    scrollbar-gutter: stable both-edges;
+  }
+  /* Firefox */
+  *, html, body {
+    scrollbar-width: thin;
+    scrollbar-color: var(--scroll-thumb) var(--scroll-track);
+  }
+  /* WebKit */
+  *::-webkit-scrollbar, html::-webkit-scrollbar, body::-webkit-scrollbar {
+    width: 14px;
+    height: 14px;
+  }
+  *::-webkit-scrollbar-track, html::-webkit-scrollbar-track, body::-webkit-scrollbar-track {
+    background: var(--scroll-track);
+    border-radius: 9999px;
+  }
+  *::-webkit-scrollbar-thumb, html::-webkit-scrollbar-thumb, body::-webkit-scrollbar-thumb {
+    background: var(--scroll-thumb);
+    border-radius: 9999px;
+    border: 2px solid transparent;
+    background-clip: padding-box;
+    box-shadow: inset 0 0 0 1px rgba(0,0,0,0.04);
+  }
+  *:hover::-webkit-scrollbar-thumb, html:hover::-webkit-scrollbar-thumb, body:hover::-webkit-scrollbar-thumb {
+    background: #f43f5e; /* rose-500 */
+    border: 2px solid transparent;
+  }
+  .dark *::-webkit-scrollbar-thumb, .dark html::-webkit-scrollbar-thumb, .dark body::-webkit-scrollbar-thumb {
+    background: #fb7185; /* rose-400 */
+    border: 2px solid transparent;
   }
 }
 
-body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+/* Custom MeriDesign Styles */
+@layer components {
+  .btn-primary {
+    @apply bg-gradient-to-r from-rose-500 to-pink-500 hover:from-rose-600 hover:to-pink-600 text-white shadow-lg hover:shadow-xl transition-all duration-300;
+  }
+  
+  .btn-secondary {
+    @apply border-2 border-rose-300 text-rose-600 hover:bg-rose-50 hover:border-rose-400 transition-all duration-300;
+  }
+  
+  .gradient-text {
+    @apply bg-gradient-to-r from-rose-600 via-pink-600 to-purple-600 bg-clip-text text-transparent;
+  }
+  
+  .gradient-bg {
+    @apply bg-gradient-to-br from-rose-50 via-pink-50 to-purple-50;
+  }
+  
+  .card-hover {
+    @apply hover:shadow-lg hover:scale-105 transition-all duration-300;
+  }
+  
+  .text-hover {
+    @apply hover:text-rose-600 transition-colors duration-300;
+  }
+
+  /* Mega Menu Animations */
+  .animate-fadeInUp {
+    animation: fadeInUp 0.6s ease-out forwards;
+    opacity: 0;
+    transform: translateY(20px);
+  }
+
+  .animate-fadeInLeft {
+    animation: fadeInLeft 0.6s ease-out forwards;
+    opacity: 0;
+    transform: translateX(-20px);
+  }
+
+  .animate-fadeInRight {
+    animation: fadeInRight 0.6s ease-out forwards;
+    opacity: 0;
+    transform: translateX(20px);
+  }
+
+  @keyframes fadeInUp {
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  @keyframes fadeInLeft {
+    to {
+      opacity: 1;
+      transform: translateX(0);
+    }
+  }
+
+  @keyframes fadeInRight {
+    to {
+      opacity: 1;
+      transform: translateX(0);
+    }
+  }
 }

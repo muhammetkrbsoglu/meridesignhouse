@@ -1,0 +1,42 @@
+[
+  {
+    "il": "ADANA",
+    "ilce": "Test İlçe",
+    "mahalle": "Test Mahalle",
+    "sokak": "Test Sokak",
+    "bina_no": "1",
+    "posta_kodu": "00000"
+  },
+  {
+    "il": "ADIYAMAN",
+    "ilce": "Test İlçe",
+    "mahalle": "Test Mahalle",
+    "sokak": "Test Sokak",
+    "bina_no": "1",
+    "posta_kodu": "00000"
+  },
+  {
+    "il": "AFYONKARAHİSAR",
+    "ilce": "Test İlçe",
+    "mahalle": "Test Mahalle",
+    "sokak": "Test Sokak",
+    "bina_no": "1",
+    "posta_kodu": "00000"
+  },
+  {
+    "il": "AĞRI",
+    "ilce": "Test İlçe",
+    "mahalle": "Test Mahalle",
+    "sokak": "Test Sokak",
+    "bina_no": "1",
+    "posta_kodu": "00000"
+  },
+  {
+    "il": "AKSARAY",
+    "ilce": "Test İlçe",
+    "mahalle": "Test Mahalle",
+    "sokak": "Test Sokak",
+    "bina_no": "1",
+    "posta_kodu": "00000"
+  }
+]

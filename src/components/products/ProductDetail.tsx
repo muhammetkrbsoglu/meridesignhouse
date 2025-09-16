@@ -1,0 +1,299 @@
+'use client';
+
+import { useState, useEffect } from 'react';
+import Image from 'next/image';
+import Link from 'next/link';
+import { HeartIcon, ShoppingCartIcon, ShareIcon } from '@heroicons/react/24/outline';
+import { HeartIcon as HeartSolidIcon } from '@heroicons/react/24/solid';
+import { ProductWithCategory, ProductImage } from '@/types/product';
+import { addToCart, addToFavorites, removeFromFavorites, isProductInFavorites } from '@/lib/actions/cart';
+import { formatCurrency } from '@/lib/utils';
+import { Button } from '@/components/ui/button';
+import { toast } from 'sonner';
+
+interface ProductDetailProps {
+  product: ProductWithCategory;
+}
+
+export function ProductDetail({ product }: ProductDetailProps) {
+  const [selectedImageIndex, setSelectedImageIndex] = useState(0);
+  const [isHover, setIsHover] = useState(false);
+  const [isFavorite, setIsFavorite] = useState(false);
+  const [quantity, setQuantity] = useState(1);
+  const [isLoading, setIsLoading] = useState(false);
+  const [isFavoriteLoading, setIsFavoriteLoading] = useState(false);
+
+  // Check if product is in favorites on component mount
+  useEffect(() => {
+    const checkFavoriteStatus = async () => {
+      try {
+        const favoriteStatus = await isProductInFavorites(product.id);
+        setIsFavorite(favoriteStatus);
+      } catch (error) {
+        console.error('Error checking favorite status:', error);
+      }
+    };
+
+    checkFavoriteStatus();
+  }, [product.id]);
+
+  const toggleFavorite = async () => {
+    setIsFavoriteLoading(true);
+    
+    try {
+      if (isFavorite) {
+        const result = await removeFromFavorites(product.id);
+        if (result.success) {
+          setIsFavorite(false);
+          toast.success('Ürün favorilerden çıkarıldı');
+          // Trigger favorite update event
+          window.dispatchEvent(new Event('favoriteUpdated'));
+        } else {
+          toast.error(result.error || 'Bir hata oluştu');
+        }
+      } else {
+        const result = await addToFavorites(product.id);
+        if (result.success) {
+          setIsFavorite(true);
+          toast.success('Ürün favorilere eklendi');
+          // Trigger favorite update event
+          window.dispatchEvent(new Event('favoriteUpdated'));
+        } else {
+          toast.error(result.error || 'Bir hata oluştu');
+        }
+      }
+    } catch (_) {
+      toast.error('Bir hata oluştu');
+    } finally {
+      setIsFavoriteLoading(false);
+    }
+  };
+
+  const handleAddToCart = async () => {
+    setIsLoading(true);
+    
+    try {
+      const result = await addToCart(product.id, quantity);
+      if (result.success) {
+        toast.success('Ürün sepete eklendi');
+        // Trigger cart update event
+        window.dispatchEvent(new Event('cartUpdated'));
+      } else {
+        toast.error(result.error || 'Bir hata oluştu');
+      }
+    } catch (_) {
+      toast.error('Bir hata oluştu');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const shareProduct = async () => {
+    if (navigator.share) {
+      try {
+        await navigator.share({
+          title: product.name,
+          text: product.description || product.name,
+          url: window.location.href,
+        });
+      } catch (_) {
+        console.log('Paylaşım iptal edildi');
+      }
+    } else {
+      // Fallback: copy to clipboard
+      navigator.clipboard.writeText(window.location.href);
+      // TODO: Show toast notification
+    }
+  };
+
+  return (
+    <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-12">
+      {/* Product Images */}
+      <div className="space-y-4">
+        {/* Main Image */}
+        <div
+          className="aspect-square relative overflow-hidden rounded-lg bg-gray-100"
+          onMouseEnter={() => setIsHover(true)}
+          onMouseLeave={() => setIsHover(false)}
+        >
+          {product.product_images && product.product_images.length > 0 ? (
+            <Image
+              src={product.product_images[selectedImageIndex]?.url || '/placeholder-product.svg'}
+              alt={product.product_images[selectedImageIndex]?.alt || product.name}
+              fill
+              className="object-cover transition-transform duration-300"
+              priority
+            />
+          ) : (
+            <div className="w-full h-full flex items-center justify-center">
+              <span className="text-gray-400">Resim Yok</span>
+            </div>
+          )}
+
+          {/* Left/Right arrows on hover */}
+          {product.product_images && product.product_images.length > 1 && (
+            <>
+              <button
+                onClick={() => setSelectedImageIndex((prev) => (prev - 1 + product.product_images.length) % product.product_images.length)}
+                className={`absolute left-3 top-1/2 -translate-y-1/2 h-10 w-10 rounded-full bg-black/40 text-white flex items-center justify-center transition-all duration-300 ${isHover ? 'opacity-100 translate-x-0' : 'opacity-0 -translate-x-2'}`}
+                aria-label="Önceki görsel"
+              >
+                ‹
+              </button>
+              <button
+                onClick={() => setSelectedImageIndex((prev) => (prev + 1) % product.product_images.length)}
+                className={`absolute right-3 top-1/2 -translate-y-1/2 h-10 w-10 rounded-full bg-black/40 text-white flex items-center justify-center transition-all duration-300 ${isHover ? 'opacity-100 translate-x-0' : 'opacity-0 translate-x-2'}`}
+                aria-label="Sonraki görsel"
+              >
+                ›
+              </button>
+            </>
+          )}
+        </div>
+
+        {/* Image Thumbnails */}
+        {product.product_images && product.product_images.length > 1 && (
+          <div className="grid grid-cols-4 gap-2">
+            {product.product_images
+              .sort((a, b) => (a.sortOrder || 0) - (b.sortOrder || 0))
+              .map((image: any, index: number) => (
+              <button
+                key={image.id || index}
+                onClick={() => setSelectedImageIndex(index)}
+                className={`aspect-square relative overflow-hidden rounded-md border-2 ${
+                  selectedImageIndex === index
+                    ? 'border-rose-500'
+                    : 'border-gray-200 hover:border-gray-300'
+                }`}
+              >
+                <Image
+                  src={image.url || '/placeholder-product.svg'}
+                  alt={image.alt || `${product.name} ${index + 1}`}
+                  fill
+                  className="object-cover"
+                />
+              </button>
+            ))}
+          </div>
+        )}
+      </div>
+
+      {/* Product Info */}
+      <div className="space-y-6">
+        {/* Category */}
+        <Link 
+          href={`/categories/${product.category.slug}`}
+          className="text-sm text-rose-600 hover:text-rose-700 font-medium"
+        >
+          {product.category.name}
+        </Link>
+
+        {/* Product Name */}
+        <h1 className="text-3xl font-bold text-gray-900">
+          {product.name}
+        </h1>
+
+        {/* Price */}
+        <div className="text-3xl font-bold text-rose-600">
+          {formatCurrency(typeof product.price === 'number' ? product.price : product.price.toNumber())}
+        </div>
+
+        {/* Description */}
+        {product.description && (
+          <div className="prose prose-sm max-w-none">
+            <p className="text-gray-600 leading-relaxed">
+              {product.description}
+            </p>
+          </div>
+        )}
+
+        {/* Quantity Selector */}
+        <div className="space-y-3">
+          <label className="text-sm font-medium text-gray-900">
+            Adet
+          </label>
+          <div className="flex items-center space-x-3">
+            <button
+              onClick={() => setQuantity(Math.max(1, quantity - 1))}
+              className="w-10 h-10 rounded-md border border-gray-300 flex items-center justify-center hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-rose-500"
+            >
+              -
+            </button>
+            <span className="w-12 text-center font-medium">{quantity}</span>
+            <button
+              onClick={() => setQuantity(quantity + 1)}
+              className="w-10 h-10 rounded-md border border-gray-300 flex items-center justify-center hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-rose-500"
+            >
+              +
+            </button>
+          </div>
+        </div>
+
+        {/* Action Buttons */}
+        <div className="space-y-4">
+          {/* Add to Cart */}
+          <Button
+            onClick={handleAddToCart}
+            disabled={isLoading}
+            className="w-full bg-rose-600 hover:bg-rose-700 text-white py-3 text-lg font-medium disabled:opacity-50"
+            size="lg"
+          >
+            <ShoppingCartIcon className="h-5 w-5 mr-2" />
+            {isLoading ? 'Ekleniyor...' : 'Sepete Ekle'}
+          </Button>
+
+          {/* Secondary Actions */}
+          <div className="flex space-x-3">
+            <Button
+              onClick={toggleFavorite}
+              disabled={isFavoriteLoading}
+              variant="outline"
+              className="flex-1 disabled:opacity-50"
+            >
+              {isFavorite ? (
+                <HeartSolidIcon className="h-5 w-5 mr-2 text-red-500" />
+              ) : (
+                <HeartIcon className="h-5 w-5 mr-2" />
+              )}
+              {isFavoriteLoading ? 'İşleniyor...' : (isFavorite ? 'Favorilerden Çıkar' : 'Favorilere Ekle')}
+            </Button>
+            
+            <Button
+              onClick={shareProduct}
+              variant="outline"
+              className="flex-1"
+            >
+              <ShareIcon className="h-5 w-5 mr-2" />
+              Paylaş
+            </Button>
+          </div>
+        </div>
+
+        {/* Product Features */}
+        <div className="border-t pt-6">
+          <h3 className="text-lg font-medium text-gray-900 mb-4">
+            Ürün Özellikleri
+          </h3>
+          <ul className="space-y-2 text-sm text-gray-600">
+            <li className="flex items-center">
+              <span className="w-2 h-2 bg-rose-500 rounded-full mr-3"></span>
+              Ücretsiz kargo (150 TL üzeri)
+            </li>
+            <li className="flex items-center">
+              <span className="w-2 h-2 bg-rose-500 rounded-full mr-3"></span>
+              30 gün iade garantisi
+            </li>
+            <li className="flex items-center">
+              <span className="w-2 h-2 bg-rose-500 rounded-full mr-3"></span>
+              Güvenli ödeme
+            </li>
+            <li className="flex items-center">
+              <span className="w-2 h-2 bg-rose-500 rounded-full mr-3"></span>
+              Hızlı teslimat
+            </li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  );
+}

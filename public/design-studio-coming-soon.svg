@@ -1,0 +1,65 @@
+<svg width="800" height="600" viewBox="0 0 800 600" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Background -->
+  <rect width="800" height="600" fill="url(#bgGradient)"/>
+  
+  <defs>
+    <!-- Background Gradient -->
+    <linearGradient id="bgGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#FFF5F5;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#FFEFFE;stop-opacity:1" />
+    </linearGradient>
+    
+    <!-- Card Gradient -->
+    <linearGradient id="cardGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#FFFFFF;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#FFF8F8;stop-opacity:1" />
+    </linearGradient>
+    
+    <!-- Header Gradient -->
+    <linearGradient id="headerGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#FDF2F8;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#FCE7F3;stop-opacity:1" />
+    </linearGradient>
+  </defs>
+  
+  <!-- Card Frame -->
+  <rect x="50" y="100" width="700" height="400" rx="20" fill="url(#cardGradient)" stroke="#E5E7EB" stroke-width="2"/>
+  
+  <!-- Header -->
+  <rect x="70" y="120" width="660" height="80" rx="10" fill="url(#headerGradient)"/>
+  
+  <!-- Header Title -->
+  <text x="400" y="170" font-family="serif" font-size="24" font-weight="bold" fill="#BE185D" text-anchor="middle">Tasarım Atölyesi</text>
+  
+  <!-- Card Content -->
+  <!-- Decorative Elements -->
+  <circle cx="150" cy="250" r="30" fill="#FBBF24" opacity="0.3"/>
+  <circle cx="650" cy="250" r="25" fill="#F59E0B" opacity="0.4"/>
+  <circle cx="200" cy="350" r="20" fill="#EC4899" opacity="0.3"/>
+  <circle cx="600" cy="350" r="35" fill="#8B5CF6" opacity="0.2"/>
+  
+  <!-- Main Illustration -->
+  <rect x="300" y="200" width="200" height="150" rx="10" fill="#F3F4F6" stroke="#D1D5DB" stroke-width="1"/>
+  
+  <!-- Design Tools Icons -->
+  <circle cx="350" cy="240" r="8" fill="#EF4444"/>
+  <rect x="370" y="232" width="16" height="16" rx="2" fill="#3B82F6"/>
+  <circle cx="420" cy="240" r="8" fill="#10B981"/>
+  <rect x="440" y="232" width="16" height="16" rx="2" fill="#F59E0B"/>
+  
+  <!-- Text Content -->
+  <text x="400" y="300" font-family="serif" font-size="20" font-weight="bold" fill="#374151" text-anchor="middle">Hayalinizdeki Kartı</text>
+  <text x="400" y="325" font-family="serif" font-size="20" font-weight="bold" fill="#374151" text-anchor="middle">Tasarlayın</text>
+  
+  <!-- Subtitle -->
+  <text x="400" y="360" font-family="sans-serif" font-size="14" fill="#6B7280" text-anchor="middle">Yakında hizmetinizde!</text>
+  
+  <!-- Decorative Border -->
+  <rect x="60" y="110" width="680" height="380" rx="25" fill="none" stroke="#F3E8FF" stroke-width="3" stroke-dasharray="10,5"/>
+  
+  <!-- Corner Decorations -->
+  <circle cx="100" cy="150" r="4" fill="#EC4899"/>
+  <circle cx="700" cy="150" r="4" fill="#8B5CF6"/>
+  <circle cx="100" cy="450" r="4" fill="#F59E0B"/>
+  <circle cx="700" cy="450" r="4" fill="#EF4444"/>
+</svg>

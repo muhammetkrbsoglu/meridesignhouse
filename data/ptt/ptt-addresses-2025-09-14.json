@@ -1,0 +1,72 @@
+﻿{
+  "timestamp": "2025-09-14T11:09:57.429Z",
+  "totalCount": 11,
+  "data": [
+    {
+      "il": "ADANA",
+      "ilce": "ALADAĞ",
+      "mahalle": "AKÖREN MAH                                                                 / MADENLİ                       / 01722",
+      "postaKodu": "01722"
+    },
+    {
+      "il": "ADANA",
+      "ilce": "ALADAĞ",
+      "mahalle": "AKPINAR MAH                                                                / ALADAĞ                        / 01720",
+      "postaKodu": "01722"
+    },
+    {
+      "il": "ADANA",
+      "ilce": "ALADAĞ",
+      "mahalle": "BAŞPINAR MAH                                                               / ALADAĞ                        / 01720",
+      "postaKodu": "01722"
+    },
+    {
+      "il": "ADANA",
+      "ilce": "ALADAĞ",
+      "mahalle": "BOZTAHTA MAH                                                               / MADENLİ                       / 01722",
+      "postaKodu": "01722"
+    },
+    {
+      "il": "ADANA",
+      "ilce": "ALADAĞ",
+      "mahalle": "BÜYÜKSOFULU MAH                                                            / MADENLİ                       / 01722",
+      "postaKodu": "01722"
+    },
+    {
+      "il": "ADANA",
+      "ilce": "ALADAĞ",
+      "mahalle": "CERİTLER MAH                                                               / MADENLİ                       / 01722",
+      "postaKodu": "01722"
+    },
+    {
+      "il": "ADANA",
+      "ilce": "ALADAĞ",
+      "mahalle": "DAİLER MAH                                                                 / MADENLİ                       / 01722",
+      "postaKodu": "01722"
+    },
+    {
+      "il": "ADANA",
+      "ilce": "ALADAĞ",
+      "mahalle": "DARILIK MAH                                                                / MADENLİ                       / 01722",
+      "postaKodu": "01722"
+    },
+    {
+      "il": "ADANA",
+      "ilce": "ALADAĞ",
+      "mahalle": "DÖLEKLİ MAH                                                                / MADENLİ                       / 01722",
+      "postaKodu": "01722"
+    },
+    {
+      "il": "ADANA",
+      "ilce": "ALADAĞ",
+      "mahalle": "EBRİŞİM MAH                                                                / MADENLİ                       / 01722",
+      "postaKodu": "01722"
+    },
+    {
+      "il": "ADANA",
+      "ilce": "ALADAĞ",
+      "mahalle": "EĞNER MAH                                                                  / MADENLİ                       / 01722",
+      "postaKodu": "11111"
+    }
+  ]
+}

@@ -1,0 +1,3 @@
+export const SUPPORT_WHATSAPP_PHONE = process.env.NEXT_PUBLIC_WHATSAPP_PHONE || '+905555555555';
+
+

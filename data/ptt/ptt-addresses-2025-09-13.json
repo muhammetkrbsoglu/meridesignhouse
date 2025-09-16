@@ -1,0 +1,636 @@
+{
+  "timestamp": "2025-09-13T10:51:26.723Z",
+  "totalCount": 105,
+  "data": [
+    {
+      "il": "ADANA",
+      "ilce": "ALADAĞ",
+      "mahalle": "AKÖREN MAH                                                                 / MADENLİ                       / 01722",
+      "postaKodu": "01722"
+    },
+    {
+      "il": "ADANA",
+      "ilce": "ALADAĞ",
+      "mahalle": "AKPINAR MAH                                                                / ALADAĞ                        / 01720",
+      "postaKodu": "01722"
+    },
+    {
+      "il": "ADANA",
+      "ilce": "ALADAĞ",
+      "mahalle": "BAŞPINAR MAH                                                               / ALADAĞ                        / 01720",
+      "postaKodu": "01722"
+    },
+    {
+      "il": "ADANA",
+      "ilce": "ALADAĞ",
+      "mahalle": "BOZTAHTA MAH                                                               / MADENLİ                       / 01722",
+      "postaKodu": "01722"
+    },
+    {
+      "il": "ADANA",
+      "ilce": "ALADAĞ",
+      "mahalle": "BÜYÜKSOFULU MAH                                                            / MADENLİ                       / 01722",
+      "postaKodu": "01722"
+    },
+    {
+      "il": "ADANA",
+      "ilce": "ALADAĞ",
+      "mahalle": "CERİTLER MAH                                                               / MADENLİ                       / 01722",
+      "postaKodu": "01722"
+    },
+    {
+      "il": "ADANA",
+      "ilce": "ALADAĞ",
+      "mahalle": "DAİLER MAH                                                                 / MADENLİ                       / 01722",
+      "postaKodu": "01722"
+    },
+    {
+      "il": "ADANA",
+      "ilce": "ALADAĞ",
+      "mahalle": "DARILIK MAH                                                                / MADENLİ                       / 01722",
+      "postaKodu": "01722"
+    },
+    {
+      "il": "ADANA",
+      "ilce": "ALADAĞ",
+      "mahalle": "DÖLEKLİ MAH                                                                / MADENLİ                       / 01722",
+      "postaKodu": "01722"
+    },
+    {
+      "il": "ADANA",
+      "ilce": "ALADAĞ",
+      "mahalle": "EBRİŞİM MAH                                                                / MADENLİ                       / 01722",
+      "postaKodu": "01722"
+    },
+    {
+      "il": "ADANA",
+      "ilce": "ALADAĞ",
+      "mahalle": "EĞNER MAH                                                                  / MADENLİ                       / 01722",
+      "postaKodu": "01722"
+    },
+    {
+      "il": "ADANA",
+      "ilce": "ALADAĞ",
+      "mahalle": "GERDİBİ MAH                                                                / MADENLİ                       / 01722",
+      "postaKodu": "01722"
+    },
+    {
+      "il": "ADANA",
+      "ilce": "ALADAĞ",
+      "mahalle": "GİREĞİYENİKÖY MAH                                                          / MADENLİ                       / 01722",
+      "postaKodu": "01722"
+    },
+    {
+      "il": "ADANA",
+      "ilce": "ALADAĞ",
+      "mahalle": "GÖKÇEKÖY MAH                                                               / MADENLİ                       / 01722",
+      "postaKodu": "01722"
+    },
+    {
+      "il": "ADANA",
+      "ilce": "ALADAĞ",
+      "mahalle": "KABASAKAL MAH                                                              / MADENLİ                       / 01722",
+      "postaKodu": "01722"
+    },
+    {
+      "il": "ADANA",
+      "ilce": "ALADAĞ",
+      "mahalle": "KARAHAN MAH                                                                / MADENLİ                       / 01722",
+      "postaKodu": "01722"
+    },
+    {
+      "il": "ADANA",
+      "ilce": "ALADAĞ",
+      "mahalle": "KICAK MAH                                                                  / MADENLİ                       / 01722",
+      "postaKodu": "01722"
+    },
+    {
+      "il": "ADANA",
+      "ilce": "ALADAĞ",
+      "mahalle": "KIŞLAK MAH                                                                 / MADENLİ                       / 01722",
+      "postaKodu": "01722"
+    },
+    {
+      "il": "ADANA",
+      "ilce": "ALADAĞ",
+      "mahalle": "KIZILDAM MAH                                                               / MADENLİ                       / 01722",
+      "postaKodu": "01722"
+    },
+    {
+      "il": "ADANA",
+      "ilce": "ALADAĞ",
+      "mahalle": "KÖKEZ MAH                                                                  / MADENLİ                       / 01722",
+      "postaKodu": "01722"
+    },
+    {
+      "il": "ADANA",
+      "ilce": "ALADAĞ",
+      "mahalle": "KÖPRÜCÜK MAH                                                               / MADENLİ                       / 01722",
+      "postaKodu": "01722"
+    },
+    {
+      "il": "ADANA",
+      "ilce": "ALADAĞ",
+      "mahalle": "KÜP MAH                                                                    / MADENLİ                       / 01722",
+      "postaKodu": "01722"
+    },
+    {
+      "il": "ADANA",
+      "ilce": "ALADAĞ",
+      "mahalle": "MADENLİ MAH                                                                / MADENLİ                       / 01722",
+      "postaKodu": "01722"
+    },
+    {
+      "il": "ADANA",
+      "ilce": "ALADAĞ",
+      "mahalle": "MANSURLU MAH                                                               / ALADAĞ                        / 01720",
+      "postaKodu": "01722"
+    },
+    {
+      "il": "ADANA",
+      "ilce": "ALADAĞ",
+      "mahalle": "MAZILIK MAH                                                                / MADENLİ                       / 01722",
+      "postaKodu": "01722"
+    },
+    {
+      "il": "ADANA",
+      "ilce": "ALADAĞ",
+      "mahalle": "POSYAĞBASAN MAH                                                            / MADENLİ                       / 01722",
+      "postaKodu": "01722"
+    },
+    {
+      "il": "ADANA",
+      "ilce": "ALADAĞ",
+      "mahalle": "SİNANPAŞA MAH                                                              / ALADAĞ                        / 01720",
+      "postaKodu": "01722"
+    },
+    {
+      "il": "ADANA",
+      "ilce": "ALADAĞ",
+      "mahalle": "TOPALLI MAH                                                                / MADENLİ                       / 01722",
+      "postaKodu": "01722"
+    },
+    {
+      "il": "ADANA",
+      "ilce": "ALADAĞ",
+      "mahalle": "UZUNKUYU MAH                                                               / MADENLİ                       / 01722",
+      "postaKodu": "01722"
+    },
+    {
+      "il": "ADANA",
+      "ilce": "ALADAĞ",
+      "mahalle": "YETİMLİ MAH                                                                / MADENLİ                       / 01722",
+      "postaKodu": "01722"
+    },
+    {
+      "il": "ADANA",
+      "ilce": "ALADAĞ",
+      "mahalle": "YÜKSEKÖREN MAH                                                             / MADENLİ                       / 01722",
+      "postaKodu": "01722"
+    },
+    {
+      "il": "ADANA",
+      "ilce": "CEYHAN",
+      "mahalle": "ADAPINAR MAH                                                               / BÜYÜKMANGIT                   / 01922",
+      "postaKodu": "01922"
+    },
+    {
+      "il": "ADANA",
+      "ilce": "CEYHAN",
+      "mahalle": "ADATEPE MAH                                                                / BÜYÜKMANGIT                   / 01922",
+      "postaKodu": "01922"
+    },
+    {
+      "il": "ADANA",
+      "ilce": "CEYHAN",
+      "mahalle": "AĞAÇLI MAH                                                                 / BÜYÜKMANGIT                   / 01922",
+      "postaKodu": "01922"
+    },
+    {
+      "il": "ADANA",
+      "ilce": "CEYHAN",
+      "mahalle": "AĞAÇPINAR MAH                                                              / BÜYÜKMANGIT                   / 01922",
+      "postaKodu": "01922"
+    },
+    {
+      "il": "ADANA",
+      "ilce": "CEYHAN",
+      "mahalle": "AKDAM MAH                                                                  / BÜYÜKMANGIT                   / 01922",
+      "postaKodu": "01922"
+    },
+    {
+      "il": "ADANA",
+      "ilce": "CEYHAN",
+      "mahalle": "ALTIGÖZBEKİRLİ MAH                                                         / BÜYÜKMANGIT                   / 01922",
+      "postaKodu": "01922"
+    },
+    {
+      "il": "ADANA",
+      "ilce": "CEYHAN",
+      "mahalle": "ALTIKARA MAH                                                               / BÜYÜKMANGIT                   / 01922",
+      "postaKodu": "01922"
+    },
+    {
+      "il": "ADANA",
+      "ilce": "CEYHAN",
+      "mahalle": "ALTIOCAK MAH                                                               / CEYHAN                        / 01920",
+      "postaKodu": "01922"
+    },
+    {
+      "il": "ADANA",
+      "ilce": "CEYHAN",
+      "mahalle": "ATATÜRK MAH                                                                / CEYHAN                        / 01920",
+      "postaKodu": "01922"
+    },
+    {
+      "il": "ADANA",
+      "ilce": "CEYHAN",
+      "mahalle": "AYDEMİROĞLU MAH                                                            / CEYHAN                        / 01920",
+      "postaKodu": "01922"
+    },
+    {
+      "il": "ADANA",
+      "ilce": "CEYHAN",
+      "mahalle": "AYDINLAR MAH                                                               / BÜYÜKMANGIT                   / 01922",
+      "postaKodu": "01922"
+    },
+    {
+      "il": "ADANA",
+      "ilce": "CEYHAN",
+      "mahalle": "AZİZLİ MAH                                                                 / BÜYÜKMANGIT                   / 01922",
+      "postaKodu": "01922"
+    },
+    {
+      "il": "ADANA",
+      "ilce": "CEYHAN",
+      "mahalle": "BAŞÖREN MAH                                                                / BÜYÜKMANGIT                   / 01922",
+      "postaKodu": "01922"
+    },
+    {
+      "il": "ADANA",
+      "ilce": "CEYHAN",
+      "mahalle": "BELEDİYE EVLERİ MAH                                                        / CEYHAN                        / 01920",
+      "postaKodu": "01922"
+    },
+    {
+      "il": "ADANA",
+      "ilce": "CEYHAN",
+      "mahalle": "BİRKENT MAH                                                                / BÜYÜKMANGIT                   / 01922",
+      "postaKodu": "01922"
+    },
+    {
+      "il": "ADANA",
+      "ilce": "CEYHAN",
+      "mahalle": "BOTA MAH                                                                   / CEYHAN                        / 01920",
+      "postaKodu": "01922"
+    },
+    {
+      "il": "ADANA",
+      "ilce": "CEYHAN",
+      "mahalle": "BURHANİYE MAH                                                              / CEYHAN                        / 01920",
+      "postaKodu": "01922"
+    },
+    {
+      "il": "ADANA",
+      "ilce": "CEYHAN",
+      "mahalle": "BURHANLI MAH                                                               / BÜYÜKMANGIT                   / 01922",
+      "postaKodu": "01922"
+    },
+    {
+      "il": "ADANA",
+      "ilce": "CEYHAN",
+      "mahalle": "BÜYÜKBURHANİYE MAH                                                         / BÜYÜKMANGIT                   / 01922",
+      "postaKodu": "01922"
+    },
+    {
+      "il": "ADANA",
+      "ilce": "CEYHAN",
+      "mahalle": "BÜYÜKKIRIM MAH                                                             / CEYHAN                        / 01920",
+      "postaKodu": "01922"
+    },
+    {
+      "il": "ADANA",
+      "ilce": "CEYHAN",
+      "mahalle": "BÜYÜKMANGIT MAH                                                            / BÜYÜKMANGIT                   / 01922",
+      "postaKodu": "01922"
+    },
+    {
+      "il": "ADANA",
+      "ilce": "CEYHAN",
+      "mahalle": "ÇAKALDERE MAH                                                              / BÜYÜKMANGIT                   / 01922",
+      "postaKodu": "01922"
+    },
+    {
+      "il": "ADANA",
+      "ilce": "CEYHAN",
+      "mahalle": "CAMUZAĞILI MAH                                                             / BÜYÜKMANGIT                   / 01922",
+      "postaKodu": "01922"
+    },
+    {
+      "il": "ADANA",
+      "ilce": "CEYHAN",
+      "mahalle": "ÇATAKLI MAH                                                                / BÜYÜKMANGIT                   / 01922",
+      "postaKodu": "01922"
+    },
+    {
+      "il": "ADANA",
+      "ilce": "CEYHAN",
+      "mahalle": "ÇATALHÜYÜK MAH                                                             / BÜYÜKMANGIT                   / 01922",
+      "postaKodu": "01922"
+    },
+    {
+      "il": "ADANA",
+      "ilce": "CEYHAN",
+      "mahalle": "ÇEVRETEPE MAH                                                              / BÜYÜKMANGIT                   / 01922",
+      "postaKodu": "01922"
+    },
+    {
+      "il": "ADANA",
+      "ilce": "CEYHAN",
+      "mahalle": "CEYHANBEKİRLİ MAH                                                          / BÜYÜKMANGIT                   / 01922",
+      "postaKodu": "01922"
+    },
+    {
+      "il": "ADANA",
+      "ilce": "CEYHAN",
+      "mahalle": "ÇİÇEKLİ MAH                                                                / BÜYÜKMANGIT                   / 01922",
+      "postaKodu": "01922"
+    },
+    {
+      "il": "ADANA",
+      "ilce": "CEYHAN",
+      "mahalle": "ÇİFTLİKLER MAH                                                             / BÜYÜKMANGIT                   / 01922",
+      "postaKodu": "01922"
+    },
+    {
+      "il": "ADANA",
+      "ilce": "CEYHAN",
+      "mahalle": "CİVANTAYAK MAH                                                             / CEYHAN                        / 01920",
+      "postaKodu": "01922"
+    },
+    {
+      "il": "ADANA",
+      "ilce": "CEYHAN",
+      "mahalle": "ÇOKÇAPINAR MAH                                                             / BÜYÜKMANGIT                   / 01922",
+      "postaKodu": "01922"
+    },
+    {
+      "il": "ADANA",
+      "ilce": "CEYHAN",
+      "mahalle": "CUMHURİYET MAH                                                             / CEYHAN                        / 01920",
+      "postaKodu": "01922"
+    },
+    {
+      "il": "ADANA",
+      "ilce": "CEYHAN",
+      "mahalle": "DAĞISTAN MAH                                                               / BÜYÜKMANGIT                   / 01922",
+      "postaKodu": "01922"
+    },
+    {
+      "il": "ADANA",
+      "ilce": "CEYHAN",
+      "mahalle": "DEĞİRMENDERE MAH                                                           / BÜYÜKMANGIT                   / 01922",
+      "postaKodu": "01922"
+    },
+    {
+      "il": "ADANA",
+      "ilce": "CEYHAN",
+      "mahalle": "DEĞİRMENLİ MAH                                                             / BÜYÜKMANGIT                   / 01922",
+      "postaKodu": "01922"
+    },
+    {
+      "il": "ADANA",
+      "ilce": "CEYHAN",
+      "mahalle": "DİKİLİTAŞ MAH                                                              / BÜYÜKMANGIT                   / 01922",
+      "postaKodu": "01922"
+    },
+    {
+      "il": "ADANA",
+      "ilce": "CEYHAN",
+      "mahalle": "DOKUZTEKNE MAH                                                             / BÜYÜKMANGIT                   / 01922",
+      "postaKodu": "01922"
+    },
+    {
+      "il": "ADANA",
+      "ilce": "CEYHAN",
+      "mahalle": "DORUK MAH                                                                  / BÜYÜKMANGIT                   / 01922",
+      "postaKodu": "01922"
+    },
+    {
+      "il": "ADANA",
+      "ilce": "CEYHAN",
+      "mahalle": "DURHASANDEDE MAH                                                           / BÜYÜKMANGIT                   / 01922",
+      "postaKodu": "01922"
+    },
+    {
+      "il": "ADANA",
+      "ilce": "CEYHAN",
+      "mahalle": "DUTLUPINAR MAH                                                             / BÜYÜKMANGIT                   / 01922",
+      "postaKodu": "01922"
+    },
+    {
+      "il": "ADANA",
+      "ilce": "CEYHAN",
+      "mahalle": "EKİNYAZI MAH                                                               / BÜYÜKMANGIT                   / 01922",
+      "postaKodu": "01922"
+    },
+    {
+      "il": "ADANA",
+      "ilce": "CEYHAN",
+      "mahalle": "ELMAGÖLÜ MAH                                                               / BÜYÜKMANGIT                   / 01922",
+      "postaKodu": "01922"
+    },
+    {
+      "il": "ADANA",
+      "ilce": "CEYHAN",
+      "mahalle": "EMEK MAH                                                                   / CEYHAN                        / 01920",
+      "postaKodu": "01922"
+    },
+    {
+      "il": "ADANA",
+      "ilce": "CEYHAN",
+      "mahalle": "ERENLER MAH                                                                / BÜYÜKMANGIT                   / 01922",
+      "postaKodu": "01922"
+    },
+    {
+      "il": "ADANA",
+      "ilce": "CEYHAN",
+      "mahalle": "ESENTEPE MAH                                                               / CEYHAN                        / 01920",
+      "postaKodu": "01922"
+    },
+    {
+      "il": "ADANA",
+      "ilce": "CEYHAN",
+      "mahalle": "FATİH SULTAN MEHMET MAH                                                    / CEYHAN                        / 01920",
+      "postaKodu": "01922"
+    },
+    {
+      "il": "ADANA",
+      "ilce": "CEYHAN",
+      "mahalle": "GAZİ OSMAN PAŞA MAH                                                        / CEYHAN                        / 01920",
+      "postaKodu": "01922"
+    },
+    {
+      "il": "ADANA",
+      "ilce": "CEYHAN",
+      "mahalle": "GÜMÜRDÜLÜ MAH                                                              / BÜYÜKMANGIT                   / 01922",
+      "postaKodu": "01922"
+    },
+    {
+      "il": "ADANA",
+      "ilce": "CEYHAN",
+      "mahalle": "GÜNDOĞAN MAH                                                               / BÜYÜKMANGIT                   / 01922",
+      "postaKodu": "01922"
+    },
+    {
+      "il": "ADANA",
+      "ilce": "CEYHAN",
+      "mahalle": "GÜNLÜCE MAH                                                                / BÜYÜKMANGIT                   / 01922",
+      "postaKodu": "01922"
+    },
+    {
+      "il": "ADANA",
+      "ilce": "CEYHAN",
+      "mahalle": "HAMDİLLİ MAH                                                               / BÜYÜKMANGIT                   / 01922",
+      "postaKodu": "01922"
+    },
+    {
+      "il": "ADANA",
+      "ilce": "CEYHAN",
+      "mahalle": "HAMİDİYE MAH                                                               / BÜYÜKMANGIT                   / 01922",
+      "postaKodu": "01922"
+    },
+    {
+      "il": "ADANA",
+      "ilce": "CEYHAN",
+      "mahalle": "HAMİTBEY MAH                                                               / BÜYÜKMANGIT                   / 01922",
+      "postaKodu": "01922"
+    },
+    {
+      "il": "ADANA",
+      "ilce": "CEYHAN",
+      "mahalle": "HAMİTBEYBUCAĞI MAH                                                         / BÜYÜKMANGIT                   / 01922",
+      "postaKodu": "01922"
+    },
+    {
+      "il": "ADANA",
+      "ilce": "CEYHAN",
+      "mahalle": "HÜRRİYET MAH                                                               / CEYHAN                        / 01920",
+      "postaKodu": "01922"
+    },
+    {
+      "il": "ADANA",
+      "ilce": "CEYHAN",
+      "mahalle": "İMRAN MAH                                                                  / BÜYÜKMANGIT                   / 01922",
+      "postaKodu": "01922"
+    },
+    {
+      "il": "ADANA",
+      "ilce": "CEYHAN",
+      "mahalle": "İNCEYER MAH                                                                / BÜYÜKMANGIT                   / 01922",
+      "postaKodu": "01922"
+    },
+    {
+      "il": "ADANA",
+      "ilce": "CEYHAN",
+      "mahalle": "İNÖNÜ MAH                                                                  / CEYHAN                        / 01920",
+      "postaKodu": "01922"
+    },
+    {
+      "il": "ADANA",
+      "ilce": "CEYHAN",
+      "mahalle": "IRMAKLI MAH                                                                / BÜYÜKMANGIT                   / 01922",
+      "postaKodu": "01922"
+    },
+    {
+      "il": "ADANA",
+      "ilce": "CEYHAN",
+      "mahalle": "İSALI MAH                                                                  / BÜYÜKMANGIT                   / 01922",
+      "postaKodu": "01922"
+    },
+    {
+      "il": "ADANA",
+      "ilce": "CEYHAN",
+      "mahalle": "ISIRGANLI MAH                                                              / BÜYÜKMANGIT                   / 01922",
+      "postaKodu": "01922"
+    },
+    {
+      "il": "ADANA",
+      "ilce": "CEYHAN",
+      "mahalle": "İSTİKLAL MAH                                                               / CEYHAN                        / 01920",
+      "postaKodu": "01922"
+    },
+    {
+      "il": "ADANA",
+      "ilce": "CEYHAN",
+      "mahalle": "KARAKAYALI MAH                                                             / BÜYÜKMANGIT                   / 01922",
+      "postaKodu": "01922"
+    },
+    {
+      "il": "ADANA",
+      "ilce": "CEYHAN",
+      "mahalle": "KELEMETİ MAH                                                               / CEYHAN                        / 01920",
+      "postaKodu": "01922"
+    },
+    {
+      "il": "ADANA",
+      "ilce": "CEYHAN",
+      "mahalle": "KILIÇKAYA MAH                                                              / BÜYÜKMANGIT                   / 01922",
+      "postaKodu": "01922"
+    },
+    {
+      "il": "ADANA",
+      "ilce": "CEYHAN",
+      "mahalle": "KIVRIKLI MAH                                                               / BÜYÜKMANGIT                   / 01922",
+      "postaKodu": "01922"
+    },
+    {
+      "il": "ADANA",
+      "ilce": "CEYHAN",
+      "mahalle": "KIZILDERE MAH                                                              / BÜYÜKMANGIT                   / 01922",
+      "postaKodu": "01922"
+    },
+    {
+      "il": "ADANA",
+      "ilce": "CEYHAN",
+      "mahalle": "KONAKOĞLU MAH                                                              / CEYHAN                        / 01920",
+      "postaKodu": "01922"
+    },
+    {
+      "il": "ADANA",
+      "ilce": "CEYHAN",
+      "mahalle": "KÖPRÜLÜ MAH                                                                / BÜYÜKMANGIT                   / 01922",
+      "postaKodu": "01922"
+    },
+    {
+      "il": "ADANA",
+      "ilce": "CEYHAN",
+      "mahalle": "KÖRKUYU MAH                                                                / BÜYÜKMANGIT                   / 01922",
+      "postaKodu": "01922"
+    },
+    {
+      "il": "ADANA",
+      "ilce": "CEYHAN",
+      "mahalle": "KORUKLU MAH                                                                / CEYHAN                        / 01920",
+      "postaKodu": "01922"
+    },
+    {
+      "il": "ADANA",
+      "ilce": "CEYHAN",
+      "mahalle": "KÖSRELİ MAH                                                                / BÜYÜKMANGIT                   / 01922",
+      "postaKodu": "01922"
+    },
+    {
+      "il": "ADANA",
+      "ilce": "CEYHAN",
+      "mahalle": "KÜÇÜKBURHANİYE MAH                                                         / BÜYÜKMANGIT                   / 01922",
+      "postaKodu": "01922"
+    },
+    {
+      "il": "ADANA",
+      "ilce": "CEYHAN",
+      "mahalle": "KÜÇÜKKIRIM MAH                                                             / CEYHAN                        / 01920",
+      "postaKodu": "01922"
+    }
+  ]
+}

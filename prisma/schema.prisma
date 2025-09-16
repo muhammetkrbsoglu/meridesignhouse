@@ -1,0 +1,488 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+model User {
+  id                      String           @id @default(uuid())
+  email                   String           @unique
+  name                    String?
+  phone                   String?
+  role                    UserRole         @default(CUSTOMER)
+  createdAt               DateTime         @default(now())
+  updatedAt               DateTime         @updatedAt
+  address                 String?
+  city                    String?
+  state                   String?
+  zip_code                String?
+  country                 String?          @default("Turkey")
+  birth_date              DateTime?        @db.Date
+  gender                  String?
+  preferences             Json?            @default("{}")
+  newsletter_subscription Boolean?         @default(false)
+  profile_image           String?
+  cartItems               CartItem[]
+  favorites               Favorite[]
+  messages                Message[]
+  orders                  Order[]
+  user_addresses          user_addresses[]
+
+  @@map("users")
+}
+
+model Category {
+  id          String     @id @default(dbgenerated("uuid_generate_v4()"))
+  name        String
+  slug        String     @unique
+  description String?
+  image       String?
+  parentId    String?
+  isActive    Boolean    @default(true)
+  sortOrder   Int        @default(0)
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @default(now()) @updatedAt
+  parent      Category?  @relation("CategoryHierarchy", fields: [parentId], references: [id])
+  children    Category[] @relation("CategoryHierarchy")
+  products    Product[]
+
+  @@map("categories")
+}
+
+model Product {
+  id                      String              @id @default(uuid())
+  name                    String
+  slug                    String              @unique
+  description             String?
+  price                   Decimal             @db.Decimal(10, 2)
+  oldPrice                Decimal?            @db.Decimal(10, 2)
+  comparePrice            Decimal?            @db.Decimal(10, 2)
+  sku                     String?             @unique
+  stock                   Int                 @default(0)
+  isActive                Boolean             @default(true)
+  isFeatured              Boolean             @default(false)
+  isNewArrival            Boolean             @default(false)
+  isProductOfWeek         Boolean             @default(false)
+  productOfWeekCategoryId String?
+  weight                  Float?
+  dimensions              String?
+  categoryId              String
+  createdAt               DateTime            @default(now())
+  updatedAt               DateTime            @updatedAt
+  colors                  String[]            @default([])
+  image                   String?
+  bundle_items            bundle_items[]
+  cartItems               CartItem[]
+  favorites               Favorite[]
+  featuredProducts        FeaturedProduct[]
+  orderItems              OrderItem[]
+  product_colors          product_colors[]
+  productEventThemes      ProductEventTheme[]
+  images                  ProductImage[]
+  category                Category            @relation(fields: [categoryId], references: [id])
+
+  @@map("products")
+}
+
+model ProductImage {
+  id        String   @id @default(uuid())
+  url       String
+  alt       String?
+  sortOrder Int      @default(0)
+  productId String
+  createdAt DateTime @default(now())
+  fileId    String?
+  product   Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  @@map("product_images")
+}
+
+model EventType {
+  id                 String              @id @default(uuid())
+  name               String              @unique
+  description        String?
+  image              String?
+  isActive           Boolean             @default(true)
+  sortOrder          Int                 @default(0)
+  createdAt          DateTime            @default(now())
+  updatedAt          DateTime            @updatedAt
+  bundles            bundles[]
+  productEventThemes ProductEventTheme[]
+
+  @@map("event_types")
+}
+
+model ThemeStyle {
+  id                 String              @id @default(uuid())
+  name               String              @unique
+  description        String?
+  colors             String[]            @default([])
+  image              String?
+  isActive           Boolean             @default(true)
+  sortOrder          Int                 @default(0)
+  createdAt          DateTime            @default(now())
+  updatedAt          DateTime            @updatedAt
+  bundles            bundles[]
+  productEventThemes ProductEventTheme[]
+
+  @@map("theme_styles")
+}
+
+model ProductEventTheme {
+  id           String     @id @default(uuid())
+  productId    String
+  eventTypeId  String
+  themeStyleId String
+  isActive     Boolean    @default(true)
+  createdAt    DateTime   @default(now())
+  eventType    EventType  @relation(fields: [eventTypeId], references: [id], onDelete: Cascade)
+  product      Product    @relation(fields: [productId], references: [id], onDelete: Cascade)
+  themeStyle   ThemeStyle @relation(fields: [themeStyleId], references: [id], onDelete: Cascade)
+
+  @@unique([productId, eventTypeId, themeStyleId])
+  @@map("product_event_themes")
+}
+
+model FeaturedProduct {
+  id        String       @id @default(uuid())
+  productId String
+  type      FeaturedType
+  sortOrder Int          @default(0)
+  isActive  Boolean      @default(true)
+  createdAt DateTime     @default(now())
+  updatedAt DateTime     @updatedAt
+  product   Product      @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  @@unique([productId, type])
+  @@map("featured_products")
+}
+
+model Order {
+  id                     String                  @id @default(dbgenerated("(gen_random_uuid())::text"))
+  orderNumber            String                  @unique
+  userId                 String
+  status                 OrderStatus             @default(PENDING)
+  totalAmount            Decimal                 @db.Decimal(10, 2)
+  shippingCost           Decimal?                @db.Decimal(10, 2)
+  taxAmount              Decimal?                @db.Decimal(10, 2)
+  customerName           String
+  customerEmail          String
+  customerPhone          String
+  shippingAddress        String
+  shippingCity           String
+  shippingState          String?
+  shippingZip            String
+  shippingCountry        String                  @default("Turkey")
+  billingAddress         String?
+  billingCity            String?
+  billingState           String?
+  billingZip             String?
+  billingCountry         String?
+  notes                  String?
+  trackingNumber         String?
+  createdAt              DateTime                @default(now())
+  updatedAt              DateTime                @updatedAt
+  admin_notes            String?
+  payment_method         String?                 @default("whatsapp_approval")
+  payment_status         String?                 @default("PENDING")
+  subtotal               Decimal?                @default(0) @db.Decimal
+  tax                    Decimal?                @default(0) @db.Decimal
+  carrier                String?
+  service_code           String?
+  shipment_id            String?
+  tracking_number        String?
+  tracking_url           String?
+  label_url              String?
+  label_format           String?                 @default("PDF")
+  package_weight_kg      Decimal?                @db.Decimal(10, 3)
+  package_dims_cm        Json?
+  pickup_id              String?
+  shipping_cost_estimate Decimal?                @db.Decimal(10, 2)
+  shipping_cost_currency String?                 @default("TRY")
+  messages               Message[]
+  orderItems             OrderItem[]
+  order_timeline_events  order_timeline_events[]
+  user                   User                    @relation(fields: [userId], references: [id])
+
+  @@index([tracking_number], map: "idx_orders_tracking_number")
+  @@map("orders")
+}
+
+model OrderItem {
+  id        String   @id @default(dbgenerated("(gen_random_uuid())::text"))
+  orderId   String
+  productId String
+  quantity  Int
+  price     Decimal  @db.Decimal(10, 2)
+  createdAt DateTime @default(now())
+  order     Order    @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  product   Product  @relation(fields: [productId], references: [id])
+
+  @@map("order_items")
+}
+
+model Favorite {
+  id        String   @id @default(uuid())
+  userId    String
+  productId String
+  createdAt DateTime @default(now())
+  product   Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, productId])
+  @@map("favorites")
+}
+
+model Message {
+  id         String        @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  userId     String?
+  orderId    String?
+  type       MessageType   @default(CONTACT)
+  name       String
+  email      String
+  phone      String?
+  subject    String
+  message    String
+  status     MessageStatus @default(UNREAD)
+  adminReply String?
+  createdAt  DateTime      @default(now())
+  updatedAt  DateTime      @default(now()) @updatedAt
+  order      Order?        @relation(fields: [orderId], references: [id])
+  user       User?         @relation(fields: [userId], references: [id])
+
+  @@index([userId], map: "idx_messages_userid")
+  @@map("messages")
+}
+
+model CartItem {
+  id        String    @id @default(dbgenerated("(gen_random_uuid())::text"))
+  userId    String
+  productId String
+  quantity  Int       @default(1)
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  updatedat DateTime? @default(now()) @db.Timestamp(6)
+  product   Product   @relation(fields: [productId], references: [id], onDelete: Cascade)
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, productId])
+  @@map("cart_items")
+}
+
+model Il {
+  id         String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  name       String    @unique @db.VarChar(255)
+  code       String    @unique @db.VarChar(50)
+  created_at DateTime? @default(now()) @db.Timestamptz(6)
+  updated_at DateTime? @default(now()) @db.Timestamptz(6)
+  ilceler    Ilce[]
+
+  @@map("iller")
+}
+
+model Ilce {
+  id         String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  name       String    @db.VarChar(255)
+  code       String    @db.VarChar(50)
+  il_id      String    @db.Uuid
+  created_at DateTime? @default(now()) @db.Timestamptz(6)
+  updated_at DateTime? @default(now()) @db.Timestamptz(6)
+  il         Il        @relation(fields: [il_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  mahalleler Mahalle[]
+
+  @@unique([il_id, code])
+  @@index([il_id], map: "idx_ilceler_il_id")
+  @@map("ilceler")
+}
+
+model Mahalle {
+  id         String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  name       String    @db.VarChar(255)
+  code       String    @db.VarChar(50)
+  posta_kodu String    @db.VarChar(10)
+  ilce_id    String    @db.Uuid
+  created_at DateTime? @default(now()) @db.Timestamptz(6)
+  updated_at DateTime? @default(now()) @db.Timestamptz(6)
+  ilce       Ilce      @relation(fields: [ilce_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@unique([ilce_id, code])
+  @@index([ilce_id], map: "idx_mahalleler_ilce_id")
+  @@index([posta_kodu], map: "idx_mahalleler_posta_kodu")
+  @@map("mahalleler")
+}
+
+/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
+model bundle_items {
+  id        String   @id
+  bundleid  String
+  productid String
+  quantity  Int      @default(1)
+  sortorder Int      @default(0)
+  createdat DateTime @default(now()) @db.Timestamp(6)
+  bundles   bundles  @relation(fields: [bundleid], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "fk_bundle_items_bundle")
+  products  Product  @relation(fields: [productid], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "fk_bundle_items_product")
+
+  @@index([bundleid, sortorder], map: "idx_bundle_items_bundle_sort")
+}
+
+/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
+model bundles {
+  id           String         @id
+  name         String
+  slug         String         @unique
+  description  String?
+  image        String?
+  eventtypeid  String
+  themestyleid String
+  bundleprice  Decimal?       @db.Decimal
+  isactive     Boolean        @default(true)
+  sortorder    Int            @default(0)
+  createdat    DateTime       @default(now()) @db.Timestamp(6)
+  updatedat    DateTime       @db.Timestamp(6)
+  bundle_items bundle_items[]
+  event_types  EventType      @relation(fields: [eventtypeid], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "fk_bundles_eventtype")
+  theme_styles ThemeStyle     @relation(fields: [themestyleid], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "fk_bundles_themestyle")
+
+  @@index([isactive, sortorder], map: "idx_bundles_active_sort")
+  @@index([eventtypeid, themestyleid], map: "idx_bundles_event_theme")
+}
+
+/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
+model cities {
+  id        BigInt      @id @default(autoincrement())
+  name      String      @unique
+  districts districts[]
+}
+
+/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
+model colors {
+  id             String           @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  name           String
+  slug           String           @unique
+  hex            String
+  is_active      Boolean          @default(true)
+  created_at     DateTime         @default(now()) @db.Timestamptz(6)
+  product_colors product_colors[]
+}
+
+/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
+model districts {
+  id            BigInt          @id @default(autoincrement())
+  city_id       BigInt
+  name          String
+  cities        cities          @relation(fields: [city_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  neighborhoods neighborhoods[]
+
+  @@unique([city_id, name])
+  @@index([city_id], map: "idx_districts_city_id")
+}
+
+/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
+model neighborhoods {
+  id          BigInt    @id @default(autoincrement())
+  district_id BigInt
+  name        String
+  postal_code String?
+  districts   districts @relation(fields: [district_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@unique([district_id, name])
+  @@index([district_id], map: "idx_neighborhoods_district_id")
+  @@index([postal_code], map: "idx_neighborhoods_postal_code")
+}
+
+/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
+model order_timeline_events {
+  id         BigInt   @id @default(autoincrement())
+  order_id   String
+  event_type String
+  message    String?
+  created_at DateTime @default(now()) @db.Timestamptz(6)
+  orders     Order    @relation(fields: [order_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@index([order_id], map: "idx_order_timeline_order_id")
+}
+
+/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
+model product_colors {
+  product_id String
+  color_id   String   @db.Uuid
+  created_at DateTime @default(now()) @db.Timestamptz(6)
+  colors     colors   @relation(fields: [color_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  products   Product  @relation(fields: [product_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@id([product_id, color_id])
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
+model user_addresses {
+  id                  String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  user_id             String
+  label               String
+  full_name           String
+  phone               String
+  address             String
+  city                String
+  state               String?
+  postal_code         String?
+  country             String   @default("Türkiye")
+  is_default_shipping Boolean  @default(false)
+  is_default_billing  Boolean  @default(false)
+  created_at          DateTime @default(now()) @db.Timestamptz(6)
+  updated_at          DateTime @default(now()) @db.Timestamptz(6)
+  users               User     @relation(fields: [user_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@index([user_id], map: "idx_user_addresses_user_id")
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+model whatsapp_templates {
+  id         String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  name       String
+  context    String
+  content    String
+  is_active  Boolean  @default(true)
+  updated_at DateTime @default(now()) @db.Timestamptz(6)
+
+  @@index([context], map: "idx_whatsapp_templates_context")
+}
+
+enum UserRole {
+  ADMIN
+  CUSTOMER
+}
+
+enum FeaturedType {
+  FEATURED
+  NEW_ARRIVAL
+  WEEKLY_PICK
+}
+
+enum OrderStatus {
+  PENDING
+  CONFIRMED
+  PROCESSING
+  SHIPPED
+  DELIVERED
+  CANCELLED
+  REFUNDED
+  READY_TO_SHIP
+}
+
+enum MessageType {
+  CONTACT
+  ORDER_INQUIRY
+  SUPPORT
+  COMPLAINT
+}
+
+enum MessageStatus {
+  UNREAD
+  READ
+  REPLIED
+  CLOSED
+}

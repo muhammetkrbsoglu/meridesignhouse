@@ -1,0 +1,36 @@
+{
+  "timestamp": "2024-01-15T10:00:00.000Z",
+  "totalCount": 5,
+  "data": [
+    {
+      "il": "İSTANBUL",
+      "ilce": "KADIKÖY",
+      "mahalle": "FENERBAHÇE MAH",
+      "postaKodu": "34710"
+    },
+    {
+      "il": "İSTANBUL",
+      "ilce": "KADIKÖY",
+      "mahalle": "ACIBADEM MAH",
+      "postaKodu": "34718"
+    },
+    {
+      "il": "ANKARA",
+      "ilce": "ÇANKAYA",
+      "mahalle": "KIZILAY MAH",
+      "postaKodu": "06420"
+    },
+    {
+      "il": "ANKARA",
+      "ilce": "ÇANKAYA",
+      "mahalle": "KAVAKLIDERE MAH",
+      "postaKodu": "06680"
+    },
+    {
+      "il": "İZMİR",
+      "ilce": "KONAK",
+      "mahalle": "KEMERALTI MAH",
+      "postaKodu": "35250"
+    }
+  ]
+}
