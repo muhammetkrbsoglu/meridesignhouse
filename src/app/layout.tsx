@@ -54,6 +54,8 @@ export default function RootLayout({
       >
         <AuthProviderWrapper>
           {children}
+          {/* Live region for polite announcements (toasts/async) */}
+          <div aria-live="polite" aria-atomic="true" className="sr-only" />
           <Toaster />
           <WebsiteStructuredData />
           <OrganizationStructuredData />
