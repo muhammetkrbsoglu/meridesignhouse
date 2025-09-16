@@ -16,7 +16,7 @@ export const imagekitConfig = {
 
 // Helper function to generate optimized image URLs
 export function getOptimizedImageUrl(
-  src: string,
+  src: string | undefined,
   options: {
     width?: number
     height?: number
@@ -26,6 +26,10 @@ export function getOptimizedImageUrl(
     focus?: 'auto' | 'face' | 'center'
   } = {}
 ) {
+  const placeholder = '/placeholder-product.jpg'
+  if (!src || typeof src !== 'string') {
+    return placeholder
+  }
   const {
     width,
     height,
@@ -52,7 +56,8 @@ export function getOptimizedImageUrl(
   const transformationString = transformations.join(',')
   
   // If src is already a full ImageKit URL, add transformations
-  if (src.includes(process.env.NEXT_PUBLIC_IMAGEKIT_URL_ENDPOINT!)) {
+  const endpoint = process.env.NEXT_PUBLIC_IMAGEKIT_URL_ENDPOINT
+  if (endpoint && src.includes(endpoint)) {
     // Check if URL already has transformations
     if (src.includes('/tr:')) {
       // Replace existing transformations
@@ -62,19 +67,23 @@ export function getOptimizedImageUrl(
       return `${basePath}/tr:${transformationString}/${imagePath}`
     } else {
       // Add new transformations
-      const imagePath = src.replace(process.env.NEXT_PUBLIC_IMAGEKIT_URL_ENDPOINT!, '')
-      return `${process.env.NEXT_PUBLIC_IMAGEKIT_URL_ENDPOINT}/tr:${transformationString}${imagePath}`
+      const imagePath = src.replace(endpoint, '')
+      return `${endpoint}/tr:${transformationString}${imagePath}`
     }
   }
   
   // If src is a relative path, construct full ImageKit URL
   const cleanSrc = src.startsWith('/') ? src.slice(1) : src
-  return `${process.env.NEXT_PUBLIC_IMAGEKIT_URL_ENDPOINT}/tr:${transformationString}/${cleanSrc}`
+  if (endpoint) {
+    return `${endpoint}/tr:${transformationString}/${cleanSrc}`
+  }
+  // Fallback to placeholder if endpoint missing
+  return placeholder
 }
 
 // Helper function for responsive images
 export function getResponsiveImageSrcSet(
-  src: string,
+  src: string | undefined,
   sizes: number[] = [320, 640, 768, 1024, 1280, 1920]
 ) {
   return sizes
@@ -161,7 +170,7 @@ export const imagePresets = {
 } as const
 
 // Get preset image URL
-export function getPresetImageUrl(src: string, preset: keyof typeof imagePresets) {
+export function getPresetImageUrl(src: string | undefined, preset: keyof typeof imagePresets) {
   return getOptimizedImageUrl(src, imagePresets[preset])
 }
 
