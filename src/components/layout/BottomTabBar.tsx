@@ -36,7 +36,7 @@ const items = [
   },
   { 
     href: '/products', 
-    label: 'Kategoriler', 
+    label: 'Ürünler', 
     icon: Squares2X2Icon, 
     activeIcon: Squares2X2IconSolid,
     showBadge: false
@@ -57,12 +57,11 @@ const items = [
     badgeKey: 'favorites'
   },
   { 
-    href: '/cart', 
-    label: 'Sepet', 
-    icon: ShoppingBagIcon, 
-    activeIcon: ShoppingBagIconSolid,
-    showBadge: true,
-    badgeKey: 'cart'
+    href: '/profile', 
+    label: 'Profil', 
+    icon: UserIcon, 
+    activeIcon: UserIconSolid,
+    showBadge: false
   },
 ]
 
@@ -71,7 +70,19 @@ export function BottomTabBar() {
   const { user } = useAuth()
   const [cartCount, setCartCount] = useState(0)
   const [favoriteCount, setFavoriteCount] = useState(0)
+  const [isScrolled, setIsScrolled] = useState(false)
   const shouldReduceMotion = useReducedMotion()
+
+  // Scroll detection for navbar shrinking
+  useEffect(() => {
+    const handleScroll = () => {
+      const scrollY = window.scrollY
+      setIsScrolled(scrollY > 50)
+    }
+
+    window.addEventListener('scroll', handleScroll, { passive: true })
+    return () => window.removeEventListener('scroll', handleScroll)
+  }, [])
 
   // Load cart and favorite counts
   useEffect(() => {
@@ -132,7 +143,13 @@ export function BottomTabBar() {
   return (
     <motion.nav 
       initial={{ y: 100, opacity: 0 }}
-      animate={{ y: 0, opacity: 1 }}
+      animate={{ 
+        y: 0, 
+        opacity: 1,
+        height: isScrolled ? 60 : 80,
+        paddingTop: isScrolled ? 4 : 8,
+        paddingBottom: isScrolled ? 4 : 8
+      }}
       transition={{ 
         type: "spring", 
         stiffness: 300, 
@@ -172,9 +189,9 @@ export function BottomTabBar() {
                 >
                   <div className="relative">
                     {active ? (
-                      <ActiveIcon className="h-6 w-6" />
+                      <ActiveIcon className={cn("transition-all duration-200", isScrolled ? "h-5 w-5" : "h-6 w-6")} />
                     ) : (
-                      <Icon className="h-6 w-6" />
+                      <Icon className={cn("transition-all duration-200", isScrolled ? "h-5 w-5" : "h-6 w-6")} />
                     )}
                     {showBadgeNumber && (
                       <motion.span
@@ -191,7 +208,8 @@ export function BottomTabBar() {
                     )}
                   </div>
                   <span className={cn(
-                    'text-[10px] leading-3 mt-1 font-medium',
+                    'leading-3 mt-1 font-medium transition-all duration-200',
+                    isScrolled ? 'text-[9px]' : 'text-[10px]',
                     active ? 'text-rose-600' : 'text-gray-600'
                   )}>
                     {label}

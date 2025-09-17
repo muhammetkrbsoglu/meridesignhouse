@@ -13,7 +13,7 @@ export function HeroSection() {
   const parallax = useHeroParallax()
   
   return (
-    <section className="relative min-h-screen bg-gradient-to-br from-rose-50 via-pink-50 to-purple-50 overflow-hidden" style={{ zIndex: 1 }}>
+    <section className="relative min-h-screen bg-gradient-to-br from-rose-50 via-pink-50 to-purple-50" style={{ zIndex: 1 }}>
       {/* Background Elements */}
       <div className="absolute inset-0 hidden md:block" aria-hidden="true">
         <motion.div 
