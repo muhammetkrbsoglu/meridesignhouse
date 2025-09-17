@@ -9,7 +9,7 @@ import { motion, AnimatePresence } from 'framer-motion'
 import { useEffect, useRef } from 'react'
 import { createPortal } from 'react-dom'
 import { X } from 'lucide-react'
-import { Button } from '@/components/ui/Button'
+import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
 
 interface ModalProps {
