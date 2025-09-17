@@ -3,6 +3,22 @@ import type { NextRequest } from 'next/server'
 
 // Basic Auth sadece staging/preview için
 export function middleware(req: NextRequest) {
+  // HTTPS redirect (production only, skip localhost/preview)
+  try {
+    const isProd = process.env.VERCEL_ENV === 'production' || process.env.NEXT_PUBLIC_ENV === 'production'
+    const proto = req.headers.get('x-forwarded-proto')
+    const host = req.headers.get('host') || ''
+    const isLocalhost = host.startsWith('localhost') || host.startsWith('127.0.0.1')
+
+    if (isProd && proto === 'http' && !isLocalhost) {
+      const url = new URL(req.url)
+      url.protocol = 'https:'
+      return NextResponse.redirect(url, 308)
+    }
+  } catch {
+    // no-op: never fail the request due to redirect check
+  }
+
   const isPreview = process.env.NEXT_PUBLIC_ENV === 'staging' || process.env.VERCEL_ENV === 'preview'
   const basicAuthUser = process.env.BASIC_AUTH_USER
   const basicAuthPass = process.env.BASIC_AUTH_PASS

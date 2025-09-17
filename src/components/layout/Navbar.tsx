@@ -14,6 +14,9 @@ import { SearchAutocomplete } from '@/components/ui/SearchAutocomplete'
 import { fetchAllMainCategoriesWithHierarchy } from '@/lib/actions/categories'
 import { getCartCount, getFavoriteCount } from '@/lib/actions/cart'
 import { motion, useReducedMotion } from 'framer-motion'
+import { useRef } from 'react'
+import { getOptimalGlassConfig } from '@/lib/glassmorphism'
+import { cn } from '@/lib/utils'
 
 interface Category {
   id: string
@@ -36,6 +39,12 @@ export function Navbar() {
   const [cartCount, setCartCount] = useState(0)
   const [favoriteCount, setFavoriteCount] = useState(0)
   const shouldReduceMotion = useReducedMotion()
+  const [isCompact, setIsCompact] = useState(false)
+  const lastScrollYRef = useRef(0)
+  const tickingRef = useRef(false)
+  const [isSearchOpen, setIsSearchOpen] = useState(false)
+  const [showGestureHint, setShowGestureHint] = useState(false)
+  const [isLoadingSearch, setIsLoadingSearch] = useState(false)
 
   useEffect(() => {
     const loadCategories = async () => {
@@ -51,6 +60,46 @@ export function Navbar() {
     }
     loadCategories()
   }, [])
+
+  // Compact/expand davranışı: aşağı kayınca kompakt, yukarıda geniş
+  useEffect(() => {
+    const threshold = 12
+    const onScroll = () => {
+      if (isSearchOpen) return
+      if (tickingRef.current) return
+      tickingRef.current = true
+      requestAnimationFrame(() => {
+        const y = window.scrollY || 0
+        const last = lastScrollYRef.current
+        if (y > last + threshold && y > 80) {
+          setIsCompact(true)
+        } else if (y < last - threshold) {
+          setIsCompact(false)
+        }
+        lastScrollYRef.current = y
+        tickingRef.current = false
+      })
+    }
+    window.addEventListener('scroll', onScroll, { passive: true })
+    return () => window.removeEventListener('scroll', onScroll)
+  }, [isSearchOpen])
+
+  // Açılışta bir kez gesture hint göstermek için
+  useEffect(() => {
+    if (!isSearchOpen) return
+    try {
+      const key = 'mdh_search_hint_shown'
+      const shown = localStorage.getItem(key)
+      if (!shown) {
+        setShowGestureHint(true)
+        const t = setTimeout(() => {
+          setShowGestureHint(false)
+          localStorage.setItem(key, '1')
+        }, 2200)
+        return () => clearTimeout(t)
+      }
+    } catch {}
+  }, [isSearchOpen])
 
   // Load cart and favorite counts
   useEffect(() => {
@@ -156,7 +205,11 @@ export function Navbar() {
   }, [hoverTimeout])
 
   return (
-    <header className="sticky top-0 z-[1000] pt-[env(safe-area-inset-top)] relative bg-gradient-to-br from-rose-50 via-pink-50 to-purple-50 shadow-lg border-b border-rose-200/30 overflow-visible">
+    <header className={cn(
+      'sticky top-0 z-[1000] safe-pt overflow-visible transition-[box-shadow,backdrop-filter] duration-150',
+      getOptimalGlassConfig('navbar'),
+      isCompact ? 'shadow-md' : 'shadow-lg'
+    )}>
       {/* Background Elements */}
       <div className="absolute inset-0 hidden md:block" aria-hidden="true">
         <motion.div
@@ -183,8 +236,8 @@ export function Navbar() {
       </div>
 
       {/* Top Bar */}
-      <div className="relative bg-gradient-to-r from-rose-100/50 to-pink-100/50 border-b border-rose-200/30">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div className={`relative bg-gradient-to-r from-rose-100/50 to-pink-100/50 border-b border-rose-200/30 overflow-hidden transition-[height,opacity] duration-150 ${isCompact ? 'h-0 opacity-0' : 'h-10 opacity-100'}`}>
+        <div className={`max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 ${isCompact ? 'pointer-events-none' : ''}`}>
           <div className="flex justify-between items-center h-10 text-sm">
             <div className="flex items-center space-x-4">
               <motion.span 
@@ -215,6 +268,7 @@ export function Navbar() {
                   Yardım
                 </Link>
               </motion.div>
+              {/* Theme toggle temporarily removed */}
             </div>
           </div>
         </div>
@@ -222,7 +276,7 @@ export function Navbar() {
 
       {/* Main Header */}
       <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex justify-between items-center h-16" role="navigation" aria-label="Üst gezinme">
+        <div className={`flex justify-between items-center ${isCompact ? 'h-12' : 'h-16'} transition-[height] duration-150`} role="navigation" aria-label="Üst gezinme">
           {/* Logo */}
           <motion.div 
             className="flex-shrink-0"
@@ -231,7 +285,7 @@ export function Navbar() {
             transition={{ duration: 0.6, delay: 0.2 }}
           >
             <Link href="/" className="flex flex-col group">
-              <span className="text-2xl font-bold bg-gradient-to-r from-rose-600 via-pink-600 to-purple-600 bg-clip-text text-transparent group-hover:from-rose-700 group-hover:via-pink-700 group-hover:to-purple-700 transition-all duration-300">
+              <span className={`font-bold bg-gradient-to-r from-rose-600 via-pink-600 to-purple-600 bg-clip-text text-transparent transition-all duration-150 ${isCompact ? 'text-xl' : 'text-2xl'}`}>
                 MeriDesignHouse
               </span>
               <span className="text-xs text-rose-500 -mt-1 font-medium">
@@ -265,6 +319,15 @@ export function Navbar() {
               className="md:hidden p-3 rounded-full bg-gradient-to-r from-rose-500 to-pink-500 text-white shadow-lg hover:shadow-xl"
               whileHover={{ scale: 1.1 }}
               whileTap={{ scale: 0.95 }}
+              aria-label="Arama panelini aç"
+              onClick={() => {
+                setIsSearchOpen(true)
+                setIsLoadingSearch(true)
+                // küçük gecikmeli loader simülasyonu
+                const t = setTimeout(() => setIsLoadingSearch(false), 350)
+                // cleanup
+                return () => clearTimeout(t)
+              }}
             >
               <MagnifyingGlassIcon className="h-5 w-5" />
             </motion.button>
@@ -283,8 +346,7 @@ export function Navbar() {
                     <span className="text-sm font-medium">Sepetim</span>
                     {cartCount > 0 && (
                       <Badge 
-                        variant="destructive" 
-                        className="absolute -top-2 -right-2 min-w-[20px] h-5 flex items-center justify-center text-xs font-bold"
+                        className="absolute -top-2 -right-2 min-w-[22px] h-5 flex items-center justify-center text-[11px] font-bold rounded-full bg-rose-600 text-white ring-2 ring-white shadow-sm"
                       >
                         {cartCount > 99 ? '99+' : cartCount}
                       </Badge>
@@ -302,8 +364,7 @@ export function Navbar() {
                     <span className="text-sm font-medium">Favorilerim</span>
                     {favoriteCount > 0 && (
                       <Badge 
-                        variant="destructive" 
-                        className="absolute -top-2 -right-2 min-w-[20px] h-5 flex items-center justify-center text-xs font-bold"
+                        className="absolute -top-2 -right-2 min-w-[22px] h-5 flex items-center justify-center text-[11px] font-bold rounded-full bg-fuchsia-600 text-white ring-2 ring-white shadow-sm"
                       >
                         {favoriteCount > 99 ? '99+' : favoriteCount}
                       </Badge>
@@ -380,7 +441,7 @@ export function Navbar() {
       </div>
 
       {/* Main Navigation */}
-      <nav className="relative bg-gradient-to-r from-rose-50/50 to-pink-50/50 border-t border-rose-200/30">
+      <nav className="relative bg-gradient-to-r from-rose-50/50 to-pink-50/50 border-t border-rose-200/30 transition-[height,opacity] duration-150">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-center items-center space-x-8 h-12 overflow-x-auto">
             <motion.div
@@ -483,26 +544,28 @@ export function Navbar() {
       {/* Categories Navigation */}
       <nav className="relative bg-gradient-to-r from-rose-50/50 to-pink-50/50 border-t border-rose-200/30 z-[99998] overflow-visible">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-center items-center space-x-2 h-12 overflow-x-auto scrollbar-hide relative overflow-visible">
+          <div className="flex justify-start items-center space-x-2 h-12 overflow-x-auto scrollbar-hide relative overflow-visible snap-x snap-mandatory">
             {categories.map((category, index) => (
               <motion.div
                 key={category.id}
                 initial={{ opacity: 0, y: -5 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.2, delay: index * 0.02 }}
-                className="whitespace-nowrap relative"
+                className="whitespace-nowrap relative snap-start"
                 onMouseEnter={() => handleCategoryMouseEnter(category.id)}
                 onMouseLeave={handleCategoryMouseLeave}
               >
                 <Link
                   href={`/categories/${category.slug}`}
-                  className={`flex items-center px-3 py-1.5 rounded-full font-medium transition-all duration-300 hover:scale-105 text-sm ${
+                  className={`flex items-center px-3 py-2 rounded-full font-medium transition-all duration-150 text-sm min-h-[44px] ${
                     hoveredCategoryId === category.id
-                      ? 'bg-gradient-to-r from-rose-500 to-pink-500 text-white shadow-lg'
-                      : 'text-rose-700 hover:text-rose-800 hover:bg-gradient-to-r hover:from-rose-100 hover:to-pink-100'
+                      ? 'bg-gradient-to-r from-rose-500 to-pink-500 text-white shadow-lg shadow-rose-500/20 ring-1 ring-rose-400/20'
+                      : 'text-rose-700 hover:text-rose-800 bg-rose-50/60 hover:bg-rose-100 hover:shadow hover:shadow-rose-500/10'
                   }`}
+                  aria-selected={hoveredCategoryId === category.id}
+                  aria-label={`Kategori: ${category.name}`}
                 >
-                  {category.name}
+                  <span className="line-clamp-1 max-w-[140px]">{category.name}</span>
                 </Link>
                 
               </motion.div>
@@ -551,114 +614,61 @@ export function Navbar() {
         
       </nav>
 
-      {/* Mobile Menu */}
-      {isMobileMenuOpen && (
-        <motion.div 
-          className="md:hidden bg-gradient-to-b from-white to-rose-50 border-t shadow-xl"
-          initial={{ opacity: 0, y: -20 }}
-          animate={{ opacity: 1, y: 0 }}
-          exit={{ opacity: 0, y: -20 }}
-          transition={{ duration: 0.3 }}
+      {/* Search Sheet */}
+      {isSearchOpen && (
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          transition={{ duration: 0.2, ease: [0.4, 0, 0.2, 1] }}
+          className="fixed inset-0 z-[1100] bg-black/30"
+          aria-hidden="false"
+          onClick={() => setIsSearchOpen(false)}
         >
-          <div className="px-6 py-4 space-y-4">
-            {/* Mobile Search */}
-            <motion.div 
-              className="pb-4 border-b border-rose-100"
-              initial={{ opacity: 0, x: -20 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ duration: 0.4, delay: 0.1 }}
-            >
-              <SearchAutocomplete 
-                placeholder="Ürün, kategori veya set ara..."
-                className="w-full"
-              />
-            </motion.div>
-            
-            {/* Main Navigation Links */}
-            <div className="pb-4 border-b border-rose-100">
-              <div className="space-y-1">
-                <Link
-                  href="/"
-                  className="flex items-center py-3 px-4 text-gray-700 hover:text-white hover:bg-gradient-to-r hover:from-rose-500 hover:to-pink-500 rounded-xl transition-all duration-300 font-medium"
-                  onClick={() => setIsMobileMenuOpen(false)}
-                >
-                  🏠 Ana Sayfa
-                </Link>
-                <Link
-                  href="/about"
-                  className="flex items-center py-3 px-4 text-gray-700 hover:text-white hover:bg-gradient-to-r hover:from-rose-500 hover:to-pink-500 rounded-xl transition-all duration-300 font-medium"
-                  onClick={() => setIsMobileMenuOpen(false)}
-                >
-                  ℹ️ Hakkımızda
-                </Link>
-                <Link
-                  href="/contact"
-                  className="flex items-center py-3 px-4 text-gray-700 hover:text-white hover:bg-gradient-to-r hover:from-rose-500 hover:to-pink-500 rounded-xl transition-all duration-300 font-medium"
-                  onClick={() => setIsMobileMenuOpen(false)}
-                >
-                  📞 İletişim
-                </Link>
-                <Link
-                  href="/products"
-                  className="flex items-center py-3 px-4 text-gray-700 hover:text-white hover:bg-gradient-to-r hover:from-rose-500 hover:to-pink-500 rounded-xl transition-all duration-300 font-medium"
-                  onClick={() => setIsMobileMenuOpen(false)}
-                >
-                  🛍️ Ürünler
-                </Link>
-              </div>
-            </div>
-            
-            {/* Categories */}
-            <div className="pb-4 border-b border-rose-100">
-              <h3 className="text-sm font-bold text-gray-500 uppercase tracking-wider mb-3">Kategoriler</h3>
-              <div className="space-y-1">
-                {categories.map((category) => (
-                  <Link
-                    key={category.id}
-                    href={`/categories/${category.slug}`}
-                    className="flex items-center py-2 px-4 text-gray-600 hover:text-white hover:bg-gradient-to-r hover:from-purple-500 hover:to-pink-500 rounded-lg transition-all duration-300"
-                    onClick={() => setIsMobileMenuOpen(false)}
-                  >
-                    🏷️ {category.name}
-                  </Link>
-                ))}
-                <Link
-                  href="/sale"
-                  className="flex items-center py-2 px-4 text-red-600 hover:text-white hover:bg-gradient-to-r hover:from-red-500 hover:to-pink-500 rounded-lg transition-all duration-300 font-medium"
-                  onClick={() => setIsMobileMenuOpen(false)}
-                >
-                  🔥 İndirim
-                </Link>
-              </div>
-            </div>
-            {!user && (
-              <motion.div 
-                className="pt-4"
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.4, delay: 0.3 }}
+          <motion.div
+            role="dialog"
+            aria-modal="true"
+            aria-label="Arama paneli"
+            initial={{ y: -40 }}
+            animate={{ y: 0 }}
+            exit={{ y: -40 }}
+            transition={{ duration: 0.22, ease: [0.4, 0, 0.2, 1] }}
+            className="absolute left-0 right-0 top-0 h-[80vh] bg-white rounded-b-2xl shadow-xl overflow-hidden"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="p-4 border-b flex items-center gap-2">
+              <button
+                type="button"
+                className="px-3 py-2 text-sm rounded-md bg-rose-50 text-rose-700"
+                onClick={() => setIsSearchOpen(false)}
+                aria-label="Kapat"
               >
-                <div className="space-y-3">
-                  <Link
-                    href="/auth/login"
-                    className="block w-full py-3 px-4 text-center bg-gradient-to-r from-rose-500 to-pink-500 hover:from-rose-600 hover:to-pink-600 text-white rounded-xl font-medium transition-all duration-300 transform hover:scale-105 shadow-lg"
-                    onClick={() => setIsMobileMenuOpen(false)}
-                  >
-                    🔐 Giriş Yap
-                  </Link>
-                  <Link
-                    href="/auth/register"
-                    className="block w-full py-3 px-4 text-center border-2 border-rose-500 text-rose-600 hover:bg-rose-500 hover:text-white rounded-xl font-medium transition-all duration-300 transform hover:scale-105"
-                    onClick={() => setIsMobileMenuOpen(false)}
-                  >
-                    ✨ Kayıt Ol
-                  </Link>
+                Kapat
+              </button>
+              <div className="flex-1">
+                <SearchAutocomplete placeholder="Ürün, kategori veya set ara..." className="w-full" />
+              </div>
+            </div>
+            {isLoadingSearch && (
+              <div className="flex items-center justify-center h-12" aria-live="polite">
+                {/* Markalı mini loader */}
+                <div className="relative w-6 h-6">
+                  <div className="absolute inset-0 rounded-full border-2 border-rose-300 border-t-rose-600 animate-spin" style={{ animationDuration: '180ms' }} />
                 </div>
-              </motion.div>
+              </div>
             )}
-          </div>
+            {showGestureHint && (
+              <div className="absolute bottom-3 right-3 bg-black/60 text-white text-xs px-2 py-1 rounded-lg">
+                İpucu: Yukarı kaydırarak kapatın
+              </div>
+            )}
+            <div className="p-4 overflow-y-auto h-[calc(80vh-56px)]">
+              {/* Suggestion list SearchAutocomplete içinde yönetiliyor; burada ek bloklar yer alabilir */}
+            </div>
+          </motion.div>
         </motion.div>
       )}
+
     </header>
   )
 }

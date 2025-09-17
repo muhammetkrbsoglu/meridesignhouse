@@ -10,6 +10,7 @@ import { formatCurrency } from '@/lib/utils'
 import { useState, useEffect } from 'react'
 import { toast } from '@/hooks/use-toast'
 import { FeaturedProduct } from '@/types/product'
+import { motion } from 'framer-motion'
 
 interface FeaturedProductsProps {
   products: FeaturedProduct[]
@@ -136,69 +137,76 @@ export function FeaturedProducts({ products }: FeaturedProductsProps) {
           </p>
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6 lg:gap-8">
-          {products.map((product) => (
-            <div key={product.id} className="group relative bg-white rounded-2xl shadow-lg hover:shadow-2xl transition-all duration-500 transform hover:-translate-y-2 overflow-hidden">
-              <div className="relative aspect-square overflow-hidden rounded-t-2xl">
+        <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 lg:gap-6">
+          {products.map((product, index) => (
+            <motion.div
+              key={product.id}
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ 
+                duration: 0.4, 
+                delay: index * 0.1,
+                ease: [0.4, 0, 0.2, 1]
+              }}
+              className="group relative bg-white rounded-xl border border-gray-100 hover:shadow-lg hover:shadow-rose-500/10 transition-all duration-300 overflow-hidden"
+            >
+              <div className="relative aspect-[3/4] overflow-hidden">
                 <Link href={`/products/${product.slug}`} aria-label={`Ürün sayfasına git: ${product.name}`}>
                   <Image
                     src={product.imageUrl || '/placeholder-product.svg'}
                     alt={product.name}
                     fill
-                    sizes="(min-width:1024px) 25vw, (min-width:640px) 50vw, 100vw"
+                    sizes="(min-width:1024px) 25vw, (min-width:640px) 50vw, 50vw"
                     className="object-cover group-hover:scale-105 transition-transform duration-300"
+                    priority={index < 4} // LCP optimization for first 4 products
                   />
                 </Link>
-                {/* Favorite Button (fixed top-right) */}
-                <button 
+                
+                {/* Favorite Button - Enhanced with micro-animations */}
+                <motion.button 
                   type="button"
                   onClick={() => toggleFavorite(product.id)}
                   disabled={loadingStates.favorites.has(product.id)}
-                  className="absolute top-2 right-2 sm:top-3 sm:right-3 z-10 p-3 bg-white rounded-full shadow-md hover:shadow-lg transition-shadow disabled:opacity-50"
+                  className="absolute top-3 right-3 z-10 p-2.5 bg-white/90 backdrop-blur-sm rounded-full shadow-lg hover:shadow-xl transition-all duration-200 disabled:opacity-50 min-h-[44px] min-w-[44px] flex items-center justify-center"
                   aria-label={favorites.has(product.id) ? `Favorilerden çıkar: ${product.name}` : `Favorilere ekle: ${product.name}`}
+                  whileTap={{ scale: 0.95 }}
+                  whileHover={{ scale: 1.05 }}
                 >
                   {favorites.has(product.id) ? (
-                    <HeartSolidIcon className="h-5 w-5 text-rose-500" />
+                    <HeartSolidIcon className="h-5 w-5 text-red-500" />
                   ) : (
-                    <HeartIcon className="h-5 w-5 text-gray-600" />
+                    <HeartIcon className="h-5 w-5 text-gray-400 group-hover:text-red-500 transition-colors" />
                   )}
-                </button>
+                </motion.button>
                 
-                {/* Overlay Quick View only */}
-                <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-all duration-300 hidden sm:flex items-center justify-center opacity-0 group-hover:opacity-100 pointer-events-none">
-                  <Link
-                    href={`/products/${product.slug}`}
-                    className="px-4 py-2 bg_white text-gray-900 text-sm font-medium rounded-md shadow-lg hover:bg-gray-50 transition-colors pointer-events-auto"
-                    aria-label={`Ürün detaylarını gör: ${product.name}`}
-                  >
-                    Ürün detaylarını gör
-                  </Link>
-                </div>
+                {/* Premium shimmer effect on hover */}
+                <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-1000 ease-out" />
 
-                {/* Category Badge */}
+                {/* Category Badge - Micro typography */}
                 <div className="absolute top-3 left-3">
-                  <span className="bg-gradient-to-r from-rose-500 to-pink-500 text-white text-xs px-3 py-1.5 rounded-full font-medium shadow-lg">
+                  <span className="bg-gradient-to-r from-rose-500 to-pink-500 text-white text-xs px-2.5 py-1 rounded-full font-medium shadow-lg">
                     {product.category.name}
                   </span>
                 </div>
               </div>
 
-              <div className="p-6">
+              <div className="p-3 sm:p-4">
                 <Link href={`/products/${product.slug}`} aria-label={`Ürünü incele: ${product.name}`}>
-                  <h3 className="text-lg font-bold text-gray-900 mb-2 hover:text-rose-600 transition-colors line-clamp-1">
+                  <h3 className="text-sm sm:text-base font-semibold text-gray-900 mb-1.5 hover:text-rose-600 transition-colors duration-200 line-clamp-2 leading-tight">
                     {product.name}
                   </h3>
                 </Link>
-                <p className="text-gray-600 text-sm mb-4 line-clamp-2 leading-relaxed">
+                <p className="text-xs text-gray-500 mb-3 line-clamp-2 leading-relaxed">
                   {product.description}
                 </p>
-                <div className="flex items-center justify-between mb-4">
+                
+                <div className="flex items-center justify-between mb-3">
                   <div className="flex flex-col">
-                    <span className="text-2xl font-bold bg-gradient-to-r from-rose-600 to-purple-600 bg-clip-text text-transparent">
+                    <span className="text-lg font-bold text-rose-600">
                       {formatCurrency(product.price)}
                     </span>
                     {product.originalPrice && product.originalPrice > product.price && (
-                      <span className="text-sm text-gray-500 line-through">
+                      <span className="text-xs text-gray-500 line-through">
                         {formatCurrency(product.originalPrice)}
                       </span>
                     )}
@@ -209,26 +217,31 @@ export function FeaturedProducts({ products }: FeaturedProductsProps) {
                     </div>
                   )}
                 </div>
-                <button 
+                
+                <motion.button 
                   onClick={() => handleAddToCart(product.id)}
                   disabled={loadingStates.cart.has(product.id)}
-                  className="w-full bg-gradient-to-r from-rose-500 to-pink-500 hover:from-rose-600 hover:to-pink-600 text-white px-4 py-3 rounded-xl font-medium transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed transform hover:scale-105 shadow-lg hover:shadow-xl"
+                  className="w-full bg-gradient-to-r from-rose-500 to-pink-500 hover:from-rose-600 hover:to-pink-600 text-white px-3 py-2.5 rounded-lg font-semibold text-xs transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed shadow-lg hover:shadow-xl min-h-[44px]"
                   aria-label={`Sepete ekle: ${product.name}`}
+                  whileTap={{ scale: 0.98 }}
+                  whileHover={{ scale: 1.02 }}
                 >
                   {loadingStates.cart.has(product.id) ? (
                     <div className="flex items-center justify-center">
                       <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
-                      Ekleniyor...
+                      <span className="hidden sm:inline">Ekleniyor...</span>
+                      <span className="sm:hidden">...</span>
                     </div>
                   ) : (
                     <div className="flex items-center justify-center">
-                      <ShoppingCartIcon className="h-4 w-4 mr-2" />
-                      Sepete Ekle
+                      <ShoppingCartIcon className="h-4 w-4 mr-1.5" />
+                      <span className="hidden sm:inline">Sepete Ekle</span>
+                      <span className="sm:hidden">Ekle</span>
                     </div>
                   )}
-                </button>
+                </motion.button>
               </div>
-            </div>
+            </motion.div>
           ))}
         </div>
 

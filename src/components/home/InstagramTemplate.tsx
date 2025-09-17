@@ -40,11 +40,12 @@ export default function InstagramTemplate({
 
       {/* Instagram Messages Area */}
       <div className="instagram-messages">
-        <div className="instagram-message-container">
+        <div className="instagram-message-container relative">
           <Image
             src={getPresetImageUrl(screenshotUrl, 'whatsappMessage')}
-            alt={altText}
+            alt={altText || 'Instagram mesaj ekran görüntüsü'}
             fill
+            sizes="100vw"
             className="instagram-screenshot"
           />
         </div>

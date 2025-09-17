@@ -1,10 +1,18 @@
 import type { Metadata } from 'next'
 import { Geist, Geist_Mono } from 'next/font/google'
 import './globals.css'
+// Dark mode temporarily disabled
 import { AuthProviderWrapper } from '@/components/providers/AuthProviderWrapper'
+import { ThemeProvider } from '@/contexts/ThemeContext'
+import { GestureHintProvider } from '@/contexts/GestureHintContext'
+import { ToastProvider } from '@/contexts/ToastContext'
 import { Toaster } from '@/components/ui/toaster'
+import { ToastContainer } from '@/components/ui/ToastContainer'
 import { WebsiteStructuredData } from '@/components/seo/WebsiteStructuredData'
 import { OrganizationStructuredData } from '@/components/seo/OrganizationStructuredData'
+import { WebVitals } from '@/components/analytics/WebVitals'
+import PerformanceMonitorClient from '@/components/analytics/PerformanceMonitorClient'
+// Theme toggle temporarily disabled
 
 const geistSans = Geist({
   variable: '--font-geist-sans',
@@ -43,23 +51,35 @@ export default function RootLayout({
   children: React.ReactNode
 }) {
   return (
-    <html lang="tr">
+    <html lang="tr" suppressHydrationWarning>
       <head>
         <link rel="preconnect" href="https://ik.imagekit.io" crossOrigin="anonymous" />
         <link rel="preconnect" href="https://images.unsplash.com" crossOrigin="anonymous" />
         <link rel="preconnect" href="https://lh3.googleusercontent.com" crossOrigin="anonymous" />
+        <meta name="theme-color" content="#ffffff" />
+        <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=5" />
       </head>
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
-        <AuthProviderWrapper>
-          {children}
-          {/* Live region for polite announcements (toasts/async) */}
-          <div aria-live="polite" aria-atomic="true" className="sr-only" />
-          <Toaster />
-          <WebsiteStructuredData />
-          <OrganizationStructuredData />
-        </AuthProviderWrapper>
+        <ThemeProvider defaultTheme="light" storageKey="meri-design-theme-disabled">
+          <GestureHintProvider storageKey="meri-design-gesture-hints">
+            <ToastProvider>
+              <AuthProviderWrapper>
+                {children}
+                {/* Live region for polite announcements (toasts/async) */}
+                <div aria-live="polite" aria-atomic="true" className="sr-only" />
+                <Toaster />
+                <ToastContainer />
+                <WebsiteStructuredData />
+                <OrganizationStructuredData />
+                <WebVitals />
+                <PerformanceMonitorClient />
+                {/* Theme toggle disabled */}
+              </AuthProviderWrapper>
+            </ToastProvider>
+          </GestureHintProvider>
+        </ThemeProvider>
       </body>
     </html>
   )

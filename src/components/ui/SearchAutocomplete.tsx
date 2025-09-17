@@ -7,6 +7,7 @@ import { useDebounce } from '@/hooks/useDebounce'
 import { getSearchSuggestions, getPopularSearches, logSearch, SearchSuggestion } from '@/lib/actions/search'
 import { formatPrice } from '../../lib/utils'
 import Image from 'next/image'
+import { SearchSheetHint } from '@/components/motion/GestureHint'
 
 interface SearchAutocompleteProps {
   placeholder?: string
@@ -132,8 +133,9 @@ export function SearchAutocomplete({
   const showDropdown = isOpen && (query.length >= 2 || recentSearches.length > 0 || popularSearches.length > 0)
 
   return (
-    <div ref={searchRef} className={`relative ${className}`}>
-      <div className="relative">
+    <SearchSheetHint showOnInteraction={true} triggerElement={inputRef.current}>
+      <div ref={searchRef} className={`relative ${className}`}>
+        <div className="relative">
         {/* Visible label for accessibility but visually hidden */}
         <label htmlFor="site-search" className="sr-only">Site içi arama</label>
         <input
@@ -310,6 +312,7 @@ export function SearchAutocomplete({
           )}
         </div>
       )}
-    </div>
+      </div>
+    </SearchSheetHint>
   )
 }

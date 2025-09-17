@@ -101,7 +101,7 @@ export default async function CategoryPage({ params, searchParams }: CategoryPag
         category={{ name: category.name, slug: category.slug, description: category.description }}
         products={(products as any[]).map(p => ({ name: p.name, slug: p.slug, images: p.images, price: p.price }))}
       />
-      <div className="min-h-screen bg-gray-50">
+      <div className="min-h-screen-dyn bg-gray-50">
         {/* Breadcrumb */}
         <div className="bg-white border-b">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">

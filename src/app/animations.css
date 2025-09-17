@@ -1,0 +1,20 @@
+@keyframes subtle-shimmer {
+  0% { opacity: 0.6; }
+  50% { opacity: 1; }
+  100% { opacity: 0.6; }
+}
+
+.shimmer {
+  animation: subtle-shimmer 1.6s ease-in-out infinite;
+}
+
+/* Safe-area utilities */
+.safe-pt { padding-top: env(safe-area-inset-top); }
+.safe-pb { padding-bottom: env(safe-area-inset-bottom); }
+
+/* Dynamic viewport min-height with fallback */
+.min-h-screen-dyn { min-height: 100vh; min-height: 100svh; }
+
+/* Overscroll containment to avoid pull-to-refresh overlay clashes */
+.overscroll-contain { overscroll-behavior-y: contain; }
+

@@ -4,6 +4,8 @@ import { CustomerLayout } from '@/components/layout/CustomerLayout';
 import { FavoriteItems } from '@/components/favorites/FavoriteItems';
 import { Breadcrumb } from '@/components/ui/Breadcrumb';
 import { getFavoriteItems } from '@/lib/actions/cart';
+import { motion } from 'framer-motion';
+import { MicroFeedback } from '@/components/motion/MicroFeedback';
 
 export const dynamic = 'force-dynamic'
 

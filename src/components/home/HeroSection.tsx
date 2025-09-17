@@ -3,108 +3,137 @@
 import Link from 'next/link'
 import { Button } from '@/components/ui/button'
 import { motion, useReducedMotion } from 'framer-motion'
-import { Sparkles, Heart, Star } from 'lucide-react'
+import { Sparkles, Heart, Star, ArrowRight } from 'lucide-react'
 
 export function HeroSection() {
   const shouldReduceMotion = useReducedMotion()
   return (
     <section className="relative min-h-screen bg-gradient-to-br from-rose-50 via-pink-50 to-purple-50 overflow-hidden" style={{ zIndex: 1 }}>
-      {/* Background Elements */}
+      {/* Background Elements - Reduced motion for mobile */}
       <div className="absolute inset-0 hidden md:block" aria-hidden="true">
         <motion.div 
-          className="absolute top-20 left-10 text-rose-200"
-          animate={shouldReduceMotion ? undefined : { rotate: 360, scale: [1, 1.2, 1] }}
-          transition={{ duration: 8, repeat: Infinity, ease: "linear" }}
+          className="absolute top-20 left-10 text-rose-200/60"
+          animate={shouldReduceMotion ? undefined : { rotate: 360, scale: [1, 1.1, 1] }}
+          transition={{ duration: 12, repeat: Infinity, ease: "linear" }}
         >
-          <Sparkles size={24} />
+          <Sparkles size={20} />
         </motion.div>
         <motion.div 
-          className="absolute top-40 right-20 text-pink-200"
-          animate={shouldReduceMotion ? undefined : { rotate: -360, scale: [1, 1.3, 1] }}
+          className="absolute top-40 right-20 text-pink-200/60"
+          animate={shouldReduceMotion ? undefined : { rotate: -360, scale: [1, 1.15, 1] }}
+          transition={{ duration: 15, repeat: Infinity, ease: "linear" }}
+        >
+          <Heart size={24} />
+        </motion.div>
+        <motion.div 
+          className="absolute bottom-32 left-20 text-purple-200/60"
+          animate={shouldReduceMotion ? undefined : { rotate: 360, scale: [1, 1.05, 1] }}
           transition={{ duration: 10, repeat: Infinity, ease: "linear" }}
         >
-          <Heart size={32} />
-        </motion.div>
-        <motion.div 
-          className="absolute bottom-32 left-20 text-purple-200"
-          animate={shouldReduceMotion ? undefined : { rotate: 360, scale: [1, 1.1, 1] }}
-          transition={{ duration: 6, repeat: Infinity, ease: "linear" }}
-        >
-          <Star size={28} />
+          <Star size={22} />
         </motion.div>
       </div>
 
-      <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 sm:py-20 lg:py-32">
+      {/* Subtle gradient shift for premium feel */}
+      <motion.div 
+        className="absolute inset-0 bg-gradient-to-br from-rose-50/80 via-pink-50/60 to-purple-50/80"
+        animate={shouldReduceMotion ? undefined : { 
+          background: [
+            "linear-gradient(135deg, rgba(251, 113, 133, 0.1) 0%, rgba(236, 72, 153, 0.1) 50%, rgba(168, 85, 247, 0.1) 100%)",
+            "linear-gradient(135deg, rgba(251, 113, 133, 0.15) 0%, rgba(236, 72, 153, 0.15) 50%, rgba(168, 85, 247, 0.15) 100%)",
+            "linear-gradient(135deg, rgba(251, 113, 133, 0.1) 0%, rgba(236, 72, 153, 0.1) 50%, rgba(168, 85, 247, 0.1) 100%)"
+          ]
+        }}
+        transition={{ duration: 15, repeat: Infinity, ease: "easeInOut" }}
+        aria-hidden="true"
+      />
+
+      <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 sm:py-16 lg:py-24">
         <div className="grid lg:grid-cols-2 gap-8 md:gap-12 items-center">
-          {/* Left Content */}
+          {/* Left Content - Mobile-first typography */}
           <motion.div 
             className="text-center lg:text-left"
             initial={{ opacity: 0, x: -50 }}
             animate={{ opacity: 1, x: 0 }}
-            transition={{ duration: 0.8, ease: "easeOut" }}
+            transition={{ duration: 0.6, ease: [0.4, 0, 0.2, 1] }}
           >
             <motion.div
               className="mb-4"
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.8, delay: 0.1 }}
+              transition={{ duration: 0.6, delay: 0.1, ease: [0.4, 0, 0.2, 1] }}
             >
-              <span className="inline-block bg-gradient-to-r from-rose-500 to-pink-500 text-white px-4 py-2 rounded-full text-sm font-medium mb-4 shadow-lg">
+              <span className="inline-block bg-gradient-to-r from-rose-500 to-pink-500 text-white px-3 py-1.5 rounded-full text-xs font-medium shadow-lg">
                 ✨ MeriDesignHouse – Tasarımın Merkezi
               </span>
             </motion.div>
             
             <motion.h1 
-              className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl xl:text-7xl font-bold mb-6 bg-gradient-to-r from-rose-600 via-pink-600 to-purple-600 bg-clip-text text-transparent leading-tight"
+              className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl xl:text-6xl font-bold mb-4 sm:mb-6 bg-gradient-to-r from-rose-600 via-pink-600 to-purple-600 bg-clip-text text-transparent leading-tight line-clamp-2"
               initial={{ opacity: 0, y: 30 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.8, delay: 0.2 }}
+              transition={{ duration: 0.6, delay: 0.2, ease: [0.4, 0, 0.2, 1] }}
             >
               Hayalinizdeki
               <span className="block">Etkinlik Tasarımı</span>
             </motion.h1>
             
             <motion.p 
-              className="text-base sm:text-lg md:text-xl mb-6 md:mb-8 text-gray-700 max-w-2xl mx-auto lg:mx-0 leading-relaxed"
+              className="text-sm sm:text-base md:text-lg mb-6 sm:mb-8 text-gray-700 max-w-2xl mx-auto lg:mx-0 leading-relaxed"
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.8, delay: 0.4 }}
+              transition={{ duration: 0.6, delay: 0.4, ease: [0.4, 0, 0.2, 1] }}
             >
               Özel günlerinizi unutulmaz kılacak estetik ve şık tasarımlar. 
               Düğün, nişan, doğum günü ve daha fazlası için kişiselleştirilmiş konseptler.
             </motion.p>
             
+            {/* CTA Stack - Single column, full width on mobile */}
             <motion.div 
-              className="flex flex-col sm:flex-row gap-3 sm:gap-4 justify-center lg:justify-start"
+              className="flex flex-col gap-3 sm:gap-4 justify-center lg:justify-start"
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.8, delay: 0.6 }}
+              transition={{ duration: 0.6, delay: 0.6, ease: [0.4, 0, 0.2, 1] }}
             >
-              <Button 
-                size="lg" 
-                className="bg-gradient-to-r from-rose-500 to-pink-500 hover:from-rose-600 hover:to-pink-600 text-white px-6 sm:px-8 py-3 sm:py-4 rounded-full shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105 text-sm sm:text-base"
+              <motion.div
+                whileTap={{ scale: 0.98 }}
+                transition={{ duration: 0.1, ease: [0.4, 0, 0.2, 1] }}
               >
-                <Sparkles className="mr-2 h-4 w-4 sm:h-5 sm:w-5" />
-                Tasarım Başlat
-              </Button>
-              <Link href="/categories">
                 <Button 
                   size="lg" 
-                  variant="outline" 
-                  className="border-2 border-rose-300 text-rose-600 hover:bg-rose-50 px-6 sm:px-8 py-3 sm:py-4 rounded-full transition-all duration-300 hover:border-rose-400 text-sm sm:text-base"
+                  className="w-full sm:w-auto bg-gradient-to-r from-rose-500 to-pink-500 hover:from-rose-600 hover:to-pink-600 text-white px-6 sm:px-8 py-3 sm:py-4 rounded-xl shadow-lg hover:shadow-xl transition-all duration-200 text-sm sm:text-base font-semibold min-h-[48px]"
+                  aria-label="Tasarım sürecini başlat ve özel etkinlik tasarımı yap"
                 >
-                  Ürünleri İncele
+                  <Sparkles className="mr-2 h-4 w-4 sm:h-5 sm:w-5" />
+                  Tasarım Başlat
+                  <ArrowRight className="ml-2 h-4 w-4" />
                 </Button>
-              </Link>
+              </motion.div>
+              
+              <motion.div
+                whileTap={{ scale: 0.98 }}
+                transition={{ duration: 0.1, ease: [0.4, 0, 0.2, 1] }}
+              >
+                <Link href="/categories" className="w-full sm:w-auto block">
+                  <Button 
+                    size="lg" 
+                    variant="outline" 
+                    className="w-full border-2 border-rose-300 text-rose-600 hover:bg-rose-50 hover:border-rose-400 px-6 sm:px-8 py-3 sm:py-4 rounded-xl transition-all duration-200 text-sm sm:text-base font-semibold min-h-[48px]"
+                    aria-label="Tüm ürün kategorilerini incele ve keşfet"
+                  >
+                    Ürünleri İncele
+                  </Button>
+                </Link>
+              </motion.div>
             </motion.div>
           </motion.div>
           
-          {/* Right Content - Visual Elements */}
+          {/* Right Content - Visual Elements - Hidden on mobile for cleaner UX */}
           <motion.div 
-            className="relative"
+            className="relative hidden lg:block"
             initial={{ opacity: 0, x: 50 }}
             animate={{ opacity: 1, x: 0 }}
-            transition={{ duration: 0.8, delay: 0.3 }}
+            transition={{ duration: 0.6, delay: 0.3, ease: [0.4, 0, 0.2, 1] }}
           >
             <div className="relative">
               {/* Main Visual Card */}
@@ -116,8 +145,8 @@ export function HeroSection() {
                   <div className="text-center">
                     <motion.div 
                       className="text-6xl mb-4"
-                      animate={shouldReduceMotion ? undefined : { rotate: [0, 10, -10, 0] }}
-                      transition={{ duration: 2, repeat: Infinity }}
+                      animate={shouldReduceMotion ? undefined : { rotate: [0, 5, -5, 0] }}
+                      transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
                     >
                       🎨
                     </motion.div>
@@ -127,19 +156,19 @@ export function HeroSection() {
                 </div>
               </motion.div>
               
-              {/* Floating Cards */}
+              {/* Floating Cards - Subtle animations */}
               <motion.div 
-                className="absolute -top-4 -right-4 bg-rose-500 text-white p-4 rounded-2xl shadow-lg hidden md:block"
-                animate={shouldReduceMotion ? undefined : { y: [-5, 5, -5] }}
-                transition={{ duration: 3, repeat: Infinity }}
+                className="absolute -top-4 -right-4 bg-rose-500 text-white p-4 rounded-2xl shadow-lg"
+                animate={shouldReduceMotion ? undefined : { y: [-3, 3, -3] }}
+                transition={{ duration: 6, repeat: Infinity, ease: "easeInOut" }}
               >
                 <Heart className="h-6 w-6" />
               </motion.div>
               
               <motion.div 
-                className="absolute -bottom-4 -left-4 bg-purple-500 text-white p-4 rounded-2xl shadow-lg hidden md:block"
-                animate={shouldReduceMotion ? undefined : { y: [5, -5, 5] }}
-                transition={{ duration: 4, repeat: Infinity }}
+                className="absolute -bottom-4 -left-4 bg-purple-500 text-white p-4 rounded-2xl shadow-lg"
+                animate={shouldReduceMotion ? undefined : { y: [3, -3, 3] }}
+                transition={{ duration: 8, repeat: Infinity, ease: "easeInOut" }}
               >
                 <Star className="h-6 w-6" />
               </motion.div>

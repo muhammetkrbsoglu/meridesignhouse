@@ -1,5 +1,6 @@
 import Link from 'next/link'
 import Image from 'next/image'
+import { ElYapimiBadge } from '@/components/brand/ElYapimiBadge'
 
 export interface ProductMiniCardProps {
   slug?: string
@@ -7,9 +8,10 @@ export interface ProductMiniCardProps {
   imageUrl?: string
   quantity?: number
   className?: string
+  isHandmade?: boolean
 }
 
-export function ProductMiniCard({ slug = '', name = '', imageUrl, quantity = 1, className = '' }: ProductMiniCardProps) {
+export function ProductMiniCard({ slug = '', name = '', imageUrl, quantity = 1, className = '', isHandmade = false }: ProductMiniCardProps) {
   return (
     <Link href={slug ? `/products/${slug}` : '#'} className={`group block rounded-xl border border-stone-200 bg-white overflow-hidden shadow-sm hover:shadow-md transition-shadow ${className}`}>
       <div className="relative">
@@ -23,6 +25,12 @@ export function ProductMiniCard({ slug = '', name = '', imageUrl, quantity = 1, 
         {typeof quantity === 'number' && quantity > 0 && (
           <div className="absolute top-2 left-2 rounded-full bg-rose-600/95 text-white text-xs px-2 py-0.5 shadow">
             Adet: {quantity}
+          </div>
+        )}
+        
+        {isHandmade && (
+          <div className="absolute top-2 right-2">
+            <ElYapimiBadge variant="compact" size="sm" />
           </div>
         )}
       </div>

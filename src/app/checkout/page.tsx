@@ -379,7 +379,7 @@ export default function CheckoutPage() {
 
   return (
     <CustomerLayout>
-      <div className="min-h-screen bg-gray-50 py-8">
+      <div className="min-h-[100svh] bg-gray-50 py-8 pb-[env(safe-area-inset-bottom)] supports-[padding:max(0px)]:pb-[env(safe-area-inset-bottom)]">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="mb-8">
             <Link href="/cart" className="inline-flex items-center text-sm text-gray-600 hover:text-gray-900">

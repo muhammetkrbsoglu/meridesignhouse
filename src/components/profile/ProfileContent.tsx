@@ -17,6 +17,10 @@ import { formatCurrency } from '@/lib/utils'
 import Link from 'next/link'
 import { MapPin, Package, MessageSquare, Edit3, Save, X, Plus, AlertCircle } from 'lucide-react'
 import { supabase } from '@/lib/supabase-browser'
+import { motion, AnimatePresence } from 'framer-motion'
+import { MicroFeedback, HoverCard } from '@/components/motion/MicroFeedback'
+import { BlurUpImage, Skeleton } from '@/components/motion/LoadingStates'
+import { useHapticFeedback } from '@/hooks/useHapticFeedback'
 
 interface ProfileContentProps {
   userId: string
@@ -582,82 +586,148 @@ export default function ProfileContent({ userId }: ProfileContentProps) {
             )}
 
             {/* Kayıtlı Adresler Listesi */}
-            {showSavedAddresses && (
-              <div className="space-y-3">
-                <div className="flex items-center justify-between">
-                  <h5 className="font-medium">Kayıtlı Adresler</h5>
-                  <Button variant="ghost" size="sm" onClick={() => setShowSavedAddresses(false)}>
-                    <X className="w-4 h-4" />
-                  </Button>
-                </div>
-                {addresses.length > 0 ? (
-                  <div className="space-y-3">
-                    {addresses.map((a) => (
-                      <div key={a.id} className="p-3 border rounded-lg">
-                        <div className="flex items-start justify-between">
-                          <div className="flex-1">
-                            <div className="flex items-center gap-2 font-medium">
-                              {a.label}
-                              {a.is_default_shipping && <Badge className="bg-rose-100 text-rose-700 text-xs">Varsayılan Teslimat</Badge>}
-                              {a.is_default_billing && <Badge className="bg-purple-100 text-purple-700 text-xs">Varsayılan Fatura</Badge>}
-                            </div>
-                            <div className="text-sm text-gray-600 mt-1 whitespace-pre-line">
-                              {a.full_name} • {a.phone}
-                              {'\n'}{a.address}
-                              {'\n'}{a.city} {a.postal_code || ''} {a.state || ''} {a.country}
-                            </div>
-                          </div>
-                          <div className="flex gap-1 ml-3">
-                            {!a.is_default_shipping && (
-                              <Button variant="outline" size="sm" className="text-xs" onClick={async () => {
-                                const r = await setDefaultAddress(userId, a.id, { shipping: true })
-                                if (r.success) { 
-                                  toast({ title: 'Güncellendi', description: 'Varsayılan teslimat adresi ayarlandı' }); 
-                                  loadProfileData() 
-                                } else { 
-                                  toast({ title: 'Hata', description: r.error, variant: 'destructive' }) 
-                                }
-                              }}>
-                                Varsayılan Teslimat
-                              </Button>
-                            )}
-                            {!a.is_default_billing && (
-                              <Button variant="outline" size="sm" className="text-xs" onClick={async () => {
-                                const r = await setDefaultAddress(userId, a.id, { billing: true })
-                                if (r.success) { 
-                                  toast({ title: 'Güncellendi', description: 'Varsayılan fatura adresi ayarlandı' }); 
-                                  loadProfileData() 
-                                } else { 
-                                  toast({ title: 'Hata', description: r.error, variant: 'destructive' }) 
-                                }
-                              }}>
-                                Varsayılan Fatura
-                              </Button>
-                            )}
-                            <Button variant="destructive" size="sm" className="text-xs" onClick={async () => {
-                              const r = await deleteUserAddress(userId, a.id)
-                              if (r.success) { 
-                                toast({ title: 'Silindi', description: 'Adres silindi' }); 
-                                loadProfileData() 
-                              } else { 
-                                toast({ title: 'Hata', description: r.error, variant: 'destructive' }) 
-                              }
-                            }}>
-                              Sil
-                            </Button>
-                          </div>
-                        </div>
-                      </div>
-                    ))}
+            <AnimatePresence>
+              {showSavedAddresses && (
+                <motion.div 
+                  className="space-y-3"
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -20 }}
+                  transition={{ duration: 0.3 }}
+                >
+                  <div className="flex items-center justify-between">
+                    <h5 className="font-medium">Kayıtlı Adresler</h5>
+                    <MicroFeedback
+                      onClick={() => setShowSavedAddresses(false)}
+                      hapticType="light"
+                      hapticMessage="Adres listesini kapat"
+                    >
+                      <Button variant="ghost" size="sm">
+                        <X className="w-4 h-4" />
+                      </Button>
+                    </MicroFeedback>
                   </div>
-                ) : (
-                  <div className="text-center py-4 text-gray-500">
-                    <MapPin className="w-8 h-8 mx-auto mb-2 text-gray-300" />
-                    <p>Kayıtlı adres bulunmuyor</p>
-                  </div>
-                )}
-              </div>
-            )}
+                  {addresses.length > 0 ? (
+                    <div className="space-y-3">
+                      <AnimatePresence>
+                        {addresses.map((a, index) => (
+                          <motion.div 
+                            key={a.id} 
+                            className="p-4 border border-rose-200/50 rounded-lg hover:shadow-md transition-all duration-300"
+                            initial={{ opacity: 0, y: 20 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            exit={{ opacity: 0, y: -20, scale: 0.95 }}
+                            transition={{ duration: 0.3, delay: index * 0.1 }}
+                            layout
+                          >
+                            <div className="flex items-start justify-between">
+                              <div className="flex-1">
+                                <div className="flex items-center gap-2 font-medium mb-2">
+                                  <span className="text-rose-700">{a.label}</span>
+                                  {a.is_default_shipping && (
+                                    <motion.div
+                                      initial={{ scale: 0.8, opacity: 0 }}
+                                      animate={{ scale: 1, opacity: 1 }}
+                                      transition={{ duration: 0.2 }}
+                                    >
+                                      <Badge className="bg-rose-100 text-rose-700 text-xs">Varsayılan Teslimat</Badge>
+                                    </motion.div>
+                                  )}
+                                  {a.is_default_billing && (
+                                    <motion.div
+                                      initial={{ scale: 0.8, opacity: 0 }}
+                                      animate={{ scale: 1, opacity: 1 }}
+                                      transition={{ duration: 0.2, delay: 0.1 }}
+                                    >
+                                      <Badge className="bg-purple-100 text-purple-700 text-xs">Varsayılan Fatura</Badge>
+                                    </motion.div>
+                                  )}
+                                </div>
+                                <div className="text-sm text-gray-600 whitespace-pre-line leading-relaxed">
+                                  <div className="font-medium text-gray-900">{a.full_name} • {a.phone}</div>
+                                  <div className="mt-1">{a.address}</div>
+                                  <div className="text-gray-500">{a.city} {a.postal_code || ''} {a.state || ''} {a.country}</div>
+                                </div>
+                              </div>
+                              <div className="flex flex-col gap-1 ml-3">
+                                {!a.is_default_shipping && (
+                                  <MicroFeedback
+                                    onClick={async () => {
+                                      const r = await setDefaultAddress(userId, a.id, { shipping: true })
+                                      if (r.success) { 
+                                        toast({ title: 'Güncellendi', description: 'Varsayılan teslimat adresi ayarlandı' }); 
+                                        loadProfileData() 
+                                      } else { 
+                                        toast({ title: 'Hata', description: r.error, variant: 'destructive' }) 
+                                      }
+                                    }}
+                                    hapticType="light"
+                                    hapticMessage="Varsayılan teslimat adresi yap"
+                                    className="w-full"
+                                  >
+                                    <Button variant="outline" size="sm" className="text-xs w-full">
+                                      Varsayılan Teslimat
+                                    </Button>
+                                  </MicroFeedback>
+                                )}
+                                {!a.is_default_billing && (
+                                  <MicroFeedback
+                                    onClick={async () => {
+                                      const r = await setDefaultAddress(userId, a.id, { billing: true })
+                                      if (r.success) { 
+                                        toast({ title: 'Güncellendi', description: 'Varsayılan fatura adresi ayarlandı' }); 
+                                        loadProfileData() 
+                                      } else { 
+                                        toast({ title: 'Hata', description: r.error, variant: 'destructive' }) 
+                                      }
+                                    }}
+                                    hapticType="light"
+                                    hapticMessage="Varsayılan fatura adresi yap"
+                                    className="w-full"
+                                  >
+                                    <Button variant="outline" size="sm" className="text-xs w-full">
+                                      Varsayılan Fatura
+                                    </Button>
+                                  </MicroFeedback>
+                                )}
+                                <MicroFeedback
+                                  onClick={async () => {
+                                    const r = await deleteUserAddress(userId, a.id)
+                                    if (r.success) { 
+                                      toast({ title: 'Silindi', description: 'Adres silindi' }); 
+                                      loadProfileData() 
+                                    } else { 
+                                      toast({ title: 'Hata', description: r.error, variant: 'destructive' }) 
+                                    }
+                                  }}
+                                  hapticType="medium"
+                                  hapticMessage="Adresi sil"
+                                  className="w-full"
+                                >
+                                  <Button variant="destructive" size="sm" className="text-xs w-full">
+                                    Sil
+                                  </Button>
+                                </MicroFeedback>
+                              </div>
+                            </div>
+                          </motion.div>
+                        ))}
+                      </AnimatePresence>
+                    </div>
+                  ) : (
+                    <motion.div 
+                      className="text-center py-8 text-gray-500"
+                      initial={{ opacity: 0, scale: 0.9 }}
+                      animate={{ opacity: 1, scale: 1 }}
+                      transition={{ duration: 0.3 }}
+                    >
+                      <MapPin className="w-8 h-8 mx-auto mb-2 text-gray-300" />
+                      <p>Kayıtlı adres bulunmuyor</p>
+                    </motion.div>
+                  )}
+                </motion.div>
+              )}
+            </AnimatePresence>
           </CardContent>
         </Card>
 

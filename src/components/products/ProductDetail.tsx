@@ -11,6 +11,10 @@ import { formatCurrency } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
 import { useRef } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { MicroFeedback, FavoriteButton, AddToCartButton, HoverCard } from '@/components/motion/MicroFeedback';
+import { BlurUpImage, Skeleton } from '@/components/motion/LoadingStates';
+import { useHapticFeedback } from '@/hooks/useHapticFeedback';
 
 interface ProductDetailProps {
   product: ProductWithCategory;
@@ -23,9 +27,11 @@ export function ProductDetail({ product }: ProductDetailProps) {
   const [quantity, setQuantity] = useState(1);
   const [isLoading, setIsLoading] = useState(false);
   const [isFavoriteLoading, setIsFavoriteLoading] = useState(false);
+  const [isImageLoading, setIsImageLoading] = useState(true);
   const touchStartX = useRef<number | null>(null);
   const touchStartY = useRef<number | null>(null);
   const SWIPE_THRESHOLD = 40;
+  const { success, light, medium } = useHapticFeedback();
 
   // Check if product is in favorites on component mount
   useEffect(() => {
@@ -49,7 +55,7 @@ export function ProductDetail({ product }: ProductDetailProps) {
         const result = await removeFromFavorites(product.id);
         if (result.success) {
           setIsFavorite(false);
-          toast.success('Ürün favorilerden çıkarıldı');
+          success('Ürün favorilerden çıkarıldı');
           // Trigger favorite update event
           window.dispatchEvent(new Event('favoriteUpdated'));
         } else {
@@ -59,7 +65,7 @@ export function ProductDetail({ product }: ProductDetailProps) {
         const result = await addToFavorites(product.id);
         if (result.success) {
           setIsFavorite(true);
-          toast.success('Ürün favorilere eklendi');
+          success('Ürün favorilere eklendi');
           // Trigger favorite update event
           window.dispatchEvent(new Event('favoriteUpdated'));
         } else {
@@ -79,7 +85,7 @@ export function ProductDetail({ product }: ProductDetailProps) {
     try {
       const result = await addToCart(product.id, quantity);
       if (result.success) {
-        toast.success('Ürün sepete eklendi');
+        success('Ürün sepete eklendi');
         // Trigger cart update event
         window.dispatchEvent(new Event('cartUpdated'));
       } else {
@@ -93,6 +99,7 @@ export function ProductDetail({ product }: ProductDetailProps) {
   };
 
   const shareProduct = async () => {
+    light('Paylaşım başlatıldı');
     if (navigator.share) {
       try {
         await navigator.share({
@@ -106,7 +113,7 @@ export function ProductDetail({ product }: ProductDetailProps) {
     } else {
       // Fallback: copy to clipboard
       navigator.clipboard.writeText(window.location.href);
-      // TODO: Show toast notification
+      success('Link kopyalandı');
     }
   };
 
@@ -114,17 +121,17 @@ export function ProductDetail({ product }: ProductDetailProps) {
     <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 lg:gap-12">
       {/* Product Images */}
       <div className="space-y-3 lg:space-y-4">
-        {/* Main Image */}
+        {/* Main Image with Motion */}
         <div
           className="aspect-square relative overflow-hidden rounded-lg bg-gray-100"
           onMouseEnter={() => setIsHover(true)}
           onMouseLeave={() => setIsHover(false)}
-          onTouchStart={(e) => {
+          onTouchStart={(e: React.TouchEvent) => {
             const t = e.touches[0];
             touchStartX.current = t.clientX;
             touchStartY.current = t.clientY;
           }}
-          onTouchEnd={(e) => {
+          onTouchEnd={(e: React.TouchEvent) => {
             if (touchStartX.current === null || touchStartY.current === null) return;
             const t = e.changedTouches[0];
             const dx = t.clientX - touchStartX.current;
@@ -135,8 +142,10 @@ export function ProductDetail({ product }: ProductDetailProps) {
               if (total > 1) {
                 if (dx < 0) {
                   setSelectedImageIndex((prev) => (prev + 1) % total);
+                  light('Sonraki görsel');
                 } else {
                   setSelectedImageIndex((prev) => (prev - 1 + total) % total);
+                  light('Önceki görsel');
                 }
               }
             }
@@ -144,65 +153,101 @@ export function ProductDetail({ product }: ProductDetailProps) {
             touchStartY.current = null;
           }}
         >
-          {product.product_images && product.product_images.length > 0 ? (
-            <Image
-              src={product.product_images[selectedImageIndex]?.url || '/placeholder-product.svg'}
-              alt={product.product_images[selectedImageIndex]?.alt || product.name}
-              fill
-              className="object-cover transition-transform duration-300"
-              sizes="(min-width:1024px) 50vw, 100vw"
-              priority
-            />
-          ) : (
-            <div className="w-full h-full flex items-center justify-center">
-              <span className="text-gray-400">Resim Yok</span>
-            </div>
-          )}
+          <AnimatePresence mode="wait">
+            {product.product_images && product.product_images.length > 0 ? (
+              <motion.div
+                key={selectedImageIndex}
+                initial={{ opacity: 0, scale: 1.05 }}
+                animate={{ opacity: 1, scale: 1 }}
+                exit={{ opacity: 0, scale: 0.95 }}
+                transition={{ duration: 0.3, ease: [0.4, 0, 0.2, 1] }}
+                className="relative w-full h-full"
+              >
+                <BlurUpImage
+                  src={product.product_images[selectedImageIndex]?.url || '/placeholder-product.svg'}
+                  alt={product.product_images[selectedImageIndex]?.alt || product.name}
+                  className="w-full h-full object-cover"
+                  priority={selectedImageIndex === 0}
+                  onLoad={() => setIsImageLoading(false)}
+                  width={600}
+                  height={600}
+                  sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 40vw"
+                />
+              </motion.div>
+            ) : (
+              <div className="w-full h-full flex items-center justify-center">
+                <span className="text-gray-400">Resim Yok</span>
+              </div>
+            )}
+          </AnimatePresence>
 
-          {/* Left/Right arrows on hover */}
+          {/* Left/Right arrows with micro-feedback */}
           {product.product_images && product.product_images.length > 1 && (
             <>
-              <button
-                onClick={() => setSelectedImageIndex((prev) => (prev - 1 + (product.product_images?.length || 0)) % (product.product_images?.length || 1))}
+              <MicroFeedback
+                onClick={() => {
+                  setSelectedImageIndex((prev) => (prev - 1 + (product.product_images?.length || 0)) % (product.product_images?.length || 1));
+                  light('Önceki görsel');
+                }}
                 className={`hidden lg:flex absolute left-3 top-1/2 -translate-y-1/2 h-10 w-10 rounded-full bg-black/40 text-white items-center justify-center transition-all duration-300 ${isHover ? 'opacity-100 translate-x-0' : 'opacity-0 -translate-x-2'}`}
-                aria-label="Önceki görsel"
+                hapticType="light"
+                hapticMessage="Önceki görsel"
               >
                 ‹
-              </button>
-              <button
-                onClick={() => setSelectedImageIndex((prev) => (prev + 1) % (product.product_images?.length || 1))}
+              </MicroFeedback>
+              <MicroFeedback
+                onClick={() => {
+                  setSelectedImageIndex((prev) => (prev + 1) % (product.product_images?.length || 1));
+                  light('Sonraki görsel');
+                }}
                 className={`hidden lg:flex absolute right-3 top-1/2 -translate-y-1/2 h-10 w-10 rounded-full bg-black/40 text-white items-center justify-center transition-all duration-300 ${isHover ? 'opacity-100 translate-x-0' : 'opacity-0 translate-x-2'}`}
-                aria-label="Sonraki görsel"
+                hapticType="light"
+                hapticMessage="Sonraki görsel"
               >
                 ›
-              </button>
+              </MicroFeedback>
             </>
           )}
         </div>
 
-        {/* Image Thumbnails */}
+        {/* Image Thumbnails with Motion */}
         {product.product_images && product.product_images.length > 1 && (
           <div className="grid grid-cols-5 sm:grid-cols-6 lg:grid-cols-4 gap-2">
             {((product.product_images as Array<{ id?: string; url: string; alt?: string; sortOrder?: number }>) ?? [])
               .slice()
               .sort((a, b) => (a.sortOrder || 0) - (b.sortOrder || 0))
               .map((image, index: number) => (
-              <button
+              <MicroFeedback
                 key={image.id || index}
-                onClick={() => setSelectedImageIndex(index)}
-                className={`aspect-square relative overflow-hidden rounded-md border-2 focus:outline-none focus:ring-2 focus:ring-rose-500 ${
+                onClick={() => {
+                  setSelectedImageIndex(index);
+                  light(`Görsel ${index + 1}`);
+                }}
+                className={`aspect-square relative overflow-hidden rounded-md border-2 focus:outline-none focus:ring-2 focus:ring-rose-500 transition-all duration-200 ${
                   selectedImageIndex === index
-                    ? 'border-rose-500'
-                    : 'border-gray-200 hover:border-gray-300'
+                    ? 'border-rose-500 scale-105 shadow-lg'
+                    : 'border-gray-200 hover:border-gray-300 hover:scale-102'
                 }`}
+                hapticType="light"
+                hapticMessage={`Görsel ${index + 1}`}
               >
                 <Image
                   src={image.url || '/placeholder-product.svg'}
                   alt={image.alt || `${product.name} ${index + 1}`}
                   fill
                   className="object-cover"
+                  sizes="(min-width: 1024px) 25vw, (min-width: 640px) 16vw, 20vw"
                 />
-              </button>
+                {/* Active indicator */}
+                {selectedImageIndex === index && (
+                  <motion.div
+                    className="absolute inset-0 bg-rose-500/20 border-2 border-rose-500 rounded-md"
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    transition={{ duration: 0.2 }}
+                  />
+                )}
+              </MicroFeedback>
             ))}
           </div>
         )}
@@ -259,26 +304,25 @@ export function ProductDetail({ product }: ProductDetailProps) {
           </div>
         </div>
 
-        {/* Action Buttons */}
+        {/* Action Buttons with Motion */}
         <div className="space-y-4 hidden lg:block">
           {/* Add to Cart */}
-          <Button
-            onClick={handleAddToCart}
+          <AddToCartButton
+            onAdd={handleAddToCart}
+            className="w-full bg-rose-600 hover:bg-rose-700 text-white py-3 text-lg font-medium disabled:opacity-50 rounded-lg transition-colors duration-200"
             disabled={isLoading}
-            className="w-full bg-rose-600 hover:bg-rose-700 text-white py-3 text-lg font-medium disabled:opacity-50"
-            size="lg"
           >
             <ShoppingCartIcon className="h-5 w-5 mr-2" />
             {isLoading ? 'Ekleniyor...' : 'Sepete Ekle'}
-          </Button>
+          </AddToCartButton>
 
           {/* Secondary Actions */}
           <div className="flex space-x-3">
-            <Button
-              onClick={toggleFavorite}
+            <FavoriteButton
+              isFavorite={isFavorite}
+              onToggle={toggleFavorite}
+              className="flex-1 disabled:opacity-50 border border-gray-300 hover:bg-gray-50 transition-colors duration-200 rounded-lg py-3 px-4 flex items-center justify-center"
               disabled={isFavoriteLoading}
-              variant="outline"
-              className="flex-1 disabled:opacity-50"
             >
               {isFavorite ? (
                 <HeartSolidIcon className="h-5 w-5 mr-2 text-red-500" />
@@ -286,16 +330,17 @@ export function ProductDetail({ product }: ProductDetailProps) {
                 <HeartIcon className="h-5 w-5 mr-2" />
               )}
               {isFavoriteLoading ? 'İşleniyor...' : (isFavorite ? 'Favorilerden Çıkar' : 'Favorilere Ekle')}
-            </Button>
+            </FavoriteButton>
             
-            <Button
+            <MicroFeedback
               onClick={shareProduct}
-              variant="outline"
-              className="flex-1"
+              className="flex-1 border border-gray-300 hover:bg-gray-50 transition-colors duration-200 rounded-lg py-3 px-4 flex items-center justify-center"
+              hapticType="light"
+              hapticMessage="Ürün paylaş"
             >
               <ShareIcon className="h-5 w-5 mr-2" />
               Paylaş
-            </Button>
+            </MicroFeedback>
           </div>
         </div>
 
@@ -325,55 +370,80 @@ export function ProductDetail({ product }: ProductDetailProps) {
         </div>
       </div>
 
-      {/* Sticky Bottom CTA (Mobile) */}
-      <div className="lg:hidden fixed bottom-0 left-0 right-0 z-[999] bg-white/95 backdrop-blur supports-[padding:max(0px)]:pb-[env(safe-area-inset-bottom)] border-t">
+      {/* Sticky Bottom CTA (Mobile) with Motion */}
+      <motion.div 
+        className="lg:hidden fixed bottom-0 left-0 right-0 z-[999] bg-white/95 backdrop-blur supports-[padding:max(0px)]:pb-[env(safe-area-inset-bottom)] border-t"
+        initial={{ y: 100, opacity: 0 }}
+        animate={{ y: 0, opacity: 1 }}
+        transition={{ duration: 0.3, ease: [0.4, 0, 0.2, 1] }}
+      >
         <div className="max-w-7xl mx-auto px-4 py-3 space-y-3">
           <div className="flex items-center justify-between">
-            <div className="text-lg font-semibold text-rose-600">
+            <motion.div 
+              className="text-lg font-semibold text-rose-600"
+              initial={{ scale: 0.9 }}
+              animate={{ scale: 1 }}
+              transition={{ duration: 0.2 }}
+            >
               {formatCurrency(typeof product.price === 'number' ? product.price : product.price.toNumber())}
-            </div>
+            </motion.div>
             <div className="flex items-center space-x-2">
-              <button
-                onClick={() => setQuantity(Math.max(1, quantity - 1))}
-                className="w-10 h-10 rounded-md border border-gray-300 flex items-center justify-center"
-                aria-label="Adet azalt"
+              <MicroFeedback
+                onClick={() => {
+                  setQuantity(Math.max(1, quantity - 1));
+                  light('Adet azaltıldı');
+                }}
+                className="w-10 h-10 rounded-md border border-gray-300 flex items-center justify-center hover:bg-gray-50 transition-colors duration-200"
+                hapticType="light"
+                hapticMessage="Adet azalt"
               >
                 -
-              </button>
-              <span className="w-10 text-center">{quantity}</span>
-              <button
-                onClick={() => setQuantity(quantity + 1)}
-                className="w-10 h-10 rounded-md border border-gray-300 flex items-center justify-center"
-                aria-label="Adet artır"
+              </MicroFeedback>
+              <motion.span 
+                className="w-10 text-center font-medium"
+                key={quantity}
+                initial={{ scale: 1.2 }}
+                animate={{ scale: 1 }}
+                transition={{ duration: 0.2 }}
+              >
+                {quantity}
+              </motion.span>
+              <MicroFeedback
+                onClick={() => {
+                  setQuantity(quantity + 1);
+                  light('Adet artırıldı');
+                }}
+                className="w-10 h-10 rounded-md border border-gray-300 flex items-center justify-center hover:bg-gray-50 transition-colors duration-200"
+                hapticType="light"
+                hapticMessage="Adet artır"
               >
                 +
-              </button>
+              </MicroFeedback>
             </div>
           </div>
           <div className="flex gap-2">
-            <button
-              onClick={toggleFavorite}
+            <FavoriteButton
+              isFavorite={isFavorite}
+              onToggle={toggleFavorite}
+              className="shrink-0 w-12 h-12 rounded-lg border border-gray-300 flex items-center justify-center disabled:opacity-50 hover:bg-gray-50 transition-colors duration-200"
               disabled={isFavoriteLoading}
-              className="shrink-0 w-12 h-12 rounded-lg border border-gray-300 flex items-center justify-center disabled:opacity-50"
-              aria-label={isFavorite ? 'Favorilerden çıkar' : 'Favorilere ekle'}
             >
               {isFavorite ? (
                 <HeartSolidIcon className="h-6 w-6 text-red-500" />
               ) : (
                 <HeartIcon className="h-6 w-6" />
               )}
-            </button>
-            <button
-              onClick={handleAddToCart}
+            </FavoriteButton>
+            <AddToCartButton
+              onAdd={handleAddToCart}
+              className="flex-1 h-12 rounded-lg bg-rose-600 text-white font-semibold disabled:opacity-50 hover:bg-rose-700 transition-colors duration-200"
               disabled={isLoading}
-              className="flex-1 h-12 rounded-lg bg-rose-600 text-white font-semibold disabled:opacity-50"
-              aria-label="Sepete ekle"
             >
               {isLoading ? 'Ekleniyor...' : 'Sepete Ekle'}
-            </button>
+            </AddToCartButton>
           </div>
         </div>
-      </div>
+      </motion.div>
     </div>
   );
 }

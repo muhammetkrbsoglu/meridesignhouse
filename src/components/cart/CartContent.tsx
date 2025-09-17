@@ -15,6 +15,10 @@ import { ToastAction } from '@/components/ui/toast'
 import { CartSkeleton } from './CartSkeleton'
 import Image from 'next/image'
 import { useRouter } from 'next/navigation'
+import { motion, AnimatePresence } from 'framer-motion'
+import { MicroFeedback, HoverCard } from '@/components/motion/MicroFeedback'
+import { BlurUpImage, Skeleton } from '@/components/motion/LoadingStates'
+import { useHapticFeedback } from '@/hooks/useHapticFeedback'
 
 const BLUR_DATA_URL = 'data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///ywAAAAAAQABAAACAUwAOw=='
 
@@ -27,6 +31,7 @@ export function CartContent() {
   const [bundleLines, setBundleLines] = useState<CartBundleLine[]>([])
   const [updatingBundles, setUpdatingBundles] = useState<Set<string>>(new Set())
   const [draftBundleQuantities, setDraftBundleQuantities] = useState<Record<string, string>>({})
+  const { success, light, medium, error } = useHapticFeedback()
 
   useEffect(() => {
     loadCartItems(false)
@@ -47,7 +52,7 @@ export function CartContent() {
       const [items, bundles] = await Promise.all([getCartItems(), getCartBundles()])
       setCartItems(items)
       setBundleLines(bundles)
-    } catch (error) {
+    } catch (error: unknown) {
       console.error('Sepet yüklenirken hata:', error)
       toast({ intent: 'error', description: 'Sepet yüklenirken hata oluştu' })
     } finally {
@@ -57,6 +62,7 @@ export function CartContent() {
 
   const handleRemoveItem = async (cartItemId: string) => {
     setUpdatingItems(prev => new Set(prev).add(cartItemId))
+    light('Ürün kaldırılıyor')
     
     try {
       const removed = cartItems.find(ci => ci.id === cartItemId)
@@ -64,6 +70,7 @@ export function CartContent() {
       
       if (result.success) {
         setCartItems(prev => prev.filter(item => item.id !== cartItemId))
+        success('Ürün sepetten çıkarıldı')
         toast({
           intent: 'success',
           description: 'Ürün sepetten çıkarıldı',
@@ -72,6 +79,7 @@ export function CartContent() {
               if (removed) {
                 await addToCart(removed.productId, removed.quantity)
                 await loadCartItems()
+                success('Ürün geri alındı')
                 toast({ intent: 'success', description: 'Ürün geri alındı' })
               }
             }}>Geri Al</ToastAction>
@@ -79,9 +87,12 @@ export function CartContent() {
         })
       } else {
         toast({ intent: 'error', description: result.error || 'Bir hata oluştu' })
+        error('Ürün kaldırma hatası')
       }
-    } catch (error) {
+    } catch (error: unknown) {
+      console.error('Remove item error:', error)
       toast({ intent: 'error', description: 'Bir hata oluştu' })
+      error('Ürün kaldırma hatası')
     } finally {
       setUpdatingItems(prev => {
         const newSet = new Set(prev)
@@ -95,6 +106,7 @@ export function CartContent() {
     if (newQuantity < 1) return
     
     setUpdatingItems(prev => new Set(prev).add(productId))
+    light('Miktar güncelleniyor')
     
     try {
       const result = await updateCartItemQuantity(productId, newQuantity)
@@ -108,11 +120,15 @@ export function CartContent() {
           )
         )
         setDraftQuantities(prev => ({ ...prev, [productId]: String(newQuantity) }))
+        success('Miktar güncellendi')
       } else {
         toast({ intent: 'error', description: result.error || 'Bir hata oluştu' })
+        error('Miktar güncelleme hatası')
       }
-    } catch (error) {
+    } catch (error: unknown) {
+      console.error('Update quantity error:', error)
       toast({ intent: 'error', description: 'Bir hata oluştu' })
+      error('Miktar güncelleme hatası')
     } finally {
       setUpdatingItems(prev => {
         const newSet = new Set(prev)
@@ -138,18 +154,23 @@ export function CartContent() {
   }
 
   const handleClearCart = async () => {
+    medium('Sepet temizleniyor')
     try {
       const result = await clearCart()
       
       if (result.success) {
         setCartItems([])
         setBundleLines([])
+        success('Sepet temizlendi')
         toast({ intent: 'success', description: 'Sepet temizlendi' })
       } else {
         toast({ intent: 'error', description: result.error || 'Bir hata oluştu' })
+        error('Sepet temizleme hatası')
       }
-    } catch (error) {
+    } catch (error: unknown) {
+      console.error('Clear cart error:', error)
       toast({ intent: 'error', description: 'Bir hata oluştu' })
+      error('Sepet temizleme hatası')
     }
   }
 
@@ -158,6 +179,7 @@ export function CartContent() {
       toast({ intent: 'info', description: 'Sepetiniz boş' })
       return
     }
+    medium('Checkout sayfasına yönlendiriliyor')
     router.push('/checkout')
   }
 
@@ -172,18 +194,56 @@ export function CartContent() {
 
   if (cartItems.length === 0 && bundleLines.length === 0) {
     return (
-      <Card>
-        <CardContent className="text-center py-12">
-          <ShoppingCartIcon className="mx-auto h-12 w-12 text-gray-400 mb-4" />
-          <h3 className="text-lg font-medium text-gray-900 mb-2">Sepetiniz boş</h3>
-          <p className="text-gray-600 mb-6">Alışverişe başlamak için ürünleri sepete ekleyin</p>
-          <Link href="/products">
-            <Button>
-              Alışverişe Başla
-            </Button>
-          </Link>
-        </CardContent>
-      </Card>
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.3 }}
+      >
+        <Card>
+          <CardContent className="text-center py-12">
+            <motion.div
+              initial={{ scale: 0.8, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              transition={{ duration: 0.4, delay: 0.1 }}
+            >
+              <ShoppingCartIcon className="mx-auto h-12 w-12 text-gray-400 mb-4" />
+            </motion.div>
+            <motion.h3 
+              className="text-lg font-medium text-gray-900 mb-2"
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.3, delay: 0.2 }}
+            >
+              Sepetiniz boş
+            </motion.h3>
+            <motion.p 
+              className="text-gray-600 mb-6"
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.3, delay: 0.3 }}
+            >
+              Alışverişe başlamak için ürünleri sepete ekleyin
+            </motion.p>
+            <motion.div
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.3, delay: 0.4 }}
+            >
+              <MicroFeedback
+                onClick={() => {}}
+                hapticType="medium"
+                hapticMessage="Alışverişe başla"
+              >
+                <Link href="/products">
+                  <Button>
+                    Alışverişe Başla
+                  </Button>
+                </Link>
+              </MicroFeedback>
+            </motion.div>
+          </CardContent>
+        </Card>
+      </motion.div>
     )
   }
 
@@ -191,26 +251,43 @@ export function CartContent() {
     <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
       {/* Cart Items */}
       <div className="lg:col-span-2">
-        <div className="flex items-center justify-between mb-6">
-          <h2 className="text-xl font-semibold text-gray-900">
+        <motion.div 
+          className="flex items-center justify-between mb-6"
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.3 }}
+        >
+          <motion.h2 
+            className="text-xl font-semibold text-gray-900"
+            initial={{ opacity: 0, x: -20 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ duration: 0.3, delay: 0.1 }}
+          >
             Sepetinizdeki Ürünler ({totalItems} ürün)
-          </h2>
+          </motion.h2>
           {(cartItems.length > 0 || bundleLines.length > 0) && (
-            <Button
-              variant="outline"
-              size="sm"
+            <MicroFeedback
               onClick={handleClearCart}
               className="text-red-600 hover:text-red-700 hover:bg-red-50"
+              hapticType="medium"
+              hapticMessage="Sepeti temizle"
             >
-              <TrashIcon className="h-4 w-4 mr-2" />
-              Sepeti Temizle
-            </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                className="text-red-600 hover:text-red-700 hover:bg-red-50"
+              >
+                <TrashIcon className="h-4 w-4 mr-2" />
+                Sepeti Temizle
+              </Button>
+            </MicroFeedback>
           )}
-        </div>
+        </motion.div>
 
         <div className="space-y-4">
           {/* Bundle Lines */}
-          {bundleLines.map((b) => {
+          <AnimatePresence>
+            {bundleLines.map((b, index) => {
             const perSetListTotal = (b.items || []).reduce((s, it) => s + ((it.product?.price || 0) * it.quantity), 0)
             const perSetSavings = Math.max(0, perSetListTotal - b.price)
             const totalSetPrice = b.price * b.quantity
@@ -268,8 +345,16 @@ export function CartContent() {
             }
 
             return (
-              <Card key={b.id} className="overflow-hidden border-rose-200">
-                <CardContent className={`p-6 ${isUpdating ? 'opacity-80' : ''}`}>
+              <motion.div
+                key={b.id}
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -20, scale: 0.95 }}
+                transition={{ duration: 0.3, delay: index * 0.1 }}
+                layout
+              >
+                <Card className="overflow-hidden border-rose-200">
+                  <CardContent className={`p-6 ${isUpdating ? 'opacity-80' : ''}`}>
                   <div className="flex items-start gap-4">
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2">
@@ -283,17 +368,27 @@ export function CartContent() {
                       </Link>
                       <div className="mt-3 flex flex-wrap gap-3">
                         {(b.items || []).slice(0,4).map((it) => (
-                          <div key={it.id} className="flex items-center gap-3 border rounded-lg px-3 py-2">
+                          <motion.div 
+                            key={it.id} 
+                            className="flex items-center gap-3 border rounded-lg px-3 py-2"
+                            initial={{ opacity: 0, scale: 0.9 }}
+                            animate={{ opacity: 1, scale: 1 }}
+                            transition={{ duration: 0.2 }}
+                          >
                             <div className="w-16 h-16 rounded-md bg-gray-100 overflow-hidden">
                               {it.product?.product_images?.[0]?.url && (
-                                <Image src={it.product.product_images[0].url} alt={it.product?.name || ''} width={64} height={64} className="w-full h-full object-cover" placeholder="blur" blurDataURL={BLUR_DATA_URL} />
+                                <BlurUpImage 
+                                  src={it.product.product_images[0].url} 
+                                  alt={it.product?.name || ''} 
+                                  className="w-full h-full object-cover"
+                                />
                               )}
                             </div>
                             <div className="min-w-0">
                               <span className="block text-sm font-medium text-gray-800 line-clamp-2 max-w-[180px]">{it.product?.name || 'Ürün'}</span>
                               <span className="text-xs text-gray-500">x{it.quantity}</span>
                             </div>
-                          </div>
+                          </motion.div>
                         ))}
                       </div>
                     </div>
@@ -308,39 +403,63 @@ export function CartContent() {
 
                   <div className="mt-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
                     <div className="flex items-center gap-2">
-                      <Button variant="outline" size="sm" onClick={() => changeQty(b.quantity - 1)} disabled={isUpdating || b.quantity <= 1} type="button">
-                        <MinusIcon className="h-4 w-4" />
-                      </Button>
-                      <input
-                        id={`bqty-${b.id}`}
-                        type="text"
-                        inputMode="numeric"
-                        pattern="[0-9]*"
-                        className="w-14 text-center font-medium border border-gray-300 rounded-md py-1 px-2 focus:outline-none focus:ring-2 focus:ring-blue-500/40 disabled:opacity-60"
-                        value={draftBundleQuantities[b.id] ?? String(b.quantity)}
-                        disabled={isUpdating}
-                        onFocus={(e) => e.currentTarget.select()}
-                        onChange={(e) => {
-                          const val = e.target.value.replace(/[^0-9]/g, '').slice(0, 3)
-                          setDraftBundleQuantities(prev => ({ ...prev, [b.id]: val }))
-                        }}
-                        onBlur={commitBundleQty}
-                        onKeyDown={(e) => {
-                          if (e.key === 'Enter') {
-                            ;(e.currentTarget as HTMLInputElement).blur()
-                          } else if (e.key === 'Escape') {
-                            setDraftBundleQuantities(prev => ({ ...prev, [b.id]: String(b.quantity) }))
-                            ;(e.currentTarget as HTMLInputElement).blur()
-                          }
-                        }}
-                      />
-                      <Button variant="outline" size="sm" onClick={() => changeQty(b.quantity + 1)} disabled={isUpdating} type="button">
-                        <PlusIcon className="h-4 w-4" />
-                      </Button>
+                      <MicroFeedback
+                        onClick={() => changeQty(b.quantity - 1)}
+                        hapticType="light"
+                        hapticMessage="Miktar azalt"
+                      >
+                        <Button variant="outline" size="sm" disabled={isUpdating || b.quantity <= 1} type="button">
+                          <MinusIcon className="h-4 w-4" />
+                        </Button>
+                      </MicroFeedback>
+                      <HoverCard
+                        className="relative"
+                        shimmer={isUpdating}
+                        hapticType="light"
+                        hapticMessage="Miktar girişi"
+                      >
+                        <input
+                          id={`bqty-${b.id}`}
+                          type="text"
+                          inputMode="numeric"
+                          pattern="[0-9]*"
+                          className="w-14 text-center font-medium border border-gray-300 rounded-md py-1 px-2 focus:outline-none focus:ring-2 focus:ring-rose-500/40 disabled:opacity-60 transition-all duration-200"
+                          value={draftBundleQuantities[b.id] ?? String(b.quantity)}
+                          disabled={isUpdating}
+                          onFocus={(e) => e.currentTarget.select()}
+                          onChange={(e) => {
+                            const val = e.target.value.replace(/[^0-9]/g, '').slice(0, 3)
+                            setDraftBundleQuantities(prev => ({ ...prev, [b.id]: val }))
+                          }}
+                          onBlur={commitBundleQty}
+                          onKeyDown={(e) => {
+                            if (e.key === 'Enter') {
+                              ;(e.currentTarget as HTMLInputElement).blur()
+                            } else if (e.key === 'Escape') {
+                              setDraftBundleQuantities(prev => ({ ...prev, [b.id]: String(b.quantity) }))
+                              ;(e.currentTarget as HTMLInputElement).blur()
+                            }
+                          }}
+                        />
+                      </HoverCard>
+                      <MicroFeedback
+                        onClick={() => changeQty(b.quantity + 1)}
+                        hapticType="light"
+                        hapticMessage="Miktar artır"
+                      >
+                        <Button variant="outline" size="sm" disabled={isUpdating} type="button">
+                          <PlusIcon className="h-4 w-4" />
+                        </Button>
+                      </MicroFeedback>
                       {isUpdating && (
-                        <span className="ml-1 inline-flex h-4 w-4 items-center justify-center">
+                        <motion.span 
+                          className="ml-1 inline-flex h-4 w-4 items-center justify-center"
+                          initial={{ opacity: 0, scale: 0.8 }}
+                          animate={{ opacity: 1, scale: 1 }}
+                          transition={{ duration: 0.2 }}
+                        >
                           <span className="block h-4 w-4 rounded-full border-2 border-gray-300 border-t-transparent animate-spin" aria-label="Yükleniyor" />
-                        </span>
+                        </motion.span>
                       )}
                     </div>
                     <div className="text-right sm:text-left flex-1">
@@ -350,36 +469,50 @@ export function CartContent() {
                         <div className="text-sm text-green-600">Toplam kazanç: {formatCurrency(totalSavings)}</div>
                       )}
                     </div>
-                    <Button variant="ghost" size="sm" onClick={removeBundle} disabled={isUpdating} className="text-red-600 hover:text-red-700 hover:bg-red-50">
-                      <TrashIcon className="h-4 w-4" />
-                    </Button>
+                    <MicroFeedback
+                      onClick={removeBundle}
+                      hapticType="medium"
+                      hapticMessage="Seti kaldır"
+                    >
+                      <Button variant="ghost" size="sm" disabled={isUpdating} className="text-red-600 hover:text-red-700 hover:bg-red-50">
+                        <TrashIcon className="h-4 w-4" />
+                      </Button>
+                    </MicroFeedback>
                   </div>
                 </CardContent>
-              </Card>
+                </Card>
+              </motion.div>
             )
           })}
+          </AnimatePresence>
 
           {/* Product Lines */}
-          {cartItems.map((item) => {
+          <AnimatePresence>
+            {cartItems.map((item, index) => {
             const isUpdating = updatingItems.has(item.productId) || updatingItems.has(item.id)
             return (
-            <Card key={item.id} className="overflow-hidden">
+            <motion.div
+              key={item.id}
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -20, scale: 0.95 }}
+              transition={{ duration: 0.3, delay: index * 0.1 }}
+              layout
+            >
+              <Card className="overflow-hidden">
               <CardContent className={`p-6 ${isUpdating ? 'opacity-80' : ''}`}>
                 <div className="flex items-center space-x-4">
                   {/* Product Image */}
                   <div className="flex-shrink-0">
                     <div className="w-20 h-20 bg-gray-100 rounded-lg flex items-center justify-center overflow-hidden">
                       {item.product.product_images && item.product.product_images.length > 0 ? (
-                        <Image
+                        <BlurUpImage
                           src={item.product.product_images[0].url}
                           alt={item.product.product_images[0].alt || item.product.name}
+                          className="w-full h-full object-cover"
                           width={80}
                           height={80}
-                          className="w-full h-full object-cover"
-                          placeholder="blur" blurDataURL={BLUR_DATA_URL}
-                          onError={(e) => {
-                            (e.currentTarget as HTMLImageElement).style.display = 'none';
-                          }}
+                          sizes="80px"
                         />
                       ) : (
                         <span className="text-2xl">🛍️</span>
@@ -407,110 +540,194 @@ export function CartContent() {
 
                   {/* Quantity Controls */}
                   <div className="flex items-center space-x-2">
-                    <Button
-                      variant="outline"
-                      size="sm"
+                    <MicroFeedback
                       onClick={() => handleUpdateQuantity(item.productId, item.quantity - 1)}
-                      disabled={updatingItems.has(item.productId) || item.quantity <= 1}
-                      type="button"
+                      hapticType="light"
+                      hapticMessage="Miktar azalt"
                     >
-                      <MinusIcon className="h-4 w-4" />
-                    </Button>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        disabled={updatingItems.has(item.productId) || item.quantity <= 1}
+                        type="button"
+                      >
+                        <MinusIcon className="h-4 w-4" />
+                      </Button>
+                    </MicroFeedback>
                     
-                    <input
-                      id={`qty-${item.productId}`}
-                      type="text"
-                      inputMode="numeric"
-                      pattern="[0-9]*"
-                      className="w-14 text-center font-medium border border-gray-300 rounded-md py-1 px-2 focus:outline-none focus:ring-2 focus:ring-blue-500/40"
-                      value={draftQuantities[item.productId] ?? String(item.quantity)}
-                      onFocus={(e) => e.currentTarget.select()}
-                      onChange={(e) => {
-                        const val = e.target.value.replace(/[^0-9]/g, '').slice(0, 3)
-                        setDraftQuantities(prev => ({ ...prev, [item.productId]: val }))
-                      }}
-                      onBlur={() => commitQuantity(item.productId, item.quantity)}
-                      onKeyDown={(e) => {
-                        if (e.key === 'Enter') {
-                          (e.currentTarget as HTMLInputElement).blur()
-                        } else if (e.key === 'Escape') {
-                          setDraftQuantities(prev => ({ ...prev, [item.productId]: String(item.quantity) }))
-                          ;(e.currentTarget as HTMLInputElement).blur()
-                        }
-                      }}
-                    />
+                    <HoverCard
+                      className="relative"
+                      shimmer={isUpdating}
+                      hapticType="light"
+                      hapticMessage="Miktar girişi"
+                    >
+                      <input
+                        id={`qty-${item.productId}`}
+                        type="text"
+                        inputMode="numeric"
+                        pattern="[0-9]*"
+                        className="w-14 text-center font-medium border border-gray-300 rounded-md py-1 px-2 focus:outline-none focus:ring-2 focus:ring-rose-500/40 transition-all duration-200"
+                        value={draftQuantities[item.productId] ?? String(item.quantity)}
+                        onFocus={(e) => e.currentTarget.select()}
+                        onChange={(e) => {
+                          const val = e.target.value.replace(/[^0-9]/g, '').slice(0, 3)
+                          setDraftQuantities(prev => ({ ...prev, [item.productId]: val }))
+                        }}
+                        onBlur={() => commitQuantity(item.productId, item.quantity)}
+                        onKeyDown={(e) => {
+                          if (e.key === 'Enter') {
+                            (e.currentTarget as HTMLInputElement).blur()
+                          } else if (e.key === 'Escape') {
+                            setDraftQuantities(prev => ({ ...prev, [item.productId]: String(item.quantity) }))
+                            ;(e.currentTarget as HTMLInputElement).blur()
+                          }
+                        }}
+                      />
+                    </HoverCard>
                     
-                    <Button
-                      variant="outline"
-                      size="sm"
+                    <MicroFeedback
                       onClick={() => handleUpdateQuantity(item.productId, item.quantity + 1)}
-                      disabled={updatingItems.has(item.productId)}
-                      type="button"
+                      hapticType="light"
+                      hapticMessage="Miktar artır"
                     >
-                      <PlusIcon className="h-4 w-4" />
-                    </Button>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        disabled={updatingItems.has(item.productId)}
+                        type="button"
+                      >
+                        <PlusIcon className="h-4 w-4" />
+                      </Button>
+                    </MicroFeedback>
                     {isUpdating && (
-                      <span className="ml-1 inline-flex h-4 w-4 items-center justify-center">
+                      <motion.span 
+                        className="ml-1 inline-flex h-4 w-4 items-center justify-center"
+                        initial={{ opacity: 0, scale: 0.8 }}
+                        animate={{ opacity: 1, scale: 1 }}
+                        transition={{ duration: 0.2 }}
+                      >
                         <span className="block h-4 w-4 rounded-full border-2 border-gray-300 border-t-transparent animate-spin" aria-label="Yükleniyor" />
-                      </span>
+                      </motion.span>
                     )}
                   </div>
 
                   {/* Remove Button */}
-                  <Button
-                    variant="ghost"
-                    size="sm"
+                  <MicroFeedback
                     onClick={() => handleRemoveItem(item.id)}
-                    disabled={updatingItems.has(item.id)}
-                    className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                    hapticType="medium"
+                    hapticMessage="Ürünü kaldır"
                   >
-                    <TrashIcon className="h-4 w-4" />
-                  </Button>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      disabled={updatingItems.has(item.id)}
+                      className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                    >
+                      <TrashIcon className="h-4 w-4" />
+                    </Button>
+                  </MicroFeedback>
                 </div>
               </CardContent>
-            </Card>
-          )})}
+              </Card>
+            </motion.div>
+          );
+          })}
+          </AnimatePresence>
         </div>
       </div>
 
       {/* Order Summary */}
       <div className="lg:col-span-1">
-        <Card className="sticky top-8">
-          <CardHeader>
-            <CardTitle>Sipariş Özeti</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="flex justify-between text-sm">
-              <span>Ara Toplam</span>
-              <span>{formatCurrency(subtotal)}</span>
-            </div>
-            <div className="flex justify-between text-sm">
-              <span>Kargo</span>
-              <span className="text-green-600">
-                {shipping === 0 ? 'Ücretsiz' : formatCurrency(shipping)}
-              </span>
-            </div>
-            <Separator />
-            <div className="flex justify-between text-lg font-semibold">
-              <span>Toplam</span>
-              <span>{formatCurrency(total)}</span>
-            </div>
-            
-            <Button 
-              className="w-full mt-6"
-              size="lg"
-              onClick={handleCheckout}
-            >
-              Siparişi Tamamla
-            </Button>
-            
-            <Link href="/products" className="block">
-              <Button variant="outline" className="w-full">
-                Alışverişe Devam Et
-              </Button>
-            </Link>
-          </CardContent>
-        </Card>
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.3, delay: 0.2 }}
+        >
+          <Card className="sticky top-8">
+            <CardHeader>
+              <CardTitle>Sipariş Özeti</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <motion.div 
+                className="flex justify-between text-sm"
+                initial={{ opacity: 0, x: -20 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ duration: 0.3, delay: 0.3 }}
+              >
+                <span>Ara Toplam</span>
+                <span>{formatCurrency(subtotal)}</span>
+              </motion.div>
+              <motion.div 
+                className="flex justify-between text-sm"
+                initial={{ opacity: 0, x: -20 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ duration: 0.3, delay: 0.4 }}
+              >
+                <span>Kargo</span>
+                <span className="text-green-600">
+                  {shipping === 0 ? 'Ücretsiz' : formatCurrency(shipping)}
+                </span>
+              </motion.div>
+              <Separator />
+              <motion.div 
+                className="flex justify-between text-lg font-semibold"
+                initial={{ opacity: 0, x: -20 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ duration: 0.3, delay: 0.5 }}
+              >
+                <span>Toplam</span>
+                <motion.span 
+                  key={total}
+                  initial={{ scale: 1.1 }}
+                  animate={{ scale: 1 }}
+                  transition={{ duration: 0.2 }}
+                  className="text-rose-600"
+                >
+                  {formatCurrency(total)}
+                </motion.span>
+              </motion.div>
+              
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.3, delay: 0.6 }}
+              >
+                <MicroFeedback
+                  onClick={handleCheckout}
+                  className="w-full mt-6"
+                  hapticType="medium"
+                  hapticMessage="Siparişi tamamla"
+                >
+                  <Button 
+                    className="w-full"
+                    size="lg"
+                  >
+                    Siparişi Tamamla
+                  </Button>
+                </MicroFeedback>
+              </motion.div>
+              
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.3, delay: 0.7 }}
+              >
+                <MicroFeedback
+                  onClick={() => {}}
+                  className="block"
+                  hapticType="light"
+                  hapticMessage="Alışverişe devam et"
+                >
+                  <Link href="/products">
+                    <Button variant="outline" className="w-full">
+                      Alışverişe Devam Et
+                    </Button>
+                  </Link>
+                </MicroFeedback>
+              </motion.div>
+            </CardContent>
+          </Card>
+        </motion.div>
       </div>
     </div>
   )

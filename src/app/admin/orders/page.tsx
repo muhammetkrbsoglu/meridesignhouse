@@ -1,4 +1,7 @@
 import { Suspense } from 'react';
+export const dynamic = 'force-dynamic'
+export const fetchCache = 'force-no-store'
+export const revalidate = 0
 import { AdminGuard } from '@/components/auth/AuthGuard';
 import { AdminLayout } from '@/components/admin/AdminLayout';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';

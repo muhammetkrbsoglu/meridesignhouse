@@ -40,11 +40,12 @@ export default function WhatsAppTemplate({
 
       {/* WhatsApp Messages Area */}
       <div className="whatsapp-messages">
-        <div className="whatsapp-message-container">
+        <div className="whatsapp-message-container relative">
           <Image
             src={getPresetImageUrl(screenshotUrl, 'whatsappMessage')}
-            alt={altText}
+            alt={altText || 'WhatsApp mesaj ekran görüntüsü'}
             fill
+            sizes="100vw"
             className="whatsapp-screenshot"
           />
         </div>

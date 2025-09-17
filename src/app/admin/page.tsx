@@ -4,6 +4,11 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { getDashboardStats, getRecentActivity } from '@/lib/actions/dashboard'
 import { Suspense } from 'react'
 import { DashboardStats } from '@/components/admin/DashboardStats'
+import { PerformanceBudget } from '@/components/analytics/PerformanceBudget'
+import { PerformanceAudit } from '@/components/analytics/PerformanceAudit'
+import { LivePerformanceMonitor } from '@/components/analytics/LivePerformanceMonitor'
+import { CrossDeviceTest } from '@/components/testing/CrossDeviceTest'
+import { DeploymentChecklist } from '@/components/deployment/DeploymentChecklist'
 import Link from 'next/link'
 import { 
   ShoppingCart, 
@@ -74,6 +79,9 @@ export default async function AdminDashboard() {
           <Suspense fallback={<DashboardLoading />}>
             <DashboardStats stats={stats} />
           </Suspense>
+
+          {/* Performance Budget */}
+          <PerformanceBudget />
 
           {/* Recent Activity & Quick Actions */}
           <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
@@ -201,6 +209,23 @@ export default async function AdminDashboard() {
               </CardContent>
             </Card>
           </div>
+        </div>
+
+        {/* Performance & Testing Section */}
+        <div className="space-y-6">
+          <div>
+            <h2 className="text-2xl font-bold text-gray-900 mb-2">Performance & Testing</h2>
+            <p className="text-gray-600">Real-time performance monitoring and deployment readiness</p>
+          </div>
+
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <PerformanceBudget />
+            <PerformanceAudit />
+          </div>
+
+          <LivePerformanceMonitor />
+          <CrossDeviceTest />
+          <DeploymentChecklist />
         </div>
       </AdminLayout>
     </AdminGuard>

@@ -18,6 +18,10 @@ import { format } from 'date-fns';
 import { tr } from 'date-fns/locale';
 import { getWhatsAppHref } from '@/lib/whatsapp-utils';
 import { SUPPORT_WHATSAPP_PHONE } from '@/lib/constants';
+import { motion, AnimatePresence } from 'framer-motion';
+import { MicroFeedback, HoverCard } from '@/components/motion/MicroFeedback';
+import { BlurUpImage, Skeleton } from '@/components/motion/LoadingStates';
+import { useHapticFeedback } from '@/hooks/useHapticFeedback';
 
 const statusConfig = {
   PENDING: {
@@ -145,10 +149,11 @@ export default function OrdersPage() {
     }
   };
 
-  const OrderCard = ({ order }: { order: Order }) => {
+  const OrderCard = ({ order, index }: { order: Order; index: number }) => {
     const [openSupport, setOpenSupport] = useState(false);
     const status = statusConfig[order.status];
     const StatusIcon = status.icon;
+    const { success, light, medium, error } = useHapticFeedback();
 
     const buildSupportMessage = (reason: string) => {
       const lines = [
@@ -164,218 +169,400 @@ export default function OrdersPage() {
     };
 
     return (
-      <Card key={order.id} className="mb-6">
-        <CardHeader>
-          <div className="flex items-center justify-between">
-            <div>
-              <CardTitle className="text-lg">Sipariş #{order.orderNumber}</CardTitle>
-              <p className="text-sm text-gray-600">
-                {format(new Date(order.createdAt), 'dd MMMM yyyy, HH:mm', { locale: tr })}
-              </p>
-            </div>
-            <div className="flex items-center space-x-2 relative">
-              <Badge className={status.color}>
-                <StatusIcon className="mr-1 h-3 w-3" />
-                {status.label}
-              </Badge>
-              <Button variant="outline" size="sm" onClick={() => setOpenSupport((s) => !s)}>
-                <MessageCircle className="mr-1 h-4 w-4" />
-                Soru Sor
-              </Button>
-              {openSupport && (
-                <div className="absolute right-0 top-full mt-2 w-56 bg-white border rounded-md shadow-lg z-10 p-1">
-                  {['Kargo durumunu sormak istiyorum','Sipariş sürecinde değişiklik talebi','Fatura/Adres ile ilgili soru','Ürün hakkında soru','Diğer'].map((label) => (
-                    <a
-                      key={label}
-                      href={getWhatsAppHref(SUPPORT_WHATSAPP_PHONE, buildSupportMessage(label))}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="block px-3 py-2 text-sm text-gray-700 hover:bg-gray-100 rounded"
-                      onClick={() => setOpenSupport(false)}
-                    >
-                      {label}
-                    </a>
-                  ))}
-                </div>
-              )}
-              <Link href={`/orders/${order.id}`}>
-                <Button variant="outline" size="sm">
-                  <Eye className="mr-1 h-4 w-4" />
-                  Detay
-                </Button>
-              </Link>
-            </div>
-          </div>
-        </CardHeader>
-        <CardContent>
-          <div className="space-y-4">
-            {/* Order Items */}
-            <div className="space-y-2">
-              {order.items.slice(0, 3).map((item) => (
-                <div key={item.id} className="flex items-center space-x-3">
-                  <div className="relative w-12 h-12 bg-gray-100 rounded-lg overflow-hidden">
-                    {item.product.product_images && item.product.product_images.length > 0 ? (
-                      <Image
-                        src={item.product.product_images[0]?.url || '/placeholder-product.svg'}
-                        alt={item.product.name}
-                        fill
-                        className="object-cover"
-                      />
-                    ) : (
-                      <div className="w-full h-full bg-gray-200 flex items-center justify-center">
-                        <Package className="h-4 w-4 text-gray-400" />
-                      </div>
-                    )}
-                  </div>
-                  <div className="flex-1">
-                    <p className="text-sm font-medium">{item.product.name}</p>
-                    <p className="text-xs text-gray-600">
-                      {item.quantity} adet × ₺{item.price.toLocaleString('tr-TR')}
-                    </p>
-                  </div>
-                </div>
-              ))}
-              {order.items.length > 3 && (
-                <p className="text-sm text-gray-600">
-                  +{order.items.length - 3} ürün daha
-                </p>
-              )}
-            </div>
-
-            <Separator />
-
-            {/* Order Summary */}
-            <div className="flex justify-between items-center">
-              <div className="space-y-1">
-                <p className="text-sm text-gray-600">
-                  {order.items.length} ürün
-                </p>
-                {order.trackingNumber && (
+      <motion.div
+        key={order.id}
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        exit={{ opacity: 0, y: -20, scale: 0.95 }}
+        transition={{ duration: 0.3, delay: index * 0.1 }}
+        layout
+        className="mb-6"
+      >
+        <Card className="overflow-hidden border-rose-200/50 hover:shadow-lg transition-all duration-300">
+          <CardHeader className="pb-4">
+            <div className="flex items-start justify-between">
+              <div className="flex-1 min-w-0">
+                <motion.div
+                  initial={{ opacity: 0, x: -20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{ duration: 0.3, delay: 0.1 }}
+                >
+                  <CardTitle className="text-lg font-semibold text-gray-900 mb-1">
+                    Sipariş #{order.orderNumber}
+                  </CardTitle>
                   <p className="text-sm text-gray-600">
-                    Kargo Takip: <span className="font-mono">{order.trackingNumber}</span>
+                    {format(new Date(order.createdAt), 'dd MMMM yyyy, HH:mm', { locale: tr })}
                   </p>
-                )}
-                {order.estimatedDelivery && (
-                  <p className="text-sm text-gray-600">
-                    Tahmini Teslimat: {format(new Date(order.estimatedDelivery), 'dd MMMM yyyy', { locale: tr })}
-                  </p>
-                )}
+                </motion.div>
               </div>
-              <div className="text-right">
-                <p className="text-lg font-bold">
-                  ₺{order.totalAmount?.toLocaleString('tr-TR') || '0'}
-                </p>
-                {order.status === 'PROCESSING' && (
-                  <Button
-                    variant="destructive"
-                    size="sm"
-                    onClick={() => handleCancelOrder(order.id)}
-                    disabled={cancelling === order.id}
-                    className="mt-2"
-                  >
-                    {cancelling === order.id ? (
-                      <>
-                        <Loader2 className="mr-1 h-3 w-3 animate-spin" />
-                        İptal Ediliyor
-                      </>
-                    ) : (
-                      <>
-                        <X className="mr-1 h-3 w-3" />
-                        İptal Et
-                      </>
-                    )}
+              <div className="flex items-center space-x-2 relative">
+                <motion.div
+                  initial={{ opacity: 0, scale: 0.8 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  transition={{ duration: 0.3, delay: 0.2 }}
+                >
+                  <Badge className={`${status.color} shadow-sm`}>
+                    <StatusIcon className="mr-1 h-3 w-3" />
+                    {status.label}
+                  </Badge>
+                </motion.div>
+                
+                <MicroFeedback
+                  onClick={() => setOpenSupport((s) => !s)}
+                  hapticType="light"
+                  hapticMessage="Destek menüsü"
+                  className="relative"
+                >
+                  <Button variant="outline" size="sm">
+                    <MessageCircle className="mr-1 h-4 w-4" />
+                    Soru Sor
                   </Button>
-                )}
+                </MicroFeedback>
+                
+                <AnimatePresence>
+                  {openSupport && (
+                    <motion.div
+                      initial={{ opacity: 0, y: -10, scale: 0.95 }}
+                      animate={{ opacity: 1, y: 0, scale: 1 }}
+                      exit={{ opacity: 0, y: -10, scale: 0.95 }}
+                      transition={{ duration: 0.2 }}
+                      className="absolute right-0 top-full mt-2 w-56 bg-white border border-rose-200 rounded-lg shadow-xl z-10 p-1"
+                    >
+                      {['Kargo durumunu sormak istiyorum','Sipariş sürecinde değişiklik talebi','Fatura/Adres ile ilgili soru','Ürün hakkında soru','Diğer'].map((label, idx) => (
+                        <motion.a
+                          key={label}
+                          href={getWhatsAppHref(SUPPORT_WHATSAPP_PHONE, buildSupportMessage(label))}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="block px-3 py-2 text-sm text-gray-700 hover:bg-rose-50 rounded-md transition-colors"
+                          onClick={() => {
+                            setOpenSupport(false);
+                            light('WhatsApp\'a yönlendiriliyor');
+                          }}
+                          initial={{ opacity: 0, x: -10 }}
+                          animate={{ opacity: 1, x: 0 }}
+                          transition={{ duration: 0.2, delay: idx * 0.05 }}
+                        >
+                          {label}
+                        </motion.a>
+                      ))}
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+                
+                <MicroFeedback
+                  onClick={() => {}}
+                  hapticType="light"
+                  hapticMessage="Sipariş detayı"
+                >
+                  <Link href={`/orders/${order.id}`}>
+                    <Button variant="outline" size="sm">
+                      <Eye className="mr-1 h-4 w-4" />
+                      Detay
+                    </Button>
+                  </Link>
+                </MicroFeedback>
               </div>
             </div>
-          </div>
-        </CardContent>
-      </Card>
+          </CardHeader>
+          
+          <CardContent className="pt-0">
+            <motion.div 
+              className="space-y-4"
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.3, delay: 0.3 }}
+            >
+              {/* Order Items */}
+              <div className="space-y-3">
+                <AnimatePresence>
+                  {order.items.slice(0, 3).map((item, itemIndex) => (
+                    <motion.div 
+                      key={item.id} 
+                      className="flex items-center space-x-3 p-2 rounded-lg hover:bg-gray-50 transition-colors"
+                      initial={{ opacity: 0, x: -20 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      transition={{ duration: 0.2, delay: itemIndex * 0.1 }}
+                    >
+                      <div className="relative w-12 h-12 bg-gray-100 rounded-lg overflow-hidden flex-shrink-0">
+                        {item.product.product_images && item.product.product_images.length > 0 ? (
+                          <BlurUpImage
+                            src={item.product.product_images[0]?.url || '/placeholder-product.svg'}
+                            alt={item.product.name}
+                            className="w-full h-full object-cover"
+                          />
+                        ) : (
+                          <div className="w-full h-full bg-gray-200 flex items-center justify-center">
+                            <Package className="h-4 w-4 text-gray-400" />
+                          </div>
+                        )}
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm font-medium text-gray-900 truncate">{item.product.name}</p>
+                        <p className="text-xs text-gray-600">
+                          {item.quantity} adet × ₺{item.price.toLocaleString('tr-TR')}
+                        </p>
+                      </div>
+                    </motion.div>
+                  ))}
+                </AnimatePresence>
+                
+                {order.items.length > 3 && (
+                  <motion.p 
+                    className="text-sm text-gray-600 text-center py-2"
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    transition={{ duration: 0.3, delay: 0.5 }}
+                  >
+                    +{order.items.length - 3} ürün daha
+                  </motion.p>
+                )}
+              </div>
+
+              <Separator className="my-4" />
+
+              {/* Order Summary */}
+              <motion.div 
+                className="flex justify-between items-center"
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.3, delay: 0.4 }}
+              >
+                <div className="space-y-1">
+                  <p className="text-sm text-gray-600">
+                    {order.items.length} ürün
+                  </p>
+                  {order.trackingNumber && (
+                    <p className="text-sm text-gray-600">
+                      Kargo Takip: <span className="font-mono text-rose-600">{order.trackingNumber}</span>
+                    </p>
+                  )}
+                  {order.estimatedDelivery && (
+                    <p className="text-sm text-gray-600">
+                      Tahmini Teslimat: {format(new Date(order.estimatedDelivery), 'dd MMMM yyyy', { locale: tr })}
+                    </p>
+                  )}
+                </div>
+                <div className="text-right">
+                  <motion.p 
+                    className="text-lg font-bold text-rose-600"
+                    initial={{ scale: 0.9 }}
+                    animate={{ scale: 1 }}
+                    transition={{ duration: 0.2 }}
+                  >
+                    ₺{order.totalAmount?.toLocaleString('tr-TR') || '0'}
+                  </motion.p>
+                  {order.status === 'PROCESSING' && (
+                    <motion.div
+                      initial={{ opacity: 0, y: 10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ duration: 0.3, delay: 0.5 }}
+                    >
+                      <MicroFeedback
+                        onClick={() => handleCancelOrder(order.id)}
+                        hapticType="medium"
+                        hapticMessage="Siparişi iptal et"
+                        className="mt-2"
+                      >
+                        <Button
+                          variant="destructive"
+                          size="sm"
+                          disabled={cancelling === order.id}
+                        >
+                          {cancelling === order.id ? (
+                            <>
+                              <Loader2 className="mr-1 h-3 w-3 animate-spin" />
+                              İptal Ediliyor
+                            </>
+                          ) : (
+                            <>
+                              <X className="mr-1 h-3 w-3" />
+                              İptal Et
+                            </>
+                          )}
+                        </Button>
+                      </MicroFeedback>
+                    </motion.div>
+                  )}
+                </div>
+              </motion.div>
+            </motion.div>
+          </CardContent>
+        </Card>
+      </motion.div>
     );
   };
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <Loader2 className="h-8 w-8 animate-spin" />
-      </div>
+      <CustomerLayout>
+        <div className="min-h-[100svh] flex items-center justify-center">
+          <motion.div
+            initial={{ opacity: 0, scale: 0.8 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ duration: 0.3 }}
+          >
+            <Loader2 className="h-8 w-8 animate-spin text-rose-500" />
+          </motion.div>
+        </div>
+      </CustomerLayout>
     );
   }
 
   return (
     <CustomerLayout>
-      <div className="min-h-screen bg-gray-50 py-8">
+      <div className="min-h-[100svh] bg-gradient-to-br from-rose-50/30 via-pink-50/20 to-purple-50/30 py-8">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">Siparişlerim</h1>
-          <p className="text-gray-600">Sipariş geçmişinizi görüntüleyin ve takip edin</p>
-        </div>
+          <motion.div 
+            className="mb-8"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.4 }}
+          >
+            <h1 className="text-3xl font-bold bg-gradient-to-r from-rose-600 to-pink-600 bg-clip-text text-transparent mb-2">
+              Siparişlerim
+            </h1>
+            <p className="text-gray-600">Sipariş geçmişinizi görüntüleyin ve takip edin</p>
+          </motion.div>
 
-        {/* Order Search */}
-        <Card className="mb-8">
-          <CardHeader>
-            <CardTitle className="flex items-center">
-              <Search className="mr-2 h-5 w-5" />
-              Sipariş Sorgula
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="flex space-x-2">
-              <div className="flex-1">
-                <Label htmlFor="orderSearch">Sipariş Numarası</Label>
-                <Input
-                  id="orderSearch"
-                  placeholder="ORD-20240101-123456"
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  onKeyPress={(e) => e.key === 'Enter' && handleSearch()}
-                />
-              </div>
-              <div className="flex items-end">
-                <Button onClick={handleSearch} disabled={searching}>
-                  {searching ? (
-                    <Loader2 className="h-4 w-4 animate-spin" />
-                  ) : (
-                    <Search className="h-4 w-4" />
+          {/* Order Search */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.4, delay: 0.1 }}
+            className="mb-8"
+          >
+            <Card className="border-rose-200/50 shadow-lg">
+              <CardHeader>
+                <CardTitle className="flex items-center text-rose-700">
+                  <Search className="mr-2 h-5 w-5" />
+                  Sipariş Sorgula
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="flex space-x-2">
+                  <div className="flex-1">
+                    <Label htmlFor="orderSearch" className="text-gray-700">Sipariş Numarası</Label>
+                    <HoverCard
+                      shimmer={searching}
+                      hapticType="light"
+                      hapticMessage="Sipariş numarası girişi"
+                      className="mt-1"
+                    >
+                      <Input
+                        id="orderSearch"
+                        placeholder="ORD-20240101-123456"
+                        value={searchQuery}
+                        onChange={(e) => setSearchQuery(e.target.value)}
+                        onKeyPress={(e) => e.key === 'Enter' && handleSearch()}
+                        className="focus:ring-2 focus:ring-rose-500/40 border-rose-200"
+                      />
+                    </HoverCard>
+                  </div>
+                  <div className="flex items-end">
+                    <MicroFeedback
+                      onClick={handleSearch}
+                      hapticType="light"
+                      hapticMessage="Sipariş ara"
+                    >
+                      <Button disabled={searching} className="bg-gradient-to-r from-rose-500 to-pink-500 hover:from-rose-600 hover:to-pink-600">
+                        {searching ? (
+                          <Loader2 className="h-4 w-4 animate-spin" />
+                        ) : (
+                          <Search className="h-4 w-4" />
+                        )}
+                      </Button>
+                    </MicroFeedback>
+                  </div>
+                </div>
+                
+                <AnimatePresence>
+                  {searchResult && (
+                    <motion.div 
+                      className="mt-4"
+                      initial={{ opacity: 0, y: 20 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      exit={{ opacity: 0, y: -20 }}
+                      transition={{ duration: 0.3 }}
+                    >
+                      <h3 className="font-medium mb-2 text-gray-700">Arama Sonucu:</h3>
+                      <OrderCard order={searchResult} index={0} />
+                    </motion.div>
                   )}
-                </Button>
-              </div>
-            </div>
-            
-            {searchResult && (
-              <div className="mt-4">
-                <h3 className="font-medium mb-2">Arama Sonucu:</h3>
-                <OrderCard order={searchResult} />
-              </div>
-            )}
-          </CardContent>
-        </Card>
-
-        {/* Orders List */}
-        <div>
-          <h2 className="text-xl font-semibold mb-4">Sipariş Geçmişi</h2>
-          
-          {orders.length === 0 ? (
-            <Card>
-              <CardContent className="text-center py-12">
-                <Package className="mx-auto h-12 w-12 text-gray-400 mb-4" />
-                <h3 className="text-lg font-medium text-gray-900 mb-2">Henüz siparişiniz yok</h3>
-                <p className="text-gray-600 mb-6">İlk siparişinizi vermek için alışverişe başlayın</p>
-                <Link href="/products">
-                  <Button>
-                    Alışverişe Başla
-                  </Button>
-                </Link>
+                </AnimatePresence>
               </CardContent>
             </Card>
-          ) : (
-            <div>
-              {orders.map((order) => (
-                <OrderCard key={order.id} order={order} />
-              ))}
-            </div>
-          )}
-        </div>
+          </motion.div>
+
+          {/* Orders List */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.4, delay: 0.2 }}
+          >
+            <h2 className="text-xl font-semibold mb-4 text-gray-800">Sipariş Geçmişi</h2>
+            
+            {orders.length === 0 ? (
+              <motion.div
+                initial={{ opacity: 0, scale: 0.9 }}
+                animate={{ opacity: 1, scale: 1 }}
+                transition={{ duration: 0.4 }}
+              >
+                <Card className="border-rose-200/50 shadow-lg">
+                  <CardContent className="text-center py-12">
+                    <motion.div
+                      initial={{ scale: 0.8, opacity: 0 }}
+                      animate={{ scale: 1, opacity: 1 }}
+                      transition={{ duration: 0.4, delay: 0.1 }}
+                    >
+                      <Package className="mx-auto h-12 w-12 text-rose-400 mb-4" />
+                    </motion.div>
+                    <motion.h3 
+                      className="text-lg font-medium text-gray-900 mb-2"
+                      initial={{ opacity: 0, y: 10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ duration: 0.3, delay: 0.2 }}
+                    >
+                      Henüz siparişiniz yok
+                    </motion.h3>
+                    <motion.p 
+                      className="text-gray-600 mb-6"
+                      initial={{ opacity: 0, y: 10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ duration: 0.3, delay: 0.3 }}
+                    >
+                      İlk siparişinizi vermek için alışverişe başlayın
+                    </motion.p>
+                    <motion.div
+                      initial={{ opacity: 0, y: 10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ duration: 0.3, delay: 0.4 }}
+                    >
+                      <MicroFeedback
+                        onClick={() => {}}
+                        hapticType="medium"
+                        hapticMessage="Alışverişe başla"
+                      >
+                        <Link href="/products">
+                          <Button className="bg-gradient-to-r from-rose-500 to-pink-500 hover:from-rose-600 hover:to-pink-600">
+                            Alışverişe Başla
+                          </Button>
+                        </Link>
+                      </MicroFeedback>
+                    </motion.div>
+                  </CardContent>
+                </Card>
+              </motion.div>
+            ) : (
+              <AnimatePresence>
+                <div>
+                  {orders.map((order, index) => (
+                    <OrderCard key={order.id} order={order} index={index} />
+                  ))}
+                </div>
+              </AnimatePresence>
+            )}
+          </motion.div>
         </div>
       </div>
     </CustomerLayout>

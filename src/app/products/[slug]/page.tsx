@@ -65,7 +65,7 @@ export default async function ProductPage({ params }: ProductPageProps) {
 
   return (
     <CustomerLayout>
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <div className="min-h-screen-dyn max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Breadcrumb */}
         <div className="mb-6">
           <Breadcrumb items={breadcrumbItems} />

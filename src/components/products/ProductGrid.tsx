@@ -8,7 +8,12 @@ import { ProductWithCategory } from '@/types/product';
 import { addToCart, addToFavorites, removeFromFavorites, isProductInFavorites } from '@/lib/actions/cart';
 import { formatCurrency } from '@/lib/utils';
 import { useState, useEffect } from 'react';
-import { toast } from '@/hooks/use-toast';
+import { motion } from 'framer-motion';
+import { MicroFeedback, FavoriteButton, AddToCartButton, HoverCard } from '@/components/motion/MicroFeedback';
+import { BlurUpImage, Skeleton } from '@/components/motion/LoadingStates';
+import { BrandedLoader } from '@/components/motion/BrandedLoader';
+import { useHapticFeedback } from '@/hooks/useHapticFeedback';
+import { useToast } from '@/contexts/ToastContext';
 
 interface ProductGridProps {
   products: ProductWithCategory[];
@@ -20,10 +25,14 @@ export function ProductGrid({ products }: ProductGridProps) {
     favorites: Set<string>;
     cart: Set<string>;
   }>({ favorites: new Set(), cart: new Set() });
+  const [isLoading, setIsLoading] = useState(true);
+  const { success, light } = useHapticFeedback();
+  const { success: toastSuccess, error: toastError, undoAction } = useToast();
 
   // Load favorite status for all products
   useEffect(() => {
     const loadFavorites = async () => {
+      setIsLoading(true);
       const favoriteStatuses = await Promise.all(
         products.map(async (product) => {
           try {
@@ -42,6 +51,7 @@ export function ProductGrid({ products }: ProductGridProps) {
         }
       });
       setFavorites(newFavorites);
+      setIsLoading(false);
     };
 
     if (products.length > 0) {
@@ -66,25 +76,27 @@ export function ProductGrid({ products }: ProductGridProps) {
             newFavorites.delete(productId);
             return newFavorites;
           });
-          toast({ intent: 'success', description: 'Ürün favorilerden çıkarıldı' });
+          success('Ürün favorilerden çıkarıldı');
+          toastSuccess('Favorilerden çıkarıldı', 'Ürün favorilerden kaldırıldı');
           // Trigger favorite update event
           window.dispatchEvent(new Event('favoriteUpdated'));
         } else {
-          toast({ intent: 'error', description: result.error || 'Bir hata oluştu' });
+          toastError('Hata', result.error || 'Bir hata oluştu');
         }
       } else {
         const result = await addToFavorites(productId);
         if (result.success) {
           setFavorites(prev => new Set([...prev, productId]));
-          toast({ intent: 'success', description: 'Ürün favorilere eklendi' });
+          success('Ürün favorilere eklendi');
+          toastSuccess('Favorilere eklendi', 'Ürün favorilere eklendi');
           // Trigger favorite update event
           window.dispatchEvent(new Event('favoriteUpdated'));
         } else {
-          toast({ intent: 'error', description: result.error || 'Bir hata oluştu' });
+          toastError('Hata', result.error || 'Bir hata oluştu');
         }
       }
     } catch (_) {
-      toast({ intent: 'error', description: 'Bir hata oluştu' });
+      toastError('Hata', 'Bir hata oluştu');
     } finally {
       setLoadingStates(prev => {
         const newFavorites = new Set(prev.favorites);
@@ -103,14 +115,15 @@ export function ProductGrid({ products }: ProductGridProps) {
     try {
       const result = await addToCart(productId, 1);
       if (result.success) {
-        toast({ intent: 'success', description: 'Ürün sepete eklendi' });
+        success('Ürün sepete eklendi');
+        toastSuccess('Sepete eklendi', 'Ürün sepete eklendi');
         // Trigger cart update event
         window.dispatchEvent(new Event('cartUpdated'));
       } else {
-        toast({ intent: 'error', description: result.error || 'Bir hata oluştu' });
+        toastError('Hata', result.error || 'Bir hata oluştu');
       }
     } catch (_) {
-      toast({ intent: 'error', description: 'Bir hata oluştu' });
+      toastError('Hata', 'Bir hata oluştu');
     } finally {
       setLoadingStates(prev => {
         const newCart = new Set(prev.cart);
@@ -119,6 +132,25 @@ export function ProductGrid({ products }: ProductGridProps) {
       });
     }
   };
+
+  // Loading skeleton
+  if (isLoading) {
+    return (
+      <div className="grid grid-cols-2 gap-3 sm:gap-4 lg:gap-6">
+        {Array.from({ length: 6 }).map((_, index) => (
+          <div key={index} className="bg-white rounded-xl border border-gray-100 p-3 sm:p-4">
+            <Skeleton className="h-48 w-full rounded-lg mb-3" />
+            <Skeleton className="h-4 w-3/4 mb-2" />
+            <Skeleton className="h-4 w-1/2 mb-3" />
+            <div className="flex justify-between items-center">
+              <Skeleton className="h-6 w-20" />
+              <Skeleton className="h-8 w-24 rounded-lg" />
+            </div>
+          </div>
+        ))}
+      </div>
+    );
+  }
 
   if (products.length === 0) {
     return (
@@ -135,98 +167,127 @@ export function ProductGrid({ products }: ProductGridProps) {
   }
 
   return (
-    <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-3 gap-3 sm:gap-6">
-      {products.map((product) => (
-        <div key={product.id} className="group relative bg-white rounded-lg border hover:shadow-lg transition-shadow duration-300">
-          {/* Product Image */}
-          <div className="aspect-[3/4] relative overflow-hidden rounded-t-lg">
+    <div className="grid grid-cols-2 gap-3 sm:gap-4 lg:gap-6">
+      {products.map((product, index) => (
+        <HoverCard
+          key={product.id}
+          className="group relative bg-white rounded-xl border border-gray-100 hover:shadow-lg hover:shadow-rose-500/10 transition-all duration-300 overflow-hidden"
+          shimmer={true}
+          hapticType="light"
+          hapticMessage="Ürün kartına tıklandı"
+        >
+          {/* Product Image - Fixed 3:4 aspect ratio with BlurUp */}
+          <div className="aspect-[3/4] relative overflow-hidden">
             <Link href={`/products/${product.slug}`} aria-label={`Ürün sayfasına git: ${product.name}`}>
               {product.images.length > 0 ? (
-                <Image
+                <BlurUpImage
                   src={product.images[0]?.url || '/placeholder-product.svg'}
                   alt={product.name}
-                  fill
-                  sizes="(min-width: 1280px) 33vw, (min-width: 1024px) 33vw, (min-width: 640px) 50vw, 50vw"
-                  className="object-cover group-hover:scale-105 transition-transform duration-300"
+                  className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                  priority={index < 4} // LCP optimization for first 4 products
+                  width={300}
+                  height={400}
+                  sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
                 />
               ) : (
-                <div className="w-full h-full bg-gray-200 flex items-center justify-center" aria-hidden="true">
-                  <span className="text-gray-400 text-sm">Resim Yok</span>
+                <div className="w-full h-full bg-gradient-to-br from-gray-100 to-gray-200 flex items-center justify-center" aria-hidden="true">
+                  <span className="text-gray-400 text-sm font-medium">Resim Yok</span>
                 </div>
               )}
             </Link>
             
-            {/* Favorite Button */}
-            <button
-              type="button"
-              onClick={() => toggleFavorite(product.id)}
+            {/* Favorite Button with Micro Feedback */}
+            <FavoriteButton
+              isFavorite={favorites.has(product.id)}
+              onToggle={() => toggleFavorite(product.id)}
+              className="absolute top-3 right-3 z-10 p-2.5 bg-white/90 backdrop-blur-sm rounded-full shadow-lg hover:shadow-xl transition-all duration-200 disabled:opacity-50 min-h-[44px] min-w-[44px] flex items-center justify-center"
               disabled={loadingStates.favorites.has(product.id)}
-              className="absolute top-2 right-2 sm:top-3 sm:right-3 z-10 p-3 bg-white rounded-full shadow-md hover:shadow-lg transition-shadow disabled:opacity-50"
-              aria-label={`${favorites.has(product.id) ? 'Favorilerden çıkar' : 'Favorilere ekle'}: ${product.name}`}
             >
               {favorites.has(product.id) ? (
-                <HeartSolidIcon className="h-5 w-5 sm:h-5 sm:w-5 text-red-500" />
+                <HeartSolidIcon className="h-5 w-5 text-red-500" />
               ) : (
-                <HeartIcon className="h-5 w-5 sm:h-5 sm:w-5 text-gray-400 hover:text-red-500" />
+                <HeartIcon className="h-5 w-5 text-gray-400 group-hover:text-red-500 transition-colors" />
               )}
-            </button>
+            </FavoriteButton>
           </div>
 
-          {/* Product Info */}
-          <div className="p-2 sm:p-3">
-            {/* Category */}
+          {/* Product Info - Premium typography */}
+          <div className="p-3 sm:p-4">
+            {/* Category - Micro typography */}
             <Link 
               href={`/categories/${product.category.slug}`}
-              className="text-xs text-gray-700 font-medium hover:text-rose-600 transition-colors"
+              className="text-xs text-gray-600 font-medium hover:text-rose-600 transition-colors duration-200"
               aria-label={`Kategoriye git: ${product.category.name}`}
             >
-              Kategori: {product.category.name}
+              {product.category.name}
             </Link>
             
-            {/* Product Name */}
+            {/* Product Name - Big type moment */}
             <Link href={`/products/${product.slug}`} aria-label={`Ürünü incele: ${product.name}`}>
-              <h3 className="mt-0.5 text-sm sm:text-base font-medium text-gray-900 line-clamp-2 group-hover:text-rose-600 transition-colors">
+              <h3 className="mt-1 text-sm sm:text-base font-semibold text-gray-900 line-clamp-2 group-hover:text-rose-600 transition-colors duration-200 leading-tight">
                 {product.name}
               </h3>
             </Link>
             
-            {/* Description */}
+            {/* Description - Micro typography */}
             {product.description && (
-              <p className="mt-1 text-[11px] sm:text-xs text-gray-500 line-clamp-2">
+              <p className="mt-1.5 text-xs text-gray-500 line-clamp-2 leading-relaxed">
                 {product.description}
               </p>
             )}
             
-            {/* Price */}
-            <div className="mt-3 flex items-center justify-between">
-              <span className="text-lg font-semibold text-rose-600">
-                {formatCurrency(typeof product.price === 'number' ? product.price : product.price.toNumber())}
-              </span>
+            {/* Price & CTA - Premium spacing */}
+            <div className="mt-4 flex items-center justify-between">
+              <div className="flex flex-col">
+                <span className="text-lg font-bold text-rose-600">
+                  {formatCurrency(typeof product.price === 'number' ? product.price : product.price.toNumber())}
+                </span>
+                <span className="text-xs text-gray-500">KDV dahil</span>
+              </div>
               
-              {/* Add to Cart Button */}
-              <button
-                onClick={() => handleAddToCart(product.id)}
+              {/* Add to Cart Button with Micro Feedback */}
+              <AddToCartButton
+                onAdd={() => handleAddToCart(product.id)}
+                className="flex items-center space-x-1.5 px-4 py-2.5 bg-gradient-to-r from-rose-500 to-pink-500 text-white text-xs font-semibold rounded-lg hover:from-rose-600 hover:to-pink-600 transition-all duration-200 disabled:opacity-50 min-h-[44px] shadow-lg hover:shadow-xl"
                 disabled={loadingStates.cart.has(product.id)}
-                className="flex items-center space-x-1 px-3 py-2 sm:px-3 sm:py-1.5 bg-rose-600 text-white text-xs font-medium rounded-md hover:bg-rose-700 transition-colors disabled:opacity-50"
-                aria-label={`Sepete ekle: ${product.name}`}
               >
-                <ShoppingCartIcon className="h-5 w-5 sm:h-4 sm:w-4" />
-                <span>{loadingStates.cart.has(product.id) ? 'Ekleniyor...' : 'Sepete Ekle'}</span>
-              </button>
+                <ShoppingCartIcon className="h-4 w-4" />
+                {loadingStates.cart.has(product.id) ? (
+                  <BrandedLoader 
+                    variant="mini" 
+                    size="sm" 
+                    color="gradient" 
+                    showIcon={false}
+                    showShimmer={true}
+                    className="p-0"
+                  />
+                ) : (
+                  <>
+                    <span className="hidden sm:inline">Sepete Ekle</span>
+                    <span className="sm:hidden">Ekle</span>
+                  </>
+                )}
+              </AddToCartButton>
             </div>
           </div>
           
-          {/* Quick View Overlay */}
-          <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-all duration-300 rounded-lg hidden sm:flex items-start justify-center pt-18 opacity-0 group-hover:opacity-100 pointer-events-none">
-            <Link
-              href={`/products/${product.slug}`}
-              className="px-4 py-2 bg-white text-gray-900 text-sm font-medium rounded-md shadow-lg hover:bg-gray-50 transition-transform duration-300 pointer-events-auto"
-              aria-label={`Ürün detaylarını gör: ${product.name}`}
+          {/* Quick View Overlay - Hidden on mobile for cleaner UX */}
+          <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-all duration-300 rounded-xl hidden lg:flex items-start justify-center pt-20 opacity-0 group-hover:opacity-100 pointer-events-none">
+            <motion.div
+              initial={{ opacity: 0, y: 10 }}
+              whileHover={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.2 }}
             >
-              Ürün detaylarını gör
-            </Link>
+              <Link
+                href={`/products/${product.slug}`}
+                className="px-4 py-2 bg-white text-gray-900 text-sm font-medium rounded-lg shadow-lg hover:bg-gray-50 transition-colors duration-200 pointer-events-auto"
+                aria-label={`Ürün detaylarını gör: ${product.name}`}
+              >
+                Ürün detaylarını gör
+              </Link>
+            </motion.div>
           </div>
-        </div>
+        </HoverCard>
       ))}
     </div>
   );

@@ -1,6 +1,9 @@
 @import "tailwindcss";
 @import "tw-animate-css";
 
+/* Import custom animations */
+@import './animations.css';
+
 /* Tasarım Atölyesi için özel stiller */
 .font-playfair {
   font-family: 'Playfair Display', serif;

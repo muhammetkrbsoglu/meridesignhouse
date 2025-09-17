@@ -7,6 +7,10 @@ import { FavoriteItem, removeFromFavorites, addToCart, addToFavorites } from '@/
 import { ToastAction } from '@/components/ui/toast';
 import { toast } from '@/hooks/use-toast';
 import { formatCurrency } from '@/lib/utils';
+import { motion, AnimatePresence } from 'framer-motion';
+import { MicroFeedback, HoverCard } from '@/components/motion/MicroFeedback';
+import { BlurUpImage, Skeleton } from '@/components/motion/LoadingStates';
+import { useHapticFeedback } from '@/hooks/useHapticFeedback';
 
 interface FavoriteItemsProps {
   items: FavoriteItem[];
@@ -14,17 +18,21 @@ interface FavoriteItemsProps {
 
 export function FavoriteItems({ items }: FavoriteItemsProps) {
   const [loadingItems, setLoadingItems] = useState<Set<string>>(new Set());
+  const { success, light, medium, error } = useHapticFeedback();
 
   const handleRemoveFromFavorites = async (productId: string) => {
     setLoadingItems(prev => new Set(prev).add(productId));
+    medium('Favorilerden çıkarılıyor');
     
     try {
       const result = await removeFromFavorites(productId);
       
       if (result.success) {
+        success('Ürün favorilerden çıkarıldı');
         toast({ intent: 'success', description: 'Ürün favorilerden çıkarıldı', action: (
           <ToastAction altText="Geri Al" onClick={async () => {
             await addToFavorites(productId)
+            success('Ürün geri alındı')
             window.dispatchEvent(new Event('favoriteUpdated'))
             window.location.reload()
           }}>Geri Al</ToastAction>
@@ -35,10 +43,12 @@ export function FavoriteItems({ items }: FavoriteItemsProps) {
         window.location.reload();
       } else {
         toast({ intent: 'error', description: result.error || 'Bir hata oluştu' });
+        error('Favorilerden çıkarma hatası');
       }
     } catch (error) {
       console.error('[FavoriteItems] Remove error:', error);
       toast({ intent: 'error', description: 'Bir hata oluştu' });
+      error('Favorilerden çıkarma hatası');
     } finally {
       setLoadingItems(prev => {
         const newSet = new Set(prev);
@@ -50,17 +60,21 @@ export function FavoriteItems({ items }: FavoriteItemsProps) {
 
   const handleAddToCart = async (productId: string, productName: string) => {
     setLoadingItems(prev => new Set(prev).add(productId));
+    light('Sepete ekleniyor');
     
     try {
       const result = await addToCart(productId, 1);
       
       if (result.success) {
+        success(`${productName} sepete eklendi`);
         toast({ intent: 'success', description: `${productName} sepete eklendi` });
       } else {
         toast({ intent: 'error', description: result.error || 'Bir hata oluştu' });
+        error('Sepete ekleme hatası');
       }
     } catch (_) {
       toast({ intent: 'error', description: 'Bir hata oluştu' });
+      error('Sepete ekleme hatası');
     } finally {
       setLoadingItems(prev => {
         const newSet = new Set(prev);
@@ -72,22 +86,32 @@ export function FavoriteItems({ items }: FavoriteItemsProps) {
 
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-      {items.map((item) => {
+      <AnimatePresence>
+        {items.map((item, index) => {
         const isLoading = loadingItems.has(item.productId);
         
         return (
-          <div key={item.id} className="bg-white rounded-lg shadow-sm border hover:shadow-md transition-shadow">
+          <motion.div 
+            key={item.id} 
+            className="bg-white rounded-lg shadow-sm border hover:shadow-md transition-shadow"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -20, scale: 0.95 }}
+            transition={{ duration: 0.3, delay: index * 0.1 }}
+            layout
+          >
             <div className="relative">
               {/* Product Image */}
               <Link href={`/products/${item.product.slug}`} aria-label={`Ürün sayfasına git: ${item.product.name}`}>
                 <div className="aspect-square bg-gray-100 rounded-t-lg overflow-hidden group">
                   {item.product.product_images && item.product.product_images.length > 0 ? (
-                    <Image
+                    <BlurUpImage
                       src={item.product.product_images[0].url}
                       alt={item.product.product_images[0].alt || item.product.name}
-                      width={800}
-                      height={800}
                       className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                      width={300}
+                      height={300}
+                      sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
                     />
                   ) : (
                     <div className="w-full h-full flex items-center justify-center" aria-hidden="true">
@@ -100,16 +124,22 @@ export function FavoriteItems({ items }: FavoriteItemsProps) {
               </Link>
 
               {/* Remove from Favorites Button */}
-              <button
+              <MicroFeedback
                 onClick={() => handleRemoveFromFavorites(item.productId)}
-                disabled={isLoading}
+                hapticType="medium"
+                hapticMessage="Favorilerden çıkar"
                 className="absolute top-3 right-3 p-2 bg-white rounded-full shadow-md hover:bg-gray-50 transition-colors disabled:opacity-50"
-                title="Favorilerden Çıkar"
               >
-                <svg className="w-5 h-5 text-red-500" fill="currentColor" viewBox="0 0 20 20">
-                  <path fillRule="evenodd" d="M3.172 5.172a4 4 0 015.656 0L10 6.343l1.172-1.171a4 4 0 115.656 5.656L10 17.657l-6.828-6.829a4 4 0 010-5.656z" clipRule="evenodd" />
-                </svg>
-              </button>
+                <button
+                  disabled={isLoading}
+                  title="Favorilerden Çıkar"
+                  className="w-full h-full"
+                >
+                  <svg className="w-5 h-5 text-red-500" fill="currentColor" viewBox="0 0 20 20">
+                    <path fillRule="evenodd" d="M3.172 5.172a4 4 0 015.656 0L10 6.343l1.172-1.171a4 4 0 115.656 5.656L10 17.657l-6.828-6.829a4 4 0 010-5.656z" clipRule="evenodd" />
+                  </svg>
+                </button>
+              </MicroFeedback>
             </div>
 
             {/* Product Details */}
@@ -138,21 +168,41 @@ export function FavoriteItems({ items }: FavoriteItemsProps) {
 
               {/* Action Buttons */}
               <div className="space-y-2">
-                <button
+                <MicroFeedback
                   onClick={() => handleAddToCart(item.productId, item.product.name)}
-                  disabled={isLoading}
-                  className="w-full bg-blue-600 text-white py-2 px-4 rounded-md text-sm font-medium hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                  hapticType="light"
+                  hapticMessage="Sepete ekle"
+                  className="w-full"
                 >
-                  {isLoading ? 'Ekleniyor...' : 'Sepete Ekle'}
-                </button>
+                  <button
+                    disabled={isLoading}
+                    className="w-full bg-gradient-to-r from-rose-500 to-pink-500 text-white py-2 px-4 rounded-md text-sm font-medium hover:from-rose-600 hover:to-pink-600 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed shadow-lg hover:shadow-xl"
+                  >
+                    {isLoading ? (
+                      <div className="flex items-center justify-center">
+                        <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                        Ekleniyor...
+                      </div>
+                    ) : (
+                      'Sepete Ekle'
+                    )}
+                  </button>
+                </MicroFeedback>
                 
-                <Link
-                  href={`/products/${item.product.slug}`}
-                  className="block w-full bg-gray-100 text-gray-700 py-2 px-4 rounded-md text-sm font-medium text-center hover:bg-gray-200 transition-colors"
-                  aria-label={`Ürünü incele: ${item.product.name}`}
+                <MicroFeedback
+                  onClick={() => {}}
+                  hapticType="light"
+                  hapticMessage="Ürünü incele"
+                  className="block w-full"
                 >
-                  Ürünü İncele
-                </Link>
+                  <Link
+                    href={`/products/${item.product.slug}`}
+                    className="block w-full bg-gray-100 text-gray-700 py-2 px-4 rounded-md text-sm font-medium text-center hover:bg-gray-200 transition-colors"
+                    aria-label={`Ürünü incele: ${item.product.name}`}
+                  >
+                    Ürünü İncele
+                  </Link>
+                </MicroFeedback>
               </div>
 
               {/* Added Date */}
@@ -160,9 +210,10 @@ export function FavoriteItems({ items }: FavoriteItemsProps) {
                 Favorilere eklendi: {new Date(item.createdAt).toLocaleDateString('tr-TR')}
               </p>
             </div>
-          </div>
+          </motion.div>
         );
       })}
+      </AnimatePresence>
     </div>
   );
 }
