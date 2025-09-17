@@ -26,7 +26,7 @@ export function CustomerLayout({
   const shouldReduceMotion = useReducedMotion()
   return (
     <ToastProvider>
-      <div className="min-h-screen-dyn overscroll-contain flex flex-col">
+      <div className="min-h-screen flex flex-col">
         <Navbar />
         <main className="flex-1 pb-16 supports-[padding:max(0px)]:pb-[calc(64px+env(safe-area-inset-bottom))]">
           {children}
