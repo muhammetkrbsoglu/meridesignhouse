@@ -1,14 +1,10 @@
-import { Metadata } from 'next'
+'use client'
+
 import { CustomerLayout } from '@/components/layout/CustomerLayout'
 import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Heart, Star, Sparkles, Users, Target, Award, Palette, Clock } from 'lucide-react'
 import Link from 'next/link'
-
-export const metadata: Metadata = {
-  title: 'Hakkımızda | Meri Design House',
-  description: 'Meri Design House hakkında bilgi edinin. Misyonumuz, vizyonumuz ve ekibimizi tanıyın.',
-}
 
 export default function AboutPage() {
   return (
