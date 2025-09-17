@@ -8,8 +8,7 @@ import { RelatedProducts } from '@/components/products/RelatedProducts';
 import { Breadcrumb } from '@/components/ui/Breadcrumb';
 import { fetchProductBySlug, fetchRelatedProducts } from '@/lib/actions/products';
 import { PageTransition } from '@/components/motion/PageTransition';
-import { ProductCTABar } from '@/components/motion/StickyCTA';
-import { useState } from 'react';
+import { ProductDetailClient } from '@/components/products/ProductDetailClient';
 
 interface ProductPageProps {
   params: Promise<{
@@ -86,23 +85,13 @@ export default async function ProductPage({ params }: ProductPageProps) {
           )}
         </div>
 
-        {/* Mobile Sticky CTA */}
-        <ProductCTABar
-          onAddToCart={() => {
-            // This will be handled by ProductDetail component
-            const addToCartBtn = document.querySelector('[data-add-to-cart]') as HTMLButtonElement;
-            if (addToCartBtn) addToCartBtn.click();
-          }}
-          onAddToFavorites={() => {
-            // This will be handled by ProductDetail component
-            const favoriteBtn = document.querySelector('[data-favorite-btn]') as HTMLButtonElement;
-            if (favoriteBtn) favoriteBtn.click();
-          }}
-          price={`${product.price.toLocaleString('tr-TR')} ₺`}
-          isInCart={false} // This should be checked from cart state
-          isFavorite={false} // This should be checked from favorites state
-        />
       </PageTransition>
+      
+      {/* Mobile Sticky CTA + FABs */}
+      <ProductDetailClient 
+        product={product}
+        relatedProducts={relatedProducts}
+      />
     </CustomerLayout>
   );
 }
