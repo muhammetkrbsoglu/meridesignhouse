@@ -100,3 +100,4 @@ export function reportWebVitals(metric: any) {
 }
 "// Build trigger" 
 "// Cache bust" 
+"// Force rebuild"  
