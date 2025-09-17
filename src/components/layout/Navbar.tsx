@@ -303,6 +303,7 @@ export function Navbar() {
             {/* User Menu */}
             {user ? (
               <div className="flex items-center space-x-3">
+                {/* Desktop Cart & Favorites - moved to bottom navbar on mobile */}
                 <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
                   <Link 
                     href="/cart" 
@@ -339,6 +340,8 @@ export function Navbar() {
                     )}
                   </Link>
                 </motion.div>
+                
+                {/* Profile - always visible */}
                 <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
                   <Link 
                     href="/profile" 
@@ -347,9 +350,11 @@ export function Navbar() {
                     <div className="w-6 h-6 rounded-full bg-white/20 flex items-center justify-center">
                       <UserIcon className="h-4 w-4" />
                     </div>
-                    <span className="text-sm font-medium">Profil</span>
+                    <span className="text-sm font-medium hidden sm:inline">Profil</span>
                   </Link>
                 </motion.div>
+                
+                {/* Sign Out - desktop only */}
                 <Button
                   variant="ghost"
                   size="sm"
