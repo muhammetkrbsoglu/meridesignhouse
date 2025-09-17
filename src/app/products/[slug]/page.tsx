@@ -7,6 +7,9 @@ import { ProductDetail } from '@/components/products/ProductDetail';
 import { RelatedProducts } from '@/components/products/RelatedProducts';
 import { Breadcrumb } from '@/components/ui/Breadcrumb';
 import { fetchProductBySlug, fetchRelatedProducts } from '@/lib/actions/products';
+import { PageTransition } from '@/components/motion/PageTransition';
+import { ProductCTABar } from '@/components/motion/StickyCTA';
+import { useState } from 'react';
 
 interface ProductPageProps {
   params: Promise<{
@@ -64,23 +67,42 @@ export default async function ProductPage({ params }: ProductPageProps) {
   ];
 
   return (
-    <CustomerLayout>
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* Breadcrumb */}
-        <div className="mb-6">
-          <Breadcrumb items={breadcrumbItems} />
+    <CustomerLayout showMobileNav={true}>
+      <PageTransition direction="left">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+          {/* Breadcrumb */}
+          <div className="mb-6">
+            <Breadcrumb items={breadcrumbItems} />
+          </div>
+
+          {/* Product Detail */}
+          <ProductDetail product={product} />
+
+          {/* Related Products */}
+          {relatedProducts.length > 0 && (
+            <div className="mt-16">
+              <RelatedProducts products={relatedProducts} />
+            </div>
+          )}
         </div>
 
-        {/* Product Detail */}
-        <ProductDetail product={product} />
-
-        {/* Related Products */}
-        {relatedProducts.length > 0 && (
-          <div className="mt-16">
-            <RelatedProducts products={relatedProducts} />
-          </div>
-        )}
-      </div>
+        {/* Mobile Sticky CTA */}
+        <ProductCTABar
+          onAddToCart={() => {
+            // This will be handled by ProductDetail component
+            const addToCartBtn = document.querySelector('[data-add-to-cart]') as HTMLButtonElement;
+            if (addToCartBtn) addToCartBtn.click();
+          }}
+          onAddToFavorites={() => {
+            // This will be handled by ProductDetail component
+            const favoriteBtn = document.querySelector('[data-favorite-btn]') as HTMLButtonElement;
+            if (favoriteBtn) favoriteBtn.click();
+          }}
+          price={`${product.price.toLocaleString('tr-TR')} ₺`}
+          isInCart={false} // This should be checked from cart state
+          isFavorite={false} // This should be checked from favorites state
+        />
+      </PageTransition>
     </CustomerLayout>
   );
 }

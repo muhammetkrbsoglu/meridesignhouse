@@ -10,6 +10,8 @@ import { formatCurrency } from '@/lib/utils'
 import { useState, useEffect } from 'react'
 import { toast } from '@/hooks/use-toast'
 import { FeaturedProduct } from '@/types/product'
+import { motion } from 'framer-motion'
+import { useDesktopAnimations } from '@/hooks/useDesktopAnimations'
 
 interface FeaturedProductsProps {
   products: FeaturedProduct[]
@@ -21,6 +23,8 @@ export function FeaturedProducts({ products }: FeaturedProductsProps) {
     favorites: Set<string>;
     cart: Set<string>;
   }>({ favorites: new Set(), cart: new Set() });
+  
+  const { createCardHoverAnimation, createStaggerAnimation } = useDesktopAnimations();
 
   // Load favorite status for all products
   useEffect(() => {
@@ -136,9 +140,24 @@ export function FeaturedProducts({ products }: FeaturedProductsProps) {
           </p>
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6 lg:gap-8">
-          {products.map((product) => (
-            <div key={product.id} className="group relative bg-white rounded-2xl shadow-lg hover:shadow-2xl transition-all duration-500 transform hover:-translate-y-2 overflow-hidden">
+        <motion.div 
+          className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6 lg:gap-8"
+          {...createStaggerAnimation({ contextLevel: 'featured' })}
+        >
+          {products.map((product, index) => (
+            <motion.div 
+              key={product.id} 
+              className="group relative bg-white rounded-2xl shadow-lg hover:shadow-2xl transition-all duration-500 transform hover:-translate-y-2 overflow-hidden"
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true, amount: 0.2 }}
+              transition={{ 
+                delay: index * 0.1, 
+                duration: 0.5, 
+                ease: "easeOut" 
+              }}
+              {...createCardHoverAnimation({ contextLevel: 'featured' })}
+            >
               <div className="relative aspect-square overflow-hidden rounded-t-2xl">
                 <Link href={`/products/${product.slug}`} aria-label={`Ürün sayfasına git: ${product.name}`}>
                   <Image
@@ -228,9 +247,9 @@ export function FeaturedProducts({ products }: FeaturedProductsProps) {
                   )}
                 </button>
               </div>
-            </div>
+            </motion.div>
           ))}
-        </div>
+        </motion.div>
 
         <div className="text-center mt-16">
           <Link href="/products" aria-label="Tüm ürünleri keşfet sayfasına git">

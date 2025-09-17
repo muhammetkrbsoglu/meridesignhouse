@@ -10,6 +10,7 @@ import { HeartIcon as HeartSolidIcon } from '@heroicons/react/24/solid'
 import { addToCart, addToFavorites, removeFromFavorites, isProductInFavorites } from '@/lib/actions/cart'
 import { toast } from 'sonner'
 import { SimpleProduct } from '@/types/product'
+import { useDesktopAnimations } from '@/hooks/useDesktopAnimations'
 
 interface NewArrivalsProps {
   products: SimpleProduct[]
@@ -21,6 +22,8 @@ export function NewArrivals({ products }: NewArrivalsProps) {
     favorites: Set<string>;
     cart: Set<string>;
   }>({ favorites: new Set(), cart: new Set() });
+  
+  const { createCardHoverAnimation, createStaggerAnimation } = useDesktopAnimations();
 
   // Load favorite status for all products
   useEffect(() => {
@@ -169,7 +172,10 @@ export function NewArrivals({ products }: NewArrivalsProps) {
         </div>
 
         {/* Products Grid */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 sm:gap-8 mb-12 sm:mb-16">
+        <motion.div 
+          className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 sm:gap-8 mb-12 sm:mb-16"
+          {...createStaggerAnimation({ contextLevel: 'featured' })}
+        >
           {products.map((product, index) => (
             <motion.div
               key={product.id}
@@ -177,7 +183,8 @@ export function NewArrivals({ products }: NewArrivalsProps) {
               initial={{ opacity: 0, y: 20 }}
               whileInView={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.6, delay: index * 0.1 }}
-              viewport={{ once: true }}
+              viewport={{ once: true, amount: 0.2 }}
+              {...createCardHoverAnimation({ contextLevel: 'featured' })}
             >
               <div className="relative overflow-hidden rounded-t-2xl aspect-square">
                 <Link href={`/products/${product.slug}`}>
@@ -243,7 +250,7 @@ export function NewArrivals({ products }: NewArrivalsProps) {
               </div>
             </motion.div>
           ))}
-        </div>
+        </motion.div>
 
         {/* View All Button */}
         <div className="text-center">

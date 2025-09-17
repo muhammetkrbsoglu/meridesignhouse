@@ -4,9 +4,14 @@ import Link from 'next/link'
 import { Button } from '@/components/ui/button'
 import { motion, useReducedMotion } from 'framer-motion'
 import { Sparkles, Heart, Star } from 'lucide-react'
+import { useHeroParallax } from '@/hooks/useParallax'
+import { useDesktopAnimations } from '@/hooks/useDesktopAnimations'
 
 export function HeroSection() {
   const shouldReduceMotion = useReducedMotion()
+  const { createFadeInAnimation, createStaggerAnimation } = useDesktopAnimations()
+  const parallax = useHeroParallax()
+  
   return (
     <section className="relative min-h-screen bg-gradient-to-br from-rose-50 via-pink-50 to-purple-50 overflow-hidden" style={{ zIndex: 1 }}>
       {/* Background Elements */}
@@ -38,10 +43,10 @@ export function HeroSection() {
         <div className="grid lg:grid-cols-2 gap-8 md:gap-12 items-center">
           {/* Left Content */}
           <motion.div 
+            ref={parallax.ref}
+            style={parallax.style}
             className="text-center lg:text-left"
-            initial={{ opacity: 0, x: -50 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ duration: 0.8, ease: "easeOut" }}
+            {...createFadeInAnimation({ duration: 1.0, contextLevel: 'hero' })}
           >
             <motion.div
               className="mb-4"
@@ -82,6 +87,7 @@ export function HeroSection() {
             >
               <Button 
                 size="lg" 
+                contextLevel="hero"
                 className="bg-gradient-to-r from-rose-500 to-pink-500 hover:from-rose-600 hover:to-pink-600 text-white px-6 sm:px-8 py-3 sm:py-4 rounded-full shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105 text-sm sm:text-base"
               >
                 <Sparkles className="mr-2 h-4 w-4 sm:h-5 sm:w-5" />
@@ -91,6 +97,7 @@ export function HeroSection() {
                 <Button 
                   size="lg" 
                   variant="outline" 
+                  contextLevel="featured"
                   className="border-2 border-rose-300 text-rose-600 hover:bg-rose-50 px-6 sm:px-8 py-3 sm:py-4 rounded-full transition-all duration-300 hover:border-rose-400 text-sm sm:text-base"
                 >
                   Ürünleri İncele

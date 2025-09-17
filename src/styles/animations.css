@@ -1,0 +1,244 @@
+/**
+ * MeriDesignHouse Animation Styles
+ * Custom keyframes and utility classes
+ */
+
+@import "tailwindcss/preflight";
+@tailwind utilities;
+
+/* Custom keyframes */
+@keyframes shimmer {
+  0% {
+    transform: translateX(-100%);
+  }
+  100% {
+    transform: translateX(100%);
+  }
+}
+
+@keyframes pulse-soft {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.7;
+  }
+}
+
+@keyframes bounce-gentle {
+  0%, 100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-4px);
+  }
+}
+
+@keyframes float {
+  0%, 100% {
+    transform: translateY(0px);
+  }
+  50% {
+    transform: translateY(-6px);
+  }
+}
+
+@keyframes glow-pulse {
+  0%, 100% {
+    box-shadow: 0 0 5px rgba(244, 63, 94, 0.3);
+  }
+  50% {
+    box-shadow: 0 0 20px rgba(244, 63, 94, 0.6);
+  }
+}
+
+@keyframes gradient-shift {
+  0% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+  100% {
+    background-position: 0% 50%;
+  }
+}
+
+/* Animation utility classes */
+@layer utilities {
+  .animate-shimmer {
+    animation: shimmer 1.5s infinite linear;
+  }
+  
+  .animate-pulse-soft {
+    animation: pulse-soft 2s infinite ease-in-out;
+  }
+  
+  .animate-bounce-gentle {
+    animation: bounce-gentle 2s infinite ease-in-out;
+  }
+  
+  .animate-float {
+    animation: float 3s infinite ease-in-out;
+  }
+  
+  .animate-glow-pulse {
+    animation: glow-pulse 2s infinite ease-in-out;
+  }
+  
+  .animate-gradient-shift {
+    background-size: 200% 200%;
+    animation: gradient-shift 8s infinite ease-in-out;
+  }
+  
+  /* Reduced motion support */
+  @media (prefers-reduced-motion: reduce) {
+    .animate-shimmer,
+    .animate-pulse-soft,
+    .animate-bounce-gentle,
+    .animate-float,
+    .animate-glow-pulse,
+    .animate-gradient-shift {
+      animation: none;
+    }
+  }
+}
+
+/* Custom component styles */
+@layer components {
+  /* Shimmer effect for loading states */
+  .shimmer-effect {
+    @apply relative overflow-hidden;
+  }
+  
+  .shimmer-effect::before {
+    content: '';
+    @apply absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent;
+    @apply -translate-x-full animate-shimmer;
+  }
+  
+  /* Glow effect for focus states */
+  .glow-focus {
+    @apply focus:outline-none focus:ring-2 focus:ring-rose-500/50 focus:ring-offset-2;
+  }
+  
+  /* Premium button styles */
+  .btn-premium {
+    @apply relative overflow-hidden;
+    @apply bg-gradient-to-r from-rose-500 to-pink-500;
+    @apply text-white font-semibold;
+    @apply shadow-lg shadow-rose-500/20;
+    @apply transition-all duration-200;
+  }
+  
+  .btn-premium:hover {
+    @apply from-rose-600 to-pink-600;
+    @apply shadow-xl shadow-rose-500/30;
+  }
+  
+  .btn-premium:active {
+    @apply scale-98;
+  }
+  
+  /* Card hover effects */
+  .card-premium {
+    @apply bg-white rounded-xl border border-gray-100;
+    @apply shadow-sm transition-all duration-300;
+  }
+  
+  .card-premium:hover {
+    @apply shadow-lg shadow-rose-500/10;
+    @apply -translate-y-1;
+  }
+  
+  /* Input focus styles */
+  .input-premium {
+    @apply border border-gray-300 rounded-lg px-3 py-2 text-sm;
+    @apply transition-all duration-200;
+    @apply focus:outline-none focus:ring-2 focus:ring-rose-500/50 focus:border-rose-500;
+  }
+  
+  /* Loading skeleton */
+  .skeleton {
+    @apply bg-gray-200 animate-pulse-soft rounded;
+  }
+  
+  .skeleton-text {
+    @apply h-4 bg-gray-200 animate-pulse-soft rounded;
+  }
+  
+  .skeleton-avatar {
+    @apply w-10 h-10 bg-gray-200 animate-pulse-soft rounded-full;
+  }
+  
+  /* Glassmorphism effect */
+  .glass {
+    @apply bg-white/80 backdrop-blur-sm;
+    @apply border border-white/20;
+    @apply shadow-lg shadow-black/10;
+  }
+  
+  /* Gradient text */
+  .text-gradient {
+    @apply bg-gradient-to-r from-rose-600 via-pink-600 to-purple-600;
+    @apply bg-clip-text text-transparent;
+  }
+  
+  /* Premium shadow system */
+  .shadow-premium {
+    @apply shadow-lg shadow-rose-500/10;
+  }
+  
+  .shadow-premium-strong {
+    @apply shadow-xl shadow-rose-500/20;
+  }
+  
+  .shadow-premium-dramatic {
+    @apply shadow-2xl shadow-rose-500/30;
+  }
+}
+
+/* Scrollbar styling */
+@layer utilities {
+  .scrollbar-hide {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+  
+  .scrollbar-hide::-webkit-scrollbar {
+    display: none;
+  }
+  
+  .scrollbar-thin {
+    scrollbar-width: thin;
+    scrollbar-color: rgb(244 63 94 / 0.3) transparent;
+  }
+  
+  .scrollbar-thin::-webkit-scrollbar {
+    width: 4px;
+  }
+  
+  .scrollbar-thin::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  
+  .scrollbar-thin::-webkit-scrollbar-thumb {
+    background-color: rgb(244 63 94 / 0.3);
+    border-radius: 2px;
+  }
+  
+  .scrollbar-thin::-webkit-scrollbar-thumb:hover {
+    background-color: rgb(244 63 94 / 0.5);
+  }
+}
+
+/* Print styles */
+@media print {
+  .no-print {
+    display: none !important;
+  }
+  
+  .print-only {
+    display: block !important;
+  }
+}

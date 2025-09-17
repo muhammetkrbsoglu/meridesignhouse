@@ -4,6 +4,8 @@ import { fetchThemeStyles, fetchProductsForEventTheme } from '@/lib/actions/even
 import { fetchCategories } from '@/lib/actions/products'
 import { ProductGrid } from '@/components/products/ProductGrid'
 import { CustomerLayout } from '@/components/layout/CustomerLayout'
+import { PageTransition } from '@/components/motion/PageTransition'
+import { ProductsPageClient } from '@/components/products/ProductsPageClient'
 import type { Metadata } from 'next'
 import Link from 'next/link'
 import { AddBundleButton } from '@/components/bundles/AddBundleButton'
@@ -129,8 +131,9 @@ export default async function ProductsPage({ searchParams }: Props) {
   ;(activeColors as any[]).forEach((c: any) => { hexToName[(c.hex || '').toLowerCase()] = c.name })
 
   return (
-    <CustomerLayout>
-    <main role="main" aria-labelledby="products-heading">
+    <CustomerLayout showMobileNav={true}>
+      <PageTransition direction="fade">
+        <main role="main" aria-labelledby="products-heading">
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
       <h1 id="products-heading" className="text-2xl sm:text-3xl font-bold mb-6">
         {query ? `"${query}" için arama sonuçları` : 'Tüm Ürünler'}
@@ -448,7 +451,11 @@ export default async function ProductsPage({ searchParams }: Props) {
         </div>
       </div>
     </div>
-    </main>
+        </main>
+      </PageTransition>
+      
+      {/* Mobile FABs + Filter BottomSheet (client) */}
+      <ProductsPageClient />
     </CustomerLayout>
   )
 }

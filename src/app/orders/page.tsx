@@ -2,6 +2,8 @@
 
 import { useState, useEffect } from 'react';
 import { CustomerLayout } from '@/components/layout/CustomerLayout'
+import { PageTransition } from '@/components/motion/PageTransition'
+import { EmptyOrders } from '@/components/ui/EmptyState';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -303,8 +305,9 @@ export default function OrdersPage() {
   }
 
   return (
-    <CustomerLayout>
-      <div className="min-h-screen bg-gray-50 py-8">
+    <CustomerLayout showMobileNav={true}>
+      <PageTransition direction="up">
+        <div className="min-h-screen bg-gray-50 py-8">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="mb-8">
           <h1 className="text-3xl font-bold text-gray-900 mb-2">Siparişlerim</h1>
@@ -356,18 +359,7 @@ export default function OrdersPage() {
           <h2 className="text-xl font-semibold mb-4">Sipariş Geçmişi</h2>
           
           {orders.length === 0 ? (
-            <Card>
-              <CardContent className="text-center py-12">
-                <Package className="mx-auto h-12 w-12 text-gray-400 mb-4" />
-                <h3 className="text-lg font-medium text-gray-900 mb-2">Henüz siparişiniz yok</h3>
-                <p className="text-gray-600 mb-6">İlk siparişinizi vermek için alışverişe başlayın</p>
-                <Link href="/products">
-                  <Button>
-                    Alışverişe Başla
-                  </Button>
-                </Link>
-              </CardContent>
-            </Card>
+            <EmptyOrders onStartShopping={() => window.location.href = '/products'} />
           ) : (
             <div>
               {orders.map((order) => (
@@ -377,7 +369,8 @@ export default function OrdersPage() {
           )}
         </div>
         </div>
-      </div>
+        </div>
+      </PageTransition>
     </CustomerLayout>
   );
 }

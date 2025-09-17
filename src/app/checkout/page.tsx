@@ -20,6 +20,12 @@ import Image from 'next/image';
 import { toast } from 'sonner';
 import { CustomerLayout } from '@/components/layout/CustomerLayout';
 import { recommendCheapestService } from '@/lib/shipping';
+import { PageTransition } from '@/components/motion/PageTransition';
+import { FormWithKeyboardSpacer } from '@/components/motion/KeyboardSpacer';
+import { useMicroAnimations } from '@/hooks/useMicroAnimations';
+import { motion } from 'framer-motion';
+import { MobileCheckoutStepper, useCheckoutSteps } from '@/components/checkout/MobileCheckoutStepper';
+import { responsiveTypography, responsiveSpacing } from '@/lib/responsive-typography';
 
 interface CartItem {
   id: string;
@@ -73,6 +79,9 @@ export default function CheckoutPage() {
   const [showSuccessModal, setShowSuccessModal] = useState(false);
   const [orderNumber, setOrderNumber] = useState('');
   const [copied, setCopied] = useState(false);
+  
+  const { createButtonAnimation } = useMicroAnimations();
+  const { steps, currentStep, markStepCompleted, goToStep, goToNextStep, goToPreviousStep } = useCheckoutSteps('shipping');
   // PTT cascaded address state
   const [cities, setCities] = useState<Array<{ id: number; name: string }>>([]);
   const [districts, setDistricts] = useState<Array<{ id: number; name: string }>>([]);
@@ -378,16 +387,36 @@ export default function CheckoutPage() {
   const { subtotal, shipping, tax, total } = calculateTotals();
 
   return (
-    <CustomerLayout>
-      <div className="min-h-screen bg-gray-50 py-8">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="mb-8">
-            <Link href="/cart" className="inline-flex items-center text-sm text-gray-600 hover:text-gray-900">
-              <ArrowLeft className="mr-2 h-4 w-4" />
-              Sepete Dön
-            </Link>
-            <h1 className="text-3xl font-bold text-gray-900 mt-2">Sipariş Oluştur</h1>
-          </div>
+    <CustomerLayout showMobileNav={true}>
+      <PageTransition direction="right">
+        <FormWithKeyboardSpacer>
+          {/* Mobile Checkout Stepper */}
+          <MobileCheckoutStepper
+            steps={steps}
+            currentStep={currentStep}
+            onStepChange={goToStep}
+            onNext={goToNextStep}
+            onPrevious={goToPreviousStep}
+            onComplete={() => handleSubmit(new Event('submit') as any)}
+            canProceed={cartItems.length > 0}
+            isSubmitting={submitting}
+          />
+          
+          <div className="min-h-screen bg-gray-50 py-8">
+            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+              <div className="mb-8">
+                <motion.div
+                  {...createButtonAnimation({
+                    hapticMessage: 'Sepete dönülüyor'
+                  })}
+                >
+                  <Link href="/cart" className="inline-flex items-center text-sm text-gray-600 hover:text-gray-900">
+                    <ArrowLeft className="mr-2 h-4 w-4" />
+                    Sepete Dön
+                  </Link>
+                </motion.div>
+                <h1 className="text-3xl font-bold text-gray-900 mt-2">Sipariş Oluştur</h1>
+              </div>
 
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
             <div className="lg:col-span-2 space-y-6">
@@ -870,30 +899,36 @@ export default function CheckoutPage() {
                   </div>
 
                   {/* Place Order Button */}
-                  <Button
-                    type="submit"
-                    form="checkout-form"
-                    disabled={submitting}
-                    className="w-full"
-                    size="lg"
-                    onClick={(e) => {
-                      console.log('🔘 Button clicked!', { 
-                        type: e.currentTarget.type, 
-                        form: e.currentTarget.form?.id,
-                        submitting,
-                        cartItems: cartItems.length 
-                      });
-                    }}
+                  <motion.div
+                    {...createButtonAnimation({
+                      hapticMessage: 'Sipariş oluşturuluyor'
+                    })}
                   >
-                    {submitting ? (
-                      <>
-                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                        Sipariş Oluşturuluyor...
-                      </>
-                    ) : (
-                      `Sipariş Oluştur - ₺${total.toLocaleString('tr-TR')}`
-                    )}
-                  </Button>
+                    <Button
+                      type="submit"
+                      form="checkout-form"
+                      disabled={submitting}
+                      className="w-full"
+                      size="lg"
+                      onClick={(e) => {
+                        console.log('🔘 Button clicked!', { 
+                          type: e.currentTarget.type, 
+                          form: e.currentTarget.form?.id,
+                          submitting,
+                          cartItems: cartItems.length 
+                        });
+                      }}
+                    >
+                      {submitting ? (
+                        <>
+                          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                          Sipariş Oluşturuluyor...
+                        </>
+                      ) : (
+                        `Sipariş Oluştur - ₺${total.toLocaleString('tr-TR')}`
+                      )}
+                    </Button>
+                  </motion.div>
                 </CardContent>
               </Card>
 
@@ -1028,8 +1063,10 @@ export default function CheckoutPage() {
               </Card>
             </div>
           </div>
-        </div>
-      </div>
+            </div>
+          </div>
+        </FormWithKeyboardSpacer>
+      </PageTransition>
 
       {/* Success Modal */}
       {showSuccessModal && (

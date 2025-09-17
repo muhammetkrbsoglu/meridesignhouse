@@ -3,6 +3,7 @@ import { ContactForm } from '@/components/contact/ContactForm'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { CustomerLayout } from '@/components/layout/CustomerLayout'
 import { Phone } from 'lucide-react'
+import { MicroFeedback } from '@/components/motion/MicroFeedback'
 
 export const metadata: Metadata = {
   title: 'İletişim | Meri Design House',
@@ -31,14 +32,20 @@ export default function ContactPage() {
                 <CardDescription>Anında destek için WhatsApp&apos;tan yazın</CardDescription>
               </CardHeader>
               <CardContent>
-                <a
-                  href="https://wa.me/905551234567?text=Merhaba, Meri Design House hakkında bilgi almak istiyorum."
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="inline-flex items-center justify-center w-full px-4 py-3 bg-green-500 hover:bg-green-600 text-white font-medium rounded-lg transition-colors duration-200"
+                <MicroFeedback
+                  hapticType="success"
+                  hapticMessage="WhatsApp açılıyor"
+                  className="w-full"
                 >
-                  WhatsApp&apos;tan Mesaj Gönder
-                </a>
+                  <a
+                    href="https://wa.me/905551234567?text=Merhaba, Meri Design House hakkında bilgi almak istiyorum."
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center justify-center w-full px-4 py-3 bg-green-500 hover:bg-green-600 text-white font-medium rounded-lg transition-colors duration-200"
+                  >
+                    WhatsApp&apos;tan Mesaj Gönder
+                  </a>
+                </MicroFeedback>
               </CardContent>
             </Card>
 
@@ -48,14 +55,20 @@ export default function ContactPage() {
                 <CardDescription>Yeni koleksiyon ve tasarımlar için DM&apos;den ulaşın</CardDescription>
               </CardHeader>
               <CardContent>
-                <a
-                  href="https://instagram.com/meridesignhouse"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="inline-flex items-center justify-center w-full px-4 py-3 bg-gradient-to-r from-pink-500 to-purple-500 hover:from-pink-600 hover:to-purple-600 text-white font-medium rounded-lg transition-colors duration-200"
+                <MicroFeedback
+                  hapticType="success"
+                  hapticMessage="Instagram açılıyor"
+                  className="w-full"
                 >
-                  Instagram&apos;dan Mesaj Gönder
-                </a>
+                  <a
+                    href="https://instagram.com/meridesignhouse"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center justify-center w-full px-4 py-3 bg-gradient-to-r from-pink-500 to-purple-500 hover:from-pink-600 hover:to-purple-600 text-white font-medium rounded-lg transition-colors duration-200"
+                  >
+                    Instagram&apos;dan Mesaj Gönder
+                  </a>
+                </MicroFeedback>
               </CardContent>
             </Card>
           </div>

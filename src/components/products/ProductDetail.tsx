@@ -11,6 +11,8 @@ import { formatCurrency } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
 import { useRef } from 'react';
+import { MicroFeedback } from '@/components/motion/MicroFeedback';
+import { LoadingSpinner } from '@/components/motion/LoadingStates';
 
 interface ProductDetailProps {
   product: ProductWithCategory;
@@ -262,31 +264,63 @@ export function ProductDetail({ product }: ProductDetailProps) {
         {/* Action Buttons */}
         <div className="space-y-4 hidden lg:block">
           {/* Add to Cart */}
-          <Button
-            onClick={handleAddToCart}
+          <MicroFeedback
+            hapticType="success"
+            hapticMessage="Ürün sepete eklendi"
             disabled={isLoading}
-            className="w-full bg-rose-600 hover:bg-rose-700 text-white py-3 text-lg font-medium disabled:opacity-50"
-            size="lg"
+            onClick={handleAddToCart}
+            className="w-full"
           >
-            <ShoppingCartIcon className="h-5 w-5 mr-2" />
-            {isLoading ? 'Ekleniyor...' : 'Sepete Ekle'}
-          </Button>
+            <Button
+              disabled={isLoading}
+              className="w-full bg-rose-600 hover:bg-rose-700 text-white py-3 text-lg font-medium disabled:opacity-50"
+              size="lg"
+            >
+              {isLoading ? (
+                <>
+                  <LoadingSpinner size="sm" color="white" className="mr-2" />
+                  Ekleniyor...
+                </>
+              ) : (
+                <>
+                  <ShoppingCartIcon className="h-5 w-5 mr-2" />
+                  Sepete Ekle
+                </>
+              )}
+            </Button>
+          </MicroFeedback>
 
           {/* Secondary Actions */}
           <div className="flex space-x-3">
-            <Button
-              onClick={toggleFavorite}
+            <MicroFeedback
+              hapticType={isFavorite ? "warning" : "success"}
+              hapticMessage={isFavorite ? "Favorilerden çıkarıldı" : "Favorilere eklendi"}
               disabled={isFavoriteLoading}
-              variant="outline"
-              className="flex-1 disabled:opacity-50"
+              onClick={toggleFavorite}
+              className="flex-1"
             >
-              {isFavorite ? (
-                <HeartSolidIcon className="h-5 w-5 mr-2 text-red-500" />
-              ) : (
-                <HeartIcon className="h-5 w-5 mr-2" />
-              )}
-              {isFavoriteLoading ? 'İşleniyor...' : (isFavorite ? 'Favorilerden Çıkar' : 'Favorilere Ekle')}
-            </Button>
+              <Button
+                disabled={isFavoriteLoading}
+                variant="outline"
+                className="flex-1 disabled:opacity-50"
+              >
+                {isFavoriteLoading ? (
+                  <>
+                    <LoadingSpinner size="sm" color="gray" className="mr-2" />
+                    İşleniyor...
+                  </>
+                ) : (
+                  <>
+                    {isFavorite ? (
+                      <HeartSolidIcon className="h-5 w-5 mr-2 text-red-500" />
+                    ) : (
+                      <HeartIcon className="h-5 w-5 mr-2" />
+                    )}
+                    {isFavorite ? 'Favorilerden Çıkar' : 'Favorilere Ekle'}
+                  </>
+                )}
+              </Button>
+            </MicroFeedback>
             
             <Button
               onClick={shareProduct}
@@ -351,26 +385,49 @@ export function ProductDetail({ product }: ProductDetailProps) {
             </div>
           </div>
           <div className="flex gap-2">
-            <button
-              onClick={toggleFavorite}
+            <MicroFeedback
+              hapticType={isFavorite ? "warning" : "success"}
+              hapticMessage={isFavorite ? "Favorilerden çıkarıldı" : "Favorilere eklendi"}
               disabled={isFavoriteLoading}
-              className="shrink-0 w-12 h-12 rounded-lg border border-gray-300 flex items-center justify-center disabled:opacity-50"
-              aria-label={isFavorite ? 'Favorilerden çıkar' : 'Favorilere ekle'}
+              onClick={toggleFavorite}
+              className="shrink-0"
             >
-              {isFavorite ? (
-                <HeartSolidIcon className="h-6 w-6 text-red-500" />
-              ) : (
-                <HeartIcon className="h-6 w-6" />
-              )}
-            </button>
-            <button
-              onClick={handleAddToCart}
+              <button
+                disabled={isFavoriteLoading}
+                className="shrink-0 w-12 h-12 rounded-lg border border-gray-300 flex items-center justify-center disabled:opacity-50"
+                aria-label={isFavorite ? 'Favorilerden çıkar' : 'Favorilere ekle'}
+              >
+                {isFavoriteLoading ? (
+                  <LoadingSpinner size="sm" color="gray" />
+                ) : isFavorite ? (
+                  <HeartSolidIcon className="h-6 w-6 text-red-500" />
+                ) : (
+                  <HeartIcon className="h-6 w-6" />
+                )}
+              </button>
+            </MicroFeedback>
+            <MicroFeedback
+              hapticType="success"
+              hapticMessage="Ürün sepete eklendi"
               disabled={isLoading}
-              className="flex-1 h-12 rounded-lg bg-rose-600 text-white font-semibold disabled:opacity-50"
-              aria-label="Sepete ekle"
+              onClick={handleAddToCart}
+              className="flex-1"
             >
-              {isLoading ? 'Ekleniyor...' : 'Sepete Ekle'}
-            </button>
+              <button
+                disabled={isLoading}
+                className="flex-1 h-12 rounded-lg bg-rose-600 text-white font-semibold disabled:opacity-50 flex items-center justify-center"
+                aria-label="Sepete ekle"
+              >
+                {isLoading ? (
+                  <>
+                    <LoadingSpinner size="sm" color="white" className="mr-2" />
+                    Ekleniyor...
+                  </>
+                ) : (
+                  'Sepete Ekle'
+                )}
+              </button>
+            </MicroFeedback>
           </div>
         </div>
       </div>

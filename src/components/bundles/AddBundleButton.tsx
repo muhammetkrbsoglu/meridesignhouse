@@ -3,6 +3,8 @@
 import { useEffect, useState } from 'react'
 import { addBundleToCart } from '@/lib/actions/cart'
 import { toast } from '@/hooks/use-toast'
+import { MicroFeedback } from '@/components/motion/MicroFeedback'
+import { LoadingSpinner } from '@/components/motion/LoadingStates'
 
 export function AddBundleButton({ bundleId, fullWidth = true }: { bundleId: string; fullWidth?: boolean }) {
   const [loading, setLoading] = useState(false)
@@ -35,14 +37,28 @@ export function AddBundleButton({ bundleId, fullWidth = true }: { bundleId: stri
   }
 
   return (
-    <button
-      type="button"
-      onClick={handleClick}
+    <MicroFeedback
+      hapticType="success"
+      hapticMessage="Set sepete eklendi"
       disabled={loading}
-      className={`${fullWidth ? 'w-full' : ''} h-12 inline-flex items-center justify-center rounded-lg bg-rose-600 text-white px-6 text-sm font-bold hover:bg-rose-700 focus:outline-none focus:ring-2 focus:ring-rose-600 focus:ring-offset-2 transition-colors disabled:opacity-60 relative z-10 pointer-events-auto`}
+      onClick={handleClick}
+      className={`${fullWidth ? 'w-full' : ''} relative z-10 pointer-events-auto`}
     >
-      {loading ? 'Ekleniyor...' : 'Tümünü sepete ekle'}
-    </button>
+      <button
+        type="button"
+        disabled={loading}
+        className={`${fullWidth ? 'w-full' : ''} h-12 inline-flex items-center justify-center rounded-lg bg-rose-600 text-white px-6 text-sm font-bold hover:bg-rose-700 focus:outline-none focus:ring-2 focus:ring-rose-600 focus:ring-offset-2 transition-colors disabled:opacity-60`}
+      >
+        {loading ? (
+          <>
+            <LoadingSpinner size="sm" color="white" className="mr-2" />
+            Ekleniyor...
+          </>
+        ) : (
+          'Tümünü sepete ekle'
+        )}
+      </button>
+    </MicroFeedback>
   )
 }
 

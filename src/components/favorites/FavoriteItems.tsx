@@ -7,6 +7,9 @@ import { FavoriteItem, removeFromFavorites, addToCart, addToFavorites } from '@/
 import { ToastAction } from '@/components/ui/toast';
 import { toast } from '@/hooks/use-toast';
 import { formatCurrency } from '@/lib/utils';
+import { SwipeActions } from '@/components/motion/SwipeActions';
+import { MicroFeedback } from '@/components/motion/MicroFeedback';
+import { LoadingSpinner } from '@/components/motion/LoadingStates';
 
 interface FavoriteItemsProps {
   items: FavoriteItem[];
@@ -14,9 +17,11 @@ interface FavoriteItemsProps {
 
 export function FavoriteItems({ items }: FavoriteItemsProps) {
   const [loadingItems, setLoadingItems] = useState<Set<string>>(new Set());
+  const [removingItems, setRemovingItems] = useState<Set<string>>(new Set());
+  const [addingToCartItems, setAddingToCartItems] = useState<Set<string>>(new Set());
 
   const handleRemoveFromFavorites = async (productId: string) => {
-    setLoadingItems(prev => new Set(prev).add(productId));
+    setRemovingItems(prev => new Set(prev).add(productId));
     
     try {
       const result = await removeFromFavorites(productId);
@@ -40,7 +45,7 @@ export function FavoriteItems({ items }: FavoriteItemsProps) {
       console.error('[FavoriteItems] Remove error:', error);
       toast({ intent: 'error', description: 'Bir hata oluştu' });
     } finally {
-      setLoadingItems(prev => {
+      setRemovingItems(prev => {
         const newSet = new Set(prev);
         newSet.delete(productId);
         return newSet;
@@ -49,7 +54,7 @@ export function FavoriteItems({ items }: FavoriteItemsProps) {
   };
 
   const handleAddToCart = async (productId: string, productName: string) => {
-    setLoadingItems(prev => new Set(prev).add(productId));
+    setAddingToCartItems(prev => new Set(prev).add(productId));
     
     try {
       const result = await addToCart(productId, 1);
@@ -62,7 +67,7 @@ export function FavoriteItems({ items }: FavoriteItemsProps) {
     } catch (_) {
       toast({ intent: 'error', description: 'Bir hata oluştu' });
     } finally {
-      setLoadingItems(prev => {
+      setAddingToCartItems(prev => {
         const newSet = new Set(prev);
         newSet.delete(productId);
         return newSet;
@@ -76,7 +81,30 @@ export function FavoriteItems({ items }: FavoriteItemsProps) {
         const isLoading = loadingItems.has(item.productId);
         
         return (
-          <div key={item.id} className="bg-white rounded-lg shadow-sm border hover:shadow-md transition-shadow">
+          <SwipeActions
+            key={item.id}
+            leftActions={[
+              {
+                id: 'remove',
+                label: 'Kaldır',
+                icon: removingItems.has(item.productId) ? <LoadingSpinner size="sm" color="white" /> : <svg className="w-4 h-4" viewBox="0 0 20 20" fill="currentColor"><path fillRule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 100 2h.278l.823 9.043A3 3 0 008.09 18h3.82a3 3 0 002.99-2.957L15.722 6H16a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zm-1 6a1 1 0 112 0v6a1 1 0 11-2 0V8zm4 0a1 1 0 112 0v6a1 1 0 11-2 0V8z" clipRule="evenodd"/></svg>,
+                color: 'red' as any,
+                action: () => handleRemoveFromFavorites(item.productId),
+                disabled: removingItems.has(item.productId)
+              }
+            ]}
+            rightActions={[
+              {
+                id: 'add-to-cart',
+                label: 'Sepete',
+                icon: addingToCartItems.has(item.productId) ? <LoadingSpinner size="sm" color="white" /> : <svg className="w-4 h-4" viewBox="0 0 20 20" fill="currentColor"><path d="M16 11V9h-3V6h-2v3H8v2h3v3h2v-3h3z"/></svg>,
+                color: 'green' as any,
+                action: () => handleAddToCart(item.productId, item.product.name),
+                disabled: addingToCartItems.has(item.productId)
+              }
+            ]}
+          >
+          <div className="bg-white rounded-lg shadow-sm border hover:shadow-md transition-shadow">
             <div className="relative">
               {/* Product Image */}
               <Link href={`/products/${item.product.slug}`} aria-label={`Ürün sayfasına git: ${item.product.name}`}>
@@ -161,6 +189,7 @@ export function FavoriteItems({ items }: FavoriteItemsProps) {
               </p>
             </div>
           </div>
+          </SwipeActions>
         );
       })}
     </div>

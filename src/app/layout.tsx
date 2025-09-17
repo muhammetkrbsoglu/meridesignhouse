@@ -2,6 +2,7 @@ import type { Metadata } from 'next'
 import { Geist, Geist_Mono } from 'next/font/google'
 import './globals.css'
 import { AuthProviderWrapper } from '@/components/providers/AuthProviderWrapper'
+import { GestureHintProvider } from '@/contexts/GestureHintContext'
 import { Toaster } from '@/components/ui/toaster'
 import { WebsiteStructuredData } from '@/components/seo/WebsiteStructuredData'
 import { OrganizationStructuredData } from '@/components/seo/OrganizationStructuredData'
@@ -53,12 +54,14 @@ export default function RootLayout({
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
         <AuthProviderWrapper>
-          {children}
-          {/* Live region for polite announcements (toasts/async) */}
-          <div aria-live="polite" aria-atomic="true" className="sr-only" />
-          <Toaster />
-          <WebsiteStructuredData />
-          <OrganizationStructuredData />
+          <GestureHintProvider>
+            {children}
+            {/* Live region for polite announcements (toasts/async) */}
+            <div aria-live="polite" aria-atomic="true" className="sr-only" />
+            <Toaster />
+            <WebsiteStructuredData />
+            <OrganizationStructuredData />
+          </GestureHintProvider>
         </AuthProviderWrapper>
       </body>
     </html>

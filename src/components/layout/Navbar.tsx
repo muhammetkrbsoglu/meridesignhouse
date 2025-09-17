@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import Link from 'next/link'
 import { useAuth } from '@/contexts/AuthContext'
 import { Button } from '@/components/ui/button'
@@ -14,6 +14,8 @@ import { SearchAutocomplete } from '@/components/ui/SearchAutocomplete'
 import { fetchAllMainCategoriesWithHierarchy } from '@/lib/actions/categories'
 import { getCartCount, getFavoriteCount } from '@/lib/actions/cart'
 import { motion, useReducedMotion } from 'framer-motion'
+import { getOptimalGlassConfig } from '@/lib/glassmorphism'
+import { cn } from '@/lib/utils'
 
 interface Category {
   id: string
@@ -36,6 +38,9 @@ export function Navbar() {
   const [cartCount, setCartCount] = useState(0)
   const [favoriteCount, setFavoriteCount] = useState(0)
   const shouldReduceMotion = useReducedMotion()
+  const [isCompact, setIsCompact] = useState(false)
+  const lastScrollYRef = useRef(0)
+  const tickingRef = useRef(false)
 
   useEffect(() => {
     const loadCategories = async () => {
@@ -97,6 +102,28 @@ export function Navbar() {
     }
   }, [user])
 
+  // Compact/expand davranışı: aşağı kayınca kompakt, yukarıda geniş
+  useEffect(() => {
+    const threshold = 12
+    const onScroll = () => {
+      if (tickingRef.current) return
+      tickingRef.current = true
+      requestAnimationFrame(() => {
+        const y = window.scrollY || 0
+        const last = lastScrollYRef.current
+        if (y > last + threshold && y > 80) {
+          setIsCompact(true)
+        } else if (y < last - threshold) {
+          setIsCompact(false)
+        }
+        lastScrollYRef.current = y
+        tickingRef.current = false
+      })
+    }
+    window.addEventListener('scroll', onScroll, { passive: true })
+    return () => window.removeEventListener('scroll', onScroll)
+  }, [])
+
   // Lock body scroll when mobile menu is open
   useEffect(() => {
     if (isMobileMenuOpen) {
@@ -156,7 +183,11 @@ export function Navbar() {
   }, [hoverTimeout])
 
   return (
-    <header className="sticky top-0 z-[1000] pt-[env(safe-area-inset-top)] relative bg-gradient-to-br from-rose-50 via-pink-50 to-purple-50 shadow-lg border-b border-rose-200/30 overflow-visible">
+    <header className={cn(
+      'sticky top-0 z-[1000] safe-pt overflow-visible transition-[box-shadow,backdrop-filter] duration-150',
+      getOptimalGlassConfig('navbar'),
+      isCompact ? 'shadow-md' : 'shadow-lg'
+    )}>
       {/* Background Elements */}
       <div className="absolute inset-0 hidden md:block" aria-hidden="true">
         <motion.div
@@ -183,8 +214,8 @@ export function Navbar() {
       </div>
 
       {/* Top Bar */}
-      <div className="relative bg-gradient-to-r from-rose-100/50 to-pink-100/50 border-b border-rose-200/30">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div className={`relative bg-gradient-to-r from-rose-100/50 to-pink-100/50 border-b border-rose-200/30 overflow-hidden transition-[height,opacity] duration-150 ${isCompact ? 'h-0 opacity-0' : 'h-10 opacity-100'}`}>
+        <div className={`max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 ${isCompact ? 'pointer-events-none' : ''}`}>
           <div className="flex justify-between items-center h-10 text-sm">
             <div className="flex items-center space-x-4">
               <motion.span 
@@ -222,7 +253,7 @@ export function Navbar() {
 
       {/* Main Header */}
       <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex justify-between items-center h-16" role="navigation" aria-label="Üst gezinme">
+        <div className={`flex justify-between items-center ${isCompact ? 'h-12' : 'h-16'} transition-[height] duration-150`} role="navigation" aria-label="Üst gezinme">
           {/* Logo */}
           <motion.div 
             className="flex-shrink-0"
@@ -231,7 +262,7 @@ export function Navbar() {
             transition={{ duration: 0.6, delay: 0.2 }}
           >
             <Link href="/" className="flex flex-col group">
-              <span className="text-2xl font-bold bg-gradient-to-r from-rose-600 via-pink-600 to-purple-600 bg-clip-text text-transparent group-hover:from-rose-700 group-hover:via-pink-700 group-hover:to-purple-700 transition-all duration-300">
+              <span className={`font-bold bg-gradient-to-r from-rose-600 via-pink-600 to-purple-600 bg-clip-text text-transparent group-hover:from-rose-700 group-hover:via-pink-700 group-hover:to-purple-700 transition-all duration-300 ${isCompact ? 'text-xl' : 'text-2xl'}`}>
                 MeriDesignHouse
               </span>
               <span className="text-xs text-rose-500 -mt-1 font-medium">
@@ -283,8 +314,7 @@ export function Navbar() {
                     <span className="text-sm font-medium">Sepetim</span>
                     {cartCount > 0 && (
                       <Badge 
-                        variant="destructive" 
-                        className="absolute -top-2 -right-2 min-w-[20px] h-5 flex items-center justify-center text-xs font-bold"
+                        className="absolute -top-2 -right-2 min-w-[22px] h-5 flex items-center justify-center text-[11px] font-bold rounded-full bg-rose-600 text-white ring-2 ring-white shadow-sm"
                       >
                         {cartCount > 99 ? '99+' : cartCount}
                       </Badge>
@@ -302,8 +332,7 @@ export function Navbar() {
                     <span className="text-sm font-medium">Favorilerim</span>
                     {favoriteCount > 0 && (
                       <Badge 
-                        variant="destructive" 
-                        className="absolute -top-2 -right-2 min-w-[20px] h-5 flex items-center justify-center text-xs font-bold"
+                        className="absolute -top-2 -right-2 min-w-[22px] h-5 flex items-center justify-center text-[11px] font-bold rounded-full bg-fuchsia-600 text-white ring-2 ring-white shadow-sm"
                       >
                         {favoriteCount > 99 ? '99+' : favoriteCount}
                       </Badge>
@@ -380,7 +409,7 @@ export function Navbar() {
       </div>
 
       {/* Main Navigation */}
-      <nav className="relative bg-gradient-to-r from-rose-50/50 to-pink-50/50 border-t border-rose-200/30">
+      <nav className="relative bg-gradient-to-r from-rose-50/50 to-pink-50/50 border-t border-rose-200/30 transition-[height,opacity] duration-150">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-center items-center space-x-8 h-12 overflow-x-auto">
             <motion.div

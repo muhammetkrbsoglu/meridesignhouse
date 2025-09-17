@@ -2,24 +2,32 @@
 
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
+import { motion } from 'framer-motion'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Separator } from '@/components/ui/separator'
-import { ShoppingCartIcon, TrashIcon, PlusIcon, MinusIcon } from '@heroicons/react/24/outline'
-import { getCartItems, removeFromCart, updateCartItemQuantity, clearCart, addToCart, getCartBundles, updateCartBundleQuantity, removeCartBundle } from '@/lib/actions/cart'
+import { ShoppingCartIcon, TrashIcon, PlusIcon, MinusIcon, HeartIcon } from '@heroicons/react/24/outline'
+import { getCartItems, removeFromCart, updateCartItemQuantity, clearCart, addToCart, getCartBundles, updateCartBundleQuantity, removeCartBundle, addToFavorites } from '@/lib/actions/cart'
 import { CartItem, CartBundleLine } from '@/lib/actions/cart'
 import { formatCurrency } from '@/lib/utils'
 import { toast } from '@/hooks/use-toast'
 import { ToastAction } from '@/components/ui/toast'
 import { CartSkeleton } from './CartSkeleton'
+import { SwipeActions } from '@/components/motion/SwipeActions'
+import { CartCTABar } from '@/components/motion/StickyCTA'
+import { useMicroAnimations } from '@/hooks/useMicroAnimations'
+import { MicroFeedback } from '@/components/motion/MicroFeedback'
+import { LoadingSpinner } from '@/components/motion/LoadingStates'
 import Image from 'next/image'
 import { useRouter } from 'next/navigation'
+import { Modal } from '@/components/motion/Modal'
 
 const BLUR_DATA_URL = 'data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///ywAAAAAAQABAAACAUwAOw=='
 
 export function CartContent() {
   const router = useRouter()
+  const [confirmClearOpen, setConfirmClearOpen] = useState(false)
   const [cartItems, setCartItems] = useState<CartItem[]>([])
   const [loading, setLoading] = useState(true)
   const [updatingItems, setUpdatingItems] = useState<Set<string>>(new Set())
@@ -27,6 +35,9 @@ export function CartContent() {
   const [bundleLines, setBundleLines] = useState<CartBundleLine[]>([])
   const [updatingBundles, setUpdatingBundles] = useState<Set<string>>(new Set())
   const [draftBundleQuantities, setDraftBundleQuantities] = useState<Record<string, string>>({})
+  const [removingItems, setRemovingItems] = useState<Set<string>>(new Set())
+  
+  const { createButtonAnimation, createCardAnimation } = useMicroAnimations()
 
   useEffect(() => {
     loadCartItems(false)
@@ -56,7 +67,7 @@ export function CartContent() {
   }
 
   const handleRemoveItem = async (cartItemId: string) => {
-    setUpdatingItems(prev => new Set(prev).add(cartItemId))
+    setRemovingItems(prev => new Set(prev).add(cartItemId))
     
     try {
       const removed = cartItems.find(ci => ci.id === cartItemId)
@@ -83,7 +94,7 @@ export function CartContent() {
     } catch (error) {
       toast({ intent: 'error', description: 'Bir hata oluştu' })
     } finally {
-      setUpdatingItems(prev => {
+      setRemovingItems(prev => {
         const newSet = new Set(prev)
         newSet.delete(cartItemId)
         return newSet
@@ -153,12 +164,28 @@ export function CartContent() {
     }
   }
 
+  const openConfirmClear = () => setConfirmClearOpen(true)
+  const closeConfirmClear = () => setConfirmClearOpen(false)
+
   const handleCheckout = () => {
     if (cartItems.length === 0 && bundleLines.length === 0) {
       toast({ intent: 'info', description: 'Sepetiniz boş' })
       return
     }
     router.push('/checkout')
+  }
+
+  const handleAddToFavorites = async (productId: string, productName: string) => {
+    try {
+      const result = await addToFavorites(productId)
+      if (result.success) {
+        toast({ intent: 'success', description: `${productName} favorilere eklendi` })
+      } else {
+        toast({ intent: 'error', description: result.error || 'Bir hata oluştu' })
+      }
+    } catch (error) {
+      toast({ intent: 'error', description: 'Bir hata oluştu' })
+    }
   }
 
   const totalItems = cartItems.reduce((sum, item) => sum + item.quantity, 0) + bundleLines.reduce((s, b) => s + b.quantity, 0)
@@ -188,25 +215,32 @@ export function CartContent() {
   }
 
   return (
-    <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-      {/* Cart Items */}
-      <div className="lg:col-span-2">
-        <div className="flex items-center justify-between mb-6">
-          <h2 className="text-xl font-semibold text-gray-900">
-            Sepetinizdeki Ürünler ({totalItems} ürün)
-          </h2>
-          {(cartItems.length > 0 || bundleLines.length > 0) && (
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={handleClearCart}
-              className="text-red-600 hover:text-red-700 hover:bg-red-50"
-            >
-              <TrashIcon className="h-4 w-4 mr-2" />
-              Sepeti Temizle
-            </Button>
-          )}
-        </div>
+    <>
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        {/* Cart Items */}
+        <div className="lg:col-span-2">
+          <div className="flex items-center justify-between mb-6">
+            <h2 className="text-xl font-semibold text-gray-900">
+              Sepetinizdeki Ürünler ({totalItems} ürün)
+            </h2>
+            {(cartItems.length > 0 || bundleLines.length > 0) && (
+              <motion.div
+                {...createButtonAnimation({
+                  hapticMessage: 'Sepet temizlendi'
+                })}
+              >
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={openConfirmClear}
+                  className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                >
+                  <TrashIcon className="h-4 w-4 mr-2" />
+                  Sepeti Temizle
+                </Button>
+              </motion.div>
+            )}
+          </div>
 
         <div className="space-y-4">
           {/* Bundle Lines */}
@@ -360,11 +394,38 @@ export function CartContent() {
           })}
 
           {/* Product Lines */}
-          {cartItems.map((item) => {
+          {cartItems.map((item, index) => {
             const isUpdating = updatingItems.has(item.productId) || updatingItems.has(item.id)
             return (
-            <Card key={item.id} className="overflow-hidden">
-              <CardContent className={`p-6 ${isUpdating ? 'opacity-80' : ''}`}>
+            <SwipeActions
+              key={item.id}
+              leftActions={[
+                {
+                  id: 'remove',
+                  label: 'Kaldır',
+                  icon: removingItems.has(item.id) ? <LoadingSpinner size="sm" color="white" /> : <TrashIcon className="w-4 h-4" />,
+                  color: 'red',
+                  action: () => handleRemoveItem(item.id),
+                  disabled: removingItems.has(item.id)
+                }
+              ]}
+              rightActions={[
+                {
+                  id: 'favorite',
+                  label: 'Favori',
+                  icon: <HeartIcon className="w-4 h-4" />,
+                  color: 'pink',
+                  action: () => handleAddToFavorites(item.productId, item.product.name)
+                }
+              ]}
+            >
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: index * 0.1 }}
+              >
+                <Card className="overflow-hidden">
+                  <CardContent className={`p-6 ${isUpdating ? 'opacity-80' : ''}`}>
                 <div className="flex items-center space-x-4">
                   {/* Product Image */}
                   <div className="flex-shrink-0">
@@ -456,19 +517,32 @@ export function CartContent() {
                     )}
                   </div>
 
-                  {/* Remove Button */}
-                  <Button
-                    variant="ghost"
-                    size="sm"
+                  {/* Remove Button - Hidden on mobile (swipe action) */}
+                  <MicroFeedback
+                    hapticType="warning"
+                    hapticMessage="Ürün kaldırılıyor"
+                    disabled={removingItems.has(item.id)}
                     onClick={() => handleRemoveItem(item.id)}
-                    disabled={updatingItems.has(item.id)}
-                    className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                    className="hidden md:flex"
                   >
-                    <TrashIcon className="h-4 w-4" />
-                  </Button>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      disabled={removingItems.has(item.id)}
+                      className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                    >
+                      {removingItems.has(item.id) ? (
+                        <LoadingSpinner size="sm" color="gray" />
+                      ) : (
+                        <TrashIcon className="h-4 w-4" />
+                      )}
+                    </Button>
+                  </MicroFeedback>
                 </div>
               </CardContent>
             </Card>
+              </motion.div>
+            </SwipeActions>
           )})}
         </div>
       </div>
@@ -496,22 +570,51 @@ export function CartContent() {
               <span>{formatCurrency(total)}</span>
             </div>
             
-            <Button 
-              className="w-full mt-6"
-              size="lg"
-              onClick={handleCheckout}
+            <motion.div
+              {...createButtonAnimation({
+                hapticMessage: 'Sipariş sayfasına yönlendiriliyor'
+              })}
             >
-              Siparişi Tamamla
-            </Button>
+              <Button 
+                className="w-full mt-6"
+                size="lg"
+                onClick={handleCheckout}
+              >
+                Siparişi Tamamla
+              </Button>
+            </motion.div>
             
             <Link href="/products" className="block">
-              <Button variant="outline" className="w-full">
-                Alışverişe Devam Et
-              </Button>
+              <motion.div
+                {...createButtonAnimation({
+                  hapticMessage: 'Ürünler sayfasına yönlendiriliyor'
+                })}
+              >
+                <Button variant="outline" className="w-full">
+                  Alışverişe Devam Et
+                </Button>
+              </motion.div>
             </Link>
           </CardContent>
         </Card>
       </div>
     </div>
+
+    {/* Mobile Sticky CTA */}
+    <CartCTABar
+      total={formatCurrency(total)}
+      itemCount={totalItems}
+      onCheckout={handleCheckout}
+    />
+
+    {/* Confirm Clear Modal */}
+    <Modal isOpen={confirmClearOpen} onClose={closeConfirmClear} title="Sepeti Temizle">
+      <p className="text-sm text-gray-700 mb-4">Sepetinizdeki tüm ürünler kaldırılacak. Devam etmek istiyor musunuz?</p>
+      <div className="flex justify-end gap-2">
+        <Button variant="outline" onClick={closeConfirmClear}>Vazgeç</Button>
+        <Button className="bg-red-600 text-white hover:bg-red-700" onClick={async () => { await handleClearCart(); closeConfirmClear(); }}>Temizle</Button>
+      </div>
+    </Modal>
+    </>
   )
 }
