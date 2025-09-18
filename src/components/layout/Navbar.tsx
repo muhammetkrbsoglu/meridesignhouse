@@ -291,14 +291,7 @@ export function Navbar() {
             animate={{ opacity: 1, x: 0 }}
             transition={{ duration: 0.6, delay: 0.4 }}
           >
-            {/* Search - Mobile */}
-            <motion.button 
-              className="md:hidden p-3 rounded-full bg-gradient-to-r from-rose-500 to-pink-500 text-white shadow-lg hover:shadow-xl"
-              whileHover={{ scale: 1.1 }}
-              whileTap={{ scale: 0.95 }}
-            >
-              <MagnifyingGlassIcon className="h-5 w-5" />
-            </motion.button>
+
 
             {/* User Menu */}
             {user ? (
@@ -596,18 +589,6 @@ export function Navbar() {
           transition={{ duration: 0.3 }}
         >
           <div className="px-6 py-4 space-y-4">
-            {/* Mobile Search */}
-            <motion.div 
-              className="pb-4 border-b border-rose-100"
-              initial={{ opacity: 0, x: -20 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ duration: 0.4, delay: 0.1 }}
-            >
-              <SearchAutocomplete 
-                placeholder="Ürün, kategori veya set ara..."
-                className="w-full"
-              />
-            </motion.div>
             
             {/* Main Navigation Links */}
             <div className="pb-4 border-b border-rose-100">
@@ -654,6 +635,22 @@ export function Navbar() {
                 >
                   🛍️ Ürünler
                 </Link>
+                {user && (
+                  <Link
+                    href="/orders"
+                    className="flex items-center py-3 px-4 text-gray-700 hover:text-white hover:bg-gradient-to-r hover:from-rose-500 hover:to-pink-500 rounded-xl transition-all duration-300 font-medium"
+                    onClick={() => setIsMobileMenuOpen(false)}
+                  >
+                    📦 Siparişlerim
+                  </Link>
+                )}
+                <Link
+                  href="/order-tracking"
+                  className="flex items-center py-3 px-4 text-gray-700 hover:text-white hover:bg-gradient-to-r hover:from-rose-500 hover:to-pink-500 rounded-xl transition-all duration-300 font-medium"
+                  onClick={() => setIsMobileMenuOpen(false)}
+                >
+                  🔎 Sipariş Takip
+                </Link>
               </div>
             </div>
             
@@ -682,25 +679,25 @@ export function Navbar() {
             </div>
             {!user && (
               <motion.div 
-                className="pt-4"
+                className="pt-4 border-t border-rose-100"
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.4, delay: 0.3 }}
               >
-                <div className="space-y-3">
+                <div className="grid grid-cols-2 gap-3">
                   <Link
                     href="/auth/login"
-                    className="block w-full py-3 px-4 text-center bg-gradient-to-r from-rose-500 to-pink-500 hover:from-rose-600 hover:to-pink-600 text-white rounded-xl font-medium transition-all duration-300 transform hover:scale-105 shadow-lg"
+                    className="flex items-center justify-center py-2.5 px-3 text-sm bg-gradient-to-r from-rose-500 to-pink-500 hover:from-rose-600 hover:to-pink-600 text-white rounded-lg font-medium transition-all duration-300 shadow-md hover:shadow-lg"
                     onClick={() => setIsMobileMenuOpen(false)}
                   >
-                    🔐 Giriş Yap
+                    Giriş
                   </Link>
                   <Link
                     href="/auth/register"
-                    className="block w-full py-3 px-4 text-center border-2 border-rose-500 text-rose-600 hover:bg-rose-500 hover:text-white rounded-xl font-medium transition-all duration-300 transform hover:scale-105"
+                    className="flex items-center justify-center py-2.5 px-3 text-sm border-2 border-rose-500 text-rose-600 hover:bg-rose-500 hover:text-white rounded-lg font-medium transition-all duration-300"
                     onClick={() => setIsMobileMenuOpen(false)}
                   >
-                    ✨ Kayıt Ol
+                    Kayıt Ol
                   </Link>
                 </div>
               </motion.div>
