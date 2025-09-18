@@ -24,7 +24,8 @@ import {
 import { getOptimalGlassConfig } from '@/lib/glassmorphism'
 import { cn } from '@/lib/utils'
 import { getCartCount, getFavoriteCount } from '@/lib/actions/cart'
-import { motion, useReducedMotion } from 'framer-motion'
+import { motion, useReducedMotion, AnimatePresence } from 'framer-motion'
+import { SearchAutocomplete } from '@/components/ui/SearchAutocomplete'
 
 const items = [
   { 
@@ -72,6 +73,7 @@ export function BottomTabBar() {
   const [favoriteCount, setFavoriteCount] = useState(0)
   const [isScrolled, setIsScrolled] = useState(false)
   const shouldReduceMotion = useReducedMotion()
+  const [isSearchOpen, setIsSearchOpen] = useState(false)
 
   // Scroll detection for navbar shrinking
   useEffect(() => {
@@ -157,7 +159,7 @@ export function BottomTabBar() {
         delay: 0.1
       }}
       className={cn(
-        'fixed bottom-0 left-0 right-0 z-[1000] safe-pb md:hidden',
+        'fixed bottom-0 left-0 right-0 z-[900] safe-pb md:hidden',
         'border-t border-white/20',
         getOptimalGlassConfig('bottom-bar')
       )}
@@ -186,6 +188,12 @@ export function BottomTabBar() {
                       : 'text-gray-700 hover:text-rose-600 hover:bg-rose-50/40'
                   )}
                   aria-label={label}
+                  onClick={(e) => {
+                    if (href === '/search') {
+                      e.preventDefault()
+                      setIsSearchOpen(true)
+                    }
+                  }}
                 >
                   <div className="relative">
                     {active ? (
@@ -229,6 +237,34 @@ export function BottomTabBar() {
           })}
         </ul>
       </div>
+      {/* Search Modal */}
+      <AnimatePresence>
+        {isSearchOpen && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-[1200] flex items-start justify-center bg-black/40 backdrop-blur-sm md:hidden"
+            onClick={() => setIsSearchOpen(false)}
+            role="dialog"
+            aria-modal="true"
+          >
+            <motion.div
+              initial={{ y: 40, opacity: 0 }}
+              animate={{ y: 0, opacity: 1 }}
+              exit={{ y: 40, opacity: 0 }}
+              transition={{ type: 'spring', stiffness: 300, damping: 30 }}
+              className="mt-16 w-[92%] rounded-2xl bg-white p-3 shadow-2xl"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <SearchAutocomplete
+                placeholder="Ürün, kategori veya set ara..."
+                className="w-full"
+              />
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </motion.nav>
   )
 }
