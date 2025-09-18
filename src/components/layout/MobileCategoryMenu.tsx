@@ -198,7 +198,7 @@ export default function MobileCategoryMenu({ categories, onCategoryClick }: Mobi
                 )}
 
                 {/* Subcategories */}
-                {hasChildren && (
+                {hasChildren && category.children && (
                   <motion.div
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}

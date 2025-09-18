@@ -503,35 +503,23 @@ export function Navbar() {
           {/* Mobile Navigation - Sticky Links */}
           <div className="md:hidden flex justify-center items-center space-x-4 h-10 overflow-x-auto">
             <Link
-              href="/about"
-              className="flex items-center text-rose-700 hover:text-rose-800 font-medium transition-all duration-300 text-xs whitespace-nowrap px-2 py-1 rounded-lg hover:bg-rose-50"
+              href="/sale"
+              className="flex items-center text-white bg-gradient-to-r from-red-500 to-pink-500 hover:from-red-600 hover:to-pink-600 font-medium transition-all duration-300 text-xs whitespace-nowrap px-3 py-1.5 rounded-lg shadow-md"
             >
-              Hakkımızda
+              ⭐ Haftanın Ürünü
             </Link>
             <Link
-              href="/contact"
-              className="flex items-center text-rose-700 hover:text-rose-800 font-medium transition-all duration-300 text-xs whitespace-nowrap px-2 py-1 rounded-lg hover:bg-rose-50"
+              href="/design-studio"
+              className="flex items-center text-white bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 font-medium transition-all duration-300 text-xs whitespace-nowrap px-3 py-1.5 rounded-lg shadow-md"
             >
-              İletişim
+              🎨 Tasarım Atölyesi
             </Link>
-            {user && (
-              <Link
-                href="/orders"
-                className="flex items-center text-rose-700 hover:text-rose-800 font-medium transition-all duration-300 text-xs whitespace-nowrap px-2 py-1 rounded-lg hover:bg-rose-50"
-              >
-                Siparişlerim
-              </Link>
-            )}
             <Link
-              href="/cart"
-              className="flex items-center text-white bg-gradient-to-r from-rose-500 to-pink-500 hover:from-rose-600 hover:to-pink-600 font-medium transition-all duration-300 text-xs whitespace-nowrap px-3 py-1.5 rounded-lg shadow-md"
+              href={user ? "/orders" : "/auth/login"}
+              className="flex items-center text-rose-700 hover:text-rose-800 font-medium transition-all duration-300 text-xs whitespace-nowrap px-2 py-1 rounded-lg hover:bg-rose-50"
+              title={user ? "Siparişlerinizi görüntüleyin" : "Siparişlerinizi görüntülemek için giriş yapınız"}
             >
-              🛒 Sepetim
-              {cartCount > 0 && (
-                <span className="ml-1 bg-white text-rose-600 text-xs font-bold px-1.5 py-0.5 rounded-full">
-                  {cartCount}
-                </span>
-              )}
+              {user ? "Siparişlerim" : "Siparişlerim (Giriş Gerekli)"}
             </Link>
           </div>
         </div>

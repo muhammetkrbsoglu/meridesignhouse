@@ -1,6 +1,6 @@
-﻿import { fetchNewArrivals, fetchFeaturedProducts } from '@/lib/actions/products'
+import { fetchNewArrivals, fetchFeaturedProducts } from '@/lib/actions/products'
 import { CustomerLayout } from '@/components/layout/CustomerLayout'
-import { HomePageClient } from './HomePageClient'
+import { HomePageClient } from '@/components/home/HomePageClient'
 
 export default async function Home() {
   const [newArrivals, featuredProducts] = await Promise.all([

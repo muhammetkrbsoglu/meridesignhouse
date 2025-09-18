@@ -181,7 +181,7 @@ export default async function MessageDetailPage({ params }: MessageDetailPagePro
                       'use server';
                       const supabase = getSupabaseAdmin();
                       const admin_notes = String(formData.get('admin_notes') || '');
-                      await supabase.from('messages').update({ admin_reply: admin_notes }).eq('id', message.id);
+                      await (supabase.from('messages') as any).update({ adminReply: admin_notes }).eq('id', message.id);
                     }}
                     className="space-y-2"
                   >
