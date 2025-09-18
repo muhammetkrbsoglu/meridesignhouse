@@ -10,6 +10,7 @@ import { Sparkles, Heart, Star, ShoppingBag } from 'lucide-react'
 // Removed unused icons/components to satisfy ESLint unused rules
 import dynamic from 'next/dynamic'
 const CategoryMegaMenu = dynamic(() => import('./CategoryMegaMenu'), { ssr: false })
+const MobileCategoryMenu = dynamic(() => import('./MobileCategoryMenu'), { ssr: false })
 import { SearchAutocomplete } from '@/components/ui/SearchAutocomplete'
 import { fetchAllMainCategoriesWithHierarchy } from '@/lib/actions/categories'
 import { getCartCount, getFavoriteCount } from '@/lib/actions/cart'
@@ -17,15 +18,7 @@ import { motion, useReducedMotion } from 'framer-motion'
 import { getOptimalGlassConfig } from '@/lib/glassmorphism'
 import { cn } from '@/lib/utils'
 
-interface Category {
-  id: string
-  name: string
-  slug: string
-  description?: string
-  image?: string
-  children: unknown[]
-  level: number
-}
+import { Category } from '@/types/category'
 
 export function Navbar() {
   const { user, signOut } = useAuth()
@@ -407,10 +400,11 @@ export function Navbar() {
         </div>
       </div>
 
-      {/* Main Navigation - mobile gizli */}
-      <nav className="relative bg-gradient-to-r from-rose-50/50 to-pink-50/50 border-t border-rose-200/30 transition-[height,opacity] duration-150 hidden md:block">
+      {/* Main Navigation - mobilde de görünür sticky linkler */}
+      <nav className="relative bg-gradient-to-r from-rose-50/50 to-pink-50/50 border-t border-rose-200/30 transition-[height,opacity] duration-150">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-center items-center space-x-8 h-12">
+          {/* Desktop Navigation */}
+          <div className="hidden md:flex justify-center items-center space-x-8 h-12">
             <motion.div
               initial={{ opacity: 0, y: -10 }}
               animate={{ opacity: 1, y: 0 }}
@@ -504,6 +498,41 @@ export function Navbar() {
                 🛍️ Ürünler
               </Link>
             </motion.div>
+          </div>
+          
+          {/* Mobile Navigation - Sticky Links */}
+          <div className="md:hidden flex justify-center items-center space-x-4 h-10 overflow-x-auto">
+            <Link
+              href="/about"
+              className="flex items-center text-rose-700 hover:text-rose-800 font-medium transition-all duration-300 text-xs whitespace-nowrap px-2 py-1 rounded-lg hover:bg-rose-50"
+            >
+              Hakkımızda
+            </Link>
+            <Link
+              href="/contact"
+              className="flex items-center text-rose-700 hover:text-rose-800 font-medium transition-all duration-300 text-xs whitespace-nowrap px-2 py-1 rounded-lg hover:bg-rose-50"
+            >
+              İletişim
+            </Link>
+            {user && (
+              <Link
+                href="/orders"
+                className="flex items-center text-rose-700 hover:text-rose-800 font-medium transition-all duration-300 text-xs whitespace-nowrap px-2 py-1 rounded-lg hover:bg-rose-50"
+              >
+                Siparişlerim
+              </Link>
+            )}
+            <Link
+              href="/cart"
+              className="flex items-center text-white bg-gradient-to-r from-rose-500 to-pink-500 hover:from-rose-600 hover:to-pink-600 font-medium transition-all duration-300 text-xs whitespace-nowrap px-3 py-1.5 rounded-lg shadow-md"
+            >
+              🛒 Sepetim
+              {cartCount > 0 && (
+                <span className="ml-1 bg-white text-rose-600 text-xs font-bold px-1.5 py-0.5 rounded-full">
+                  {cartCount}
+                </span>
+              )}
+            </Link>
           </div>
         </div>
       </nav>
@@ -654,20 +683,14 @@ export function Navbar() {
               </div>
             </div>
             
-            {/* Categories */}
+            {/* Categories - Hierarchical Mobile Menu */}
             <div className="pb-4 border-b border-rose-100">
               <h3 className="text-sm font-bold text-gray-500 uppercase tracking-wider mb-3">Kategoriler</h3>
               <div className="space-y-1">
-                {categories.map((category) => (
-                  <Link
-                    key={category.id}
-                    href={`/categories/${category.slug}`}
-                    className="flex items-center py-2 px-4 text-gray-600 hover:text-white hover:bg-gradient-to-r hover:from-purple-500 hover:to-pink-500 rounded-lg transition-all duration-300"
-                    onClick={() => setIsMobileMenuOpen(false)}
-                  >
-                    🏷️ {category.name}
-                  </Link>
-                ))}
+                <MobileCategoryMenu 
+                  categories={categories}
+                  onCategoryClick={() => setIsMobileMenuOpen(false)}
+                />
                 <Link
                   href="/sale"
                   className="flex items-center py-2 px-4 text-red-600 hover:text-white hover:bg-gradient-to-r hover:from-red-500 hover:to-pink-500 rounded-lg transition-all duration-300 font-medium"
