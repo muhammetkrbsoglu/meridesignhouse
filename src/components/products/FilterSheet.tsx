@@ -1,4 +1,4 @@
-'use client'
+﻿'use client'
 
 import { useState, useEffect, useRef } from 'react'
 import { motion, AnimatePresence, useDragControls, useMotionValue, useTransform } from 'framer-motion'
@@ -667,3 +667,4 @@ export function FilterSheet({
     </AnimatePresence>
   )
 }
+

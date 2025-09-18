@@ -1,9 +1,11 @@
-'use server'
+﻿'use server'
 
 import { z } from 'zod'
 import { revalidatePath } from 'next/cache'
 import { redirect } from 'next/navigation'
 import { getSupabaseAdmin, createServerClient } from '@/lib/supabase'
+import { logger } from '@/lib/logger'
+import type { Category } from '@/types/category'
 import { randomUUID } from 'crypto'
 
 const CategorySchema = z.object({
@@ -14,7 +16,9 @@ const CategorySchema = z.object({
   isActive: z.boolean(),
 })
 
+
 const CreateCategory = CategorySchema.omit({ id: true })
+
 const UpdateCategory = CategorySchema.omit({ id: true })
 
 export type State = {
@@ -66,11 +70,11 @@ export async function createCategory(data: z.infer<typeof CreateCategory>) {
       })
 
     if (error) {
-      console.error('Database Error:', error)
+      logger.error('Database Error:', error)
       throw new Error('Kategori oluşturulamadı')
     }
   } catch (error) {
-    console.error('Database Error:', error)
+    logger.error('Database Error:', error)
     throw new Error('Kategori oluşturulamadı')
   }
 
@@ -118,11 +122,11 @@ export async function updateCategory(
       .eq('id', id)
 
     if (error) {
-      console.error('Database Error:', error)
+      logger.error('Database Error:', error)
       throw new Error('Kategori güncellenemedi')
     }
   } catch (error) {
-    console.error('Database Error:', error)
+    logger.error('Database Error:', error)
     throw new Error('Kategori güncellenemedi')
   }
 
@@ -141,7 +145,7 @@ export async function deleteCategory(id: string) {
       .eq('parentId', id)
 
     if (childError) {
-      console.error('Alt kategori kontrolü hatası:', childError)
+      logger.error('Alt kategori kontrolü hatası:', childError)
       throw new Error(`Alt kategori kontrolü başarısız: ${childError.message}`)
     }
 
@@ -156,7 +160,7 @@ export async function deleteCategory(id: string) {
       .eq('categoryId', id)
 
     if (productError) {
-      console.error('Ürün kontrolü hatası:', productError)
+      logger.error('Ürün kontrolü hatası:', productError)
       throw new Error(`Ürün kontrolü başarısız: ${productError.message}`)
     }
 
@@ -170,13 +174,13 @@ export async function deleteCategory(id: string) {
       .eq('id', id)
 
     if (error) {
-      console.error('Kategori silme hatası:', error)
+      logger.error('Kategori silme hatası:', error)
       throw new Error(`Kategori silinemedi: ${error.message}`)
     }
 
-    console.log('Kategori başarıyla silindi:', id)
+    logger.info('Kategori başarıyla silindi', { id })
   } catch (error) {
-    console.error('deleteCategory hatası:', error)
+    logger.error('deleteCategory hatası:', error)
     // Eğer error zaten bir Error objesi ise, onu fırlat
     if (error instanceof Error) {
       throw error
@@ -187,6 +191,7 @@ export async function deleteCategory(id: string) {
 
   revalidatePath('/admin/categories')
 }
+
 
 const ITEMS_PER_PAGE = 6
 
@@ -216,7 +221,7 @@ export async function fetchFilteredCategories(
     const { data: categories, error } = await queryBuilder
 
     if (error) {
-      console.error('Database Error:', error)
+      logger.error('Database Error:', error)
       throw new Error('Kategoriler getirilemedi')
     }
 
@@ -236,7 +241,7 @@ export async function fetchFilteredCategories(
         .in('id', parentIds)
 
       if (parentError) {
-        console.error('Parent categories error:', parentError)
+        logger.error('Parent categories error:', parentError)
       } else {
         parentCategories = (parents || []) as Array<{ id: string; name: string }>
       }
@@ -268,7 +273,7 @@ export async function fetchFilteredCategories(
 
     return categoriesWithCounts
   } catch (error) {
-    console.error('Database Error:', error)
+    logger.error('Database Error:', error)
     throw new Error('Kategoriler getirilemedi')
   }
 }
@@ -285,7 +290,7 @@ export async function fetchMainCategories() {
       .order('sortOrder', { ascending: true })
 
     if (error) {
-      console.error('Database Error:', error)
+      logger.error('Database Error:', error)
       throw new Error('Ana kategoriler getirilemedi')
     }
 
@@ -297,7 +302,7 @@ export async function fetchMainCategories() {
       imageUrl: category.image || '/placeholder-category.jpg'
     })) || []
   } catch (error) {
-    console.error('Database Error:', error)
+    logger.error('Database Error:', error)
     throw new Error('Ana kategoriler getirilemedi')
   }
 }
@@ -317,7 +322,7 @@ export async function fetchCategoryHierarchy(parentId: string | null = null, lev
       .order('sortOrder', { ascending: true })
 
     if (error) {
-      console.error('Database Error:', error)
+      logger.error('Database Error:', error)
       return []
     }
 
@@ -337,13 +342,13 @@ export async function fetchCategoryHierarchy(parentId: string | null = null, lev
 
     return categoriesWithChildren
   } catch (error) {
-    console.error('Database Error:', error)
+    logger.error('Database Error:', error)
     return []
   }
 }
 
 // Tüm ana kategorileri hiyerarşik yapıyla getir
-export async function fetchAllMainCategoriesWithHierarchy() {
+export async function fetchAllMainCategoriesWithHierarchy(): Promise<Category[]> {
   try {
     const supabase = getSupabaseAdmin()
     
@@ -355,7 +360,7 @@ export async function fetchAllMainCategoriesWithHierarchy() {
       .order('sortOrder', { ascending: true })
 
     if (error) {
-      console.error('Database Error:', error)
+      logger.error('Database Error:', error)
       throw new Error('Ana kategoriler getirilemedi')
     }
 
@@ -375,7 +380,7 @@ export async function fetchAllMainCategoriesWithHierarchy() {
 
     return categoriesWithHierarchy
   } catch (error) {
-    console.error('Database Error:', error)
+    logger.error('Database Error:', error)
     throw new Error('Ana kategoriler getirilemedi')
   }
 }
@@ -395,14 +400,14 @@ export async function fetchCategoriesPages(query: string) {
     const { count, error } = await queryBuilder
 
     if (error) {
-      console.error('Database Error:', error)
+      logger.error('Database Error:', error)
       throw new Error('Kategori sayısı getirilemedi')
     }
 
     const totalPages = Math.ceil((count || 0) / ITEMS_PER_PAGE)
     return totalPages
   } catch (error) {
-    console.error('Database Error:', error)
+    logger.error('Database Error:', error)
     throw new Error('Kategori sayısı getirilemedi')
   }
 }
@@ -422,7 +427,7 @@ export async function fetchCategoryById(id: string) {
       .single()
 
     if (error) {
-      console.error('Database Error:', error)
+      logger.error('Database Error:', error)
       throw new Error('Kategori getirilemedi')
     }
 
@@ -445,7 +450,7 @@ export async function fetchCategoryById(id: string) {
       parent
     }
   } catch (error) {
-    console.error('Database Error:', error)
+    logger.error('Database Error:', error)
     throw new Error('Kategori getirilemedi')
   }
 }
@@ -462,13 +467,13 @@ export async function fetchParentCategories() {
       .order('name', { ascending: true })
 
     if (error) {
-      console.error('Database Error:', error)
+      logger.error('Database Error:', error)
       throw new Error('Ana kategoriler getirilemedi')
     }
 
     return categories || []
   } catch (error) {
-    console.error('Database Error:', error)
+    logger.error('Database Error:', error)
     throw new Error('Ana kategoriler getirilemedi')
   }
 }
@@ -490,13 +495,13 @@ export async function fetchAllCategoriesForParent() {
       .order('name', { ascending: true })
 
     if (error) {
-      console.error('Database Error:', error)
+      logger.error('Database Error:', error)
       throw new Error('Kategoriler getirilemedi')
     }
 
     return categories || []
   } catch (error) {
-    console.error('Database Error:', error)
+    logger.error('Database Error:', error)
     throw new Error('Kategoriler getirilemedi')
   }
 }
@@ -526,7 +531,7 @@ export async function getCategoryStats() {
       activeCategories: activeCategories.count || 0,
     }
   } catch (error) {
-    console.error('Error in getCategoryStats:', error)
+    logger.error('Error in getCategoryStats:', error)
     return {
       totalCategories: 0,
       activeCategories: 0,
@@ -545,13 +550,33 @@ export async function fetchAllCategories() {
       .order('name', { ascending: true })
 
     if (error) {
-      console.error('Database Error:', error)
+      logger.error('Database Error:', error)
       throw new Error('Kategoriler getirilemedi')
     }
 
     return categories || []
   } catch (error) {
-    console.error('Database Error:', error)
+    logger.error('Database Error:', error)
     throw new Error('Kategoriler getirilemedi')
   }
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

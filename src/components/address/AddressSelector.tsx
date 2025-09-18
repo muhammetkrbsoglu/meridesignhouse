@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import { useState, useEffect } from 'react';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -216,3 +216,4 @@ export function AddressSelector({ onAddressChange, className }: AddressSelectorP
     </div>
   );
 }
+

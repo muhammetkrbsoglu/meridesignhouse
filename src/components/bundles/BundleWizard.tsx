@@ -1,4 +1,4 @@
-'use client'
+﻿'use client'
 
 import { useState, useEffect } from 'react'
 import { motion, AnimatePresence, useDragControls } from 'framer-motion'
@@ -857,3 +857,4 @@ function ReviewStep({ bundleData, selectedProducts, productQuantities, products,
     </div>
   )
 }
+

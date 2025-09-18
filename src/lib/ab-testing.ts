@@ -76,30 +76,6 @@ export const AB_TESTS: Record<string, ABTest> = {
       direction: 'decrease'
     }
   },
-  gesture_hints_timing: {
-    id: 'gesture_hints_timing',
-    name: 'Gesture Hints Timing',
-    description: 'Test optimal timing for gesture hints display',
-    status: 'running',
-    variants: ['control', 'variant_a', 'variant_b'],
-    trafficAllocation: {
-      control: 50,
-      variant_a: 25,
-      variant_b: 25
-    },
-    segments: ['new_users', 'mobile'],
-    startDate: new Date('2024-01-01'),
-    metrics: {
-      primary: ['gesture_discovery_rate', 'user_satisfaction'],
-      secondary: ['bounce_rate', 'session_duration']
-    },
-    hypothesis: 'Earlier gesture hints will improve feature discovery and user satisfaction',
-    successCriteria: {
-      metric: 'gesture_discovery_rate',
-      threshold: 0.15, // 15% improvement
-      direction: 'increase'
-    }
-  },
   loader_animations: {
     id: 'loader_animations',
     name: 'Loader Animations',
@@ -155,7 +131,6 @@ export const TEST_CONFIG = {
   // Feature flags for experimental features
   featureFlags: {
     microMotion_v1: false,
-    gestureHints_v2: false,
     loaderAnimations_v3: false,
     glassmorphism_v1: false
   },
@@ -163,7 +138,6 @@ export const TEST_CONFIG = {
   // Rollout percentages
   rollout: {
     microMotion_v1: 10,
-    gestureHints_v2: 30,
     loaderAnimations_v3: 50,
     glassmorphism_v1: 100
   },

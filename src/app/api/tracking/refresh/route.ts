@@ -40,7 +40,6 @@ export async function POST(req: NextRequest) {
           .insert({
             order_id: ord.id,
             event_type: 'poll',
-            message: `Takip kontrolü yapıldı (mock). Takip No: ${ord.tracking_number}`
           })
 
         if (insErr) {
@@ -57,5 +56,6 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: err?.message || 'Unexpected error' }, { status: 500 })
   }
 }
+
 
 

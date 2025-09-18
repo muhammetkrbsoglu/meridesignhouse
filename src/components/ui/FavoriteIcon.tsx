@@ -2,7 +2,7 @@
 
 import { HeartIcon } from '@heroicons/react/24/outline';
 import { useState, useEffect } from 'react';
-import { getFavoriteCount } from '@/lib/actions/cart';
+import { getFavoriteCount } from '@/lib/api/cartClient';
 
 export function FavoriteIcon() {
   const [favoriteCount, setFavoriteCount] = useState(0);

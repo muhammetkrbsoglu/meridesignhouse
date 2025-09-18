@@ -1,6 +1,7 @@
-'use server';
+﻿'use server';
 
 import { getSupabaseAdmin } from '@/lib/supabase';
+import type { MenuCategory, MenuProduct } from '@/types/menu';
 
 export interface MenuCategory {
   id: string;
@@ -242,3 +243,5 @@ export async function fetchWeeklyFeaturedProduct(categoryId: string): Promise<Me
     return null;
   }
 }
+
+

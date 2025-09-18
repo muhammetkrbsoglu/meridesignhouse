@@ -1,4 +1,4 @@
-'use client'
+﻿'use client'
 
 import { useState, useEffect, useRef } from 'react'
 import Link from 'next/link'
@@ -12,8 +12,8 @@ import dynamic from 'next/dynamic'
 const CategoryMegaMenu = dynamic(() => import('./CategoryMegaMenu'), { ssr: false })
 const MobileCategoryMenu = dynamic(() => import('./MobileCategoryMenu'), { ssr: false })
 import { SearchAutocomplete } from '@/components/ui/SearchAutocomplete'
-import { fetchAllMainCategoriesWithHierarchy } from '@/lib/actions/categories'
-import { getCartCount, getFavoriteCount } from '@/lib/actions/cart'
+import { fetchAllMainCategoriesWithHierarchy } from '@/lib/api/categoriesClient'
+import { getCartCount, getFavoriteCount } from '@/lib/api/cartClient'
 import { motion, useReducedMotion } from 'framer-motion'
 import { getOptimalGlassConfig } from '@/lib/glassmorphism'
 import { cn } from '@/lib/utils'
@@ -415,7 +415,7 @@ export function Navbar() {
                 href="/"
                 className="flex items-center text-rose-700 hover:text-rose-800 font-medium transition-all duration-300 hover:scale-105"
               >
-                🏠 Ana Sayfa
+                ğŸ  Ana Sayfa
               </Link>
             </motion.div>
             {user && (
@@ -429,7 +429,7 @@ export function Navbar() {
                   href="/orders"
                   className="flex items-center text-rose-700 hover:text-rose-800 font-medium transition-all duration-300 hover:scale-105"
                 >
-                  📦 Siparişlerim
+                  ğŸ“¦ Siparişlerim
                 </Link>
               </motion.div>
             )}
@@ -443,7 +443,7 @@ export function Navbar() {
                 href="/order-tracking"
                 className="flex items-center text-rose-700 hover:text-rose-800 font-medium transition-all duration-300 hover:scale-105"
               >
-                🔎 Sipariş Takip
+                ğŸ” Sipariş Takip
               </Link>
             </motion.div>
             <motion.div
@@ -469,7 +469,7 @@ export function Navbar() {
                 href="/design-studio"
                 className="flex items-center text-rose-700 hover:text-rose-800 font-medium transition-all duration-300 hover:scale-105 bg-gradient-to-r from-purple-100 to-pink-100 px-3 py-1 rounded-full"
               >
-                🎨 Tasarım Atölyesi
+                ğŸ¨ Tasarım Atölyesi
               </Link>
             </motion.div>
             <motion.div
@@ -482,7 +482,7 @@ export function Navbar() {
                 href="/contact"
                 className="flex items-center text-rose-700 hover:text-rose-800 font-medium transition-all duration-300 hover:scale-105"
               >
-                📞 İletişim
+                ğŸ“ İletişim
               </Link>
             </motion.div>
             <motion.div
@@ -495,7 +495,7 @@ export function Navbar() {
                 href="/products"
                 className="flex items-center text-rose-700 hover:text-rose-800 font-medium transition-all duration-300 hover:scale-105"
               >
-                🛍️ Ürünler
+                ğŸ›ï¸ Ürünler
               </Link>
             </motion.div>
           </div>
@@ -526,7 +526,7 @@ export function Navbar() {
               href="/cart"
               className="flex items-center text-white bg-gradient-to-r from-rose-500 to-pink-500 hover:from-rose-600 hover:to-pink-600 font-medium transition-all duration-300 text-xs whitespace-nowrap px-3 py-1.5 rounded-lg shadow-md"
             >
-              🛒 Sepetim
+              ğŸ›’ Sepetim
               {cartCount > 0 && (
                 <span className="ml-1 bg-white text-rose-600 text-xs font-bold px-1.5 py-0.5 rounded-full">
                   {cartCount}
@@ -574,7 +574,7 @@ export function Navbar() {
                 href="/sale"
                 className="flex items-center text-white bg-gradient-to-r from-red-500 to-pink-500 hover:from-red-600 hover:to-pink-600 font-medium transition-all duration-300 hover:scale-105 px-2.5 py-1 rounded-full shadow-lg hover:shadow-xl text-sm"
               >
-                🔥 İndirim
+                ğŸ”¥ İndirim
               </Link>
             </motion.div>
           </div>
@@ -627,14 +627,14 @@ export function Navbar() {
                   className="flex items-center py-3 px-4 text-gray-700 hover:text-white hover:bg-gradient-to-r hover:from-rose-500 hover:to-pink-500 rounded-xl transition-all duration-300 font-medium"
                   onClick={() => setIsMobileMenuOpen(false)}
                 >
-                  🏠 Ana Sayfa
+                  ğŸ  Ana Sayfa
                 </Link>
                 <Link
                   href="/design-studio"
                   className="flex items-center py-3 px-4 text-purple-600 hover:text-white hover:bg-gradient-to-r hover:from-purple-500 hover:to-pink-500 rounded-xl transition-all duration-300 font-medium"
                   onClick={() => setIsMobileMenuOpen(false)}
                 >
-                  🎨 Tasarım Atölyesi
+                  ğŸ¨ Tasarım Atölyesi
                 </Link>
                 <Link
                   href="/sale"
@@ -655,14 +655,14 @@ export function Navbar() {
                   className="flex items-center py-3 px-4 text-gray-700 hover:text-white hover:bg-gradient-to-r hover:from-rose-500 hover:to-pink-500 rounded-xl transition-all duration-300 font-medium"
                   onClick={() => setIsMobileMenuOpen(false)}
                 >
-                  📞 İletişim
+                  ğŸ“ İletişim
                 </Link>
                 <Link
                   href="/products"
                   className="flex items-center py-3 px-4 text-gray-700 hover:text-white hover:bg-gradient-to-r hover:from-rose-500 hover:to-pink-500 rounded-xl transition-all duration-300 font-medium"
                   onClick={() => setIsMobileMenuOpen(false)}
                 >
-                  🛍️ Ürünler
+                  ğŸ›ï¸ Ürünler
                 </Link>
                 {user && (
                   <Link
@@ -670,7 +670,7 @@ export function Navbar() {
                     className="flex items-center py-3 px-4 text-gray-700 hover:text-white hover:bg-gradient-to-r hover:from-rose-500 hover:to-pink-500 rounded-xl transition-all duration-300 font-medium"
                     onClick={() => setIsMobileMenuOpen(false)}
                   >
-                    📦 Siparişlerim
+                    ğŸ“¦ Siparişlerim
                   </Link>
                 )}
                 <Link
@@ -678,7 +678,7 @@ export function Navbar() {
                   className="flex items-center py-3 px-4 text-gray-700 hover:text-white hover:bg-gradient-to-r hover:from-rose-500 hover:to-pink-500 rounded-xl transition-all duration-300 font-medium"
                   onClick={() => setIsMobileMenuOpen(false)}
                 >
-                  🔎 Sipariş Takip
+                  ğŸ” Sipariş Takip
                 </Link>
               </div>
             </div>
@@ -696,7 +696,7 @@ export function Navbar() {
                   className="flex items-center py-2 px-4 text-red-600 hover:text-white hover:bg-gradient-to-r hover:from-red-500 hover:to-pink-500 rounded-lg transition-all duration-300 font-medium"
                   onClick={() => setIsMobileMenuOpen(false)}
                 >
-                  🔥 İndirim
+                  ğŸ”¥ İndirim
                 </Link>
               </div>
             </div>
@@ -731,3 +731,4 @@ export function Navbar() {
     </header>
   )
 }
+

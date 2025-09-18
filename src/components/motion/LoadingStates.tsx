@@ -1,4 +1,4 @@
-/**
+﻿/**
  * MeriDesignHouse Loading States Component
  * Premium loading states with shimmer and blur-up effects
  */
@@ -296,3 +296,4 @@ export function ProductGridSkeleton({ count = 6 }: { count?: number }) {
     </div>
   )
 }
+

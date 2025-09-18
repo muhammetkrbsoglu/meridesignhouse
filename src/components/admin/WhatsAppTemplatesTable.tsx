@@ -1,4 +1,4 @@
-'use client'
+﻿'use client'
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
@@ -49,7 +49,7 @@ export function WhatsAppTemplatesTable({ templates }: WhatsAppTemplatesTableProp
       if (result.success) {
         toast({
           title: 'Başarılı',
-          description: `Şablon ${!template.is_active ? 'aktif' : 'pasif'} edildi`,
+          description: `Åablon ${!template.is_active ? 'aktif' : 'pasif'} edildi`,
           intent: 'success'
         })
         router.refresh()
@@ -81,7 +81,7 @@ export function WhatsAppTemplatesTable({ templates }: WhatsAppTemplatesTableProp
 
     setIsLoading(template.id)
     try {
-      // Şablonu pasif yap (soft delete)
+      // Åablonu pasif yap (soft delete)
       const formData = new FormData()
       formData.append('id', template.id)
       formData.append('name', template.name)
@@ -94,7 +94,7 @@ export function WhatsAppTemplatesTable({ templates }: WhatsAppTemplatesTableProp
       if (result.success) {
         toast({
           title: 'Başarılı',
-          description: 'Şablon silindi',
+          description: 'Åablon silindi',
           intent: 'success'
         })
         router.refresh()
@@ -155,7 +155,7 @@ export function WhatsAppTemplatesTable({ templates }: WhatsAppTemplatesTableProp
         <thead className="bg-gradient-to-r from-gray-50 to-gray-100">
           <tr>
             <th className="px-6 py-4 text-left text-sm font-semibold text-gray-900">
-              Şablon Adı
+              Åablon Adı
             </th>
             <th className="px-6 py-4 text-left text-sm font-semibold text-gray-900">
               Kategori
@@ -235,7 +235,7 @@ export function WhatsAppTemplatesTable({ templates }: WhatsAppTemplatesTableProp
                       navigator.clipboard.writeText(template.content)
                       toast({
                         title: 'Kopyalandı',
-                        description: 'Şablon içeriği panoya kopyalandı',
+                        description: 'Åablon içeriği panoya kopyalandı',
                         intent: 'success'
                       })
                     }}
@@ -289,3 +289,4 @@ export function WhatsAppTemplatesTable({ templates }: WhatsAppTemplatesTableProp
     </div>
   )
 }
+

@@ -1,4 +1,4 @@
-"use client"
+﻿"use client"
 
 import React from 'react'
 import { useDebounce } from '@/hooks/useDebounce'
@@ -65,3 +65,4 @@ export function ProductsSidebarSearch({ initialQuery = '' }: Props) {
     </div>
   )
 }
+

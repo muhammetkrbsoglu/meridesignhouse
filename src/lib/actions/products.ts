@@ -1,20 +1,20 @@
-'use server'
+﻿'use server'
 
 import { revalidatePath } from 'next/cache'
 import { redirect } from 'next/navigation'
 import { z } from 'zod'
 import { getSupabaseAdmin } from '@/lib/supabase'
+import { logger } from '@/lib/logger'
 import { randomUUID } from 'crypto'
-import { 
-  ProductWithCategory, 
-  SimpleProduct, 
+import {
+  ProductWithCategory,
+  SimpleProduct,
   FeaturedProduct,
   convertSupabaseToProductWithCategory,
   convertToSimpleProduct,
   convertToFeaturedProduct
-} from '@/types/product';
+} from '@/types/product'
 
-// Product validation schema
 const ProductSchema = z.object({
   name: z.string().min(1, 'Ürün adı gereklidir'),
   description: z.string().optional(),
@@ -30,7 +30,9 @@ const ProductSchema = z.object({
   colors: z.array(z.string()).optional(),
 })
 
+
 const CreateProduct = ProductSchema
+
 const UpdateProduct = ProductSchema.partial()
 
 export type State = {
@@ -99,7 +101,7 @@ export async function createProduct(prevState: State, formData: FormData): Promi
       colorIds = JSON.parse(colorIdsData)
     }
   } catch (error) {
-    console.error('Error parsing colorIds:', error)
+    logger.error('Error parsing colorIds:', error)
   }
   try {
     const imagesData = formData.get('images')
@@ -107,7 +109,7 @@ export async function createProduct(prevState: State, formData: FormData): Promi
       images = JSON.parse(imagesData)
     }
   } catch (error) {
-    console.error('Error parsing images:', error)
+    logger.error('Error parsing images:', error)
   }
 
   try {
@@ -141,7 +143,7 @@ export async function createProduct(prevState: State, formData: FormData): Promi
       .single()
 
     if (productError) {
-      console.error('Supabase error:', productError)
+      logger.error('Supabase error:', productError)
       return {
         message: 'Database Hatası: Ürün oluşturulamadı.',
       }
@@ -164,7 +166,7 @@ export async function createProduct(prevState: State, formData: FormData): Promi
         .insert(imageRecords)
 
       if (imagesError) {
-        console.error('Error inserting product images:', imagesError)
+        logger.error('Error inserting product images:', imagesError)
         // Don't fail the whole operation if images fail
       }
     }
@@ -184,12 +186,12 @@ export async function createProduct(prevState: State, formData: FormData): Promi
         const rel = colorRows.map((r: any) => ({ product_id: productId, color_id: r.id, created_at: now2 }))
         const { error: relError } = await supabase.from('product_colors').upsert(rel, { onConflict: 'product_id,color_id' })
         if (relError) {
-          console.error('product_colors upsert error:', relError)
+          logger.error('product_colors upsert error:', relError)
         }
       }
     }
   } catch (error) {
-    console.error('Unexpected error:', error)
+    logger.error('Unexpected error:', error)
     return {
       message: 'Database Hatası: Ürün oluşturulamadı.',
     }
@@ -252,7 +254,7 @@ export async function updateProduct(
       colorIds = JSON.parse(colorIdsData)
     }
   } catch (error) {
-    console.error('Error parsing colorIds (update):', error)
+    logger.error('Error parsing colorIds (update):', error)
   }
   try {
     const imagesData = formData.get('images')
@@ -260,7 +262,7 @@ export async function updateProduct(
       images = JSON.parse(imagesData)
     }
   } catch (error) {
-    console.error('Error parsing images:', error)
+    logger.error('Error parsing images:', error)
   }
 
   try {
@@ -290,7 +292,7 @@ export async function updateProduct(
       .eq('id', id)
 
     if (productError) {
-      console.error('Supabase error:', productError)
+      logger.error('Supabase error:', productError)
       return {
         message: 'Database Hatası: Ürün güncellenemedi.',
       }
@@ -339,12 +341,12 @@ export async function updateProduct(
         .insert(imageRecords)
 
       if (imagesError) {
-        console.error('Error updating product images:', imagesError)
+        logger.error('Error updating product images:', imagesError)
         // Don't fail the whole operation if images fail
       }
     }
   } catch (error) {
-    console.error('Unexpected error:', error)
+    logger.error('Unexpected error:', error)
     return {
       message: 'Database Hatası: Ürün güncellenemedi.',
     }
@@ -365,13 +367,13 @@ export async function deleteProduct(id: string) {
       .eq('id', id)
 
     if (error) {
-      console.error('Supabase error:', error)
+      logger.error('Supabase error:', error)
       throw new Error('Database Hatası: Ürün silinemedi.')
     }
     
     revalidatePath('/admin/products')
   } catch (error) {
-    console.error('Delete product error:', error)
+    logger.error('Delete product error:', error)
     throw new Error('Database Hatası: Ürün silinemedi.')
   }
 }
@@ -404,13 +406,13 @@ export async function fetchFilteredProducts(
     const { data: products, error } = await queryBuilder
 
     if (error) {
-      console.error('Supabase error:', error)
+      logger.error('Supabase error:', error)
       throw new Error('Ürünler getirilemedi.')
     }
 
     return products || []
   } catch (error) {
-    console.error('Database Error:', error)
+    logger.error('Database Error:', error)
     throw new Error('Ürünler getirilemedi.')
   }
 }
@@ -433,14 +435,14 @@ export async function fetchProductsPages(query: string) {
     const { count, error } = await queryBuilder
 
     if (error) {
-      console.error('Supabase error:', error)
+      logger.error('Supabase error:', error)
       throw new Error('Ürün sayısı getirilemedi.')
     }
 
     const totalPages = Math.ceil((count || 0) / ITEMS_PER_PAGE)
     return totalPages
   } catch (error) {
-    console.error('Database Error:', error)
+    logger.error('Database Error:', error)
     throw new Error('Ürün sayısı getirilemedi.')
   }
 }
@@ -465,12 +467,12 @@ export async function fetchProductById(id: string): Promise<{ id: string; name: 
       .maybeSingle()
 
     if (error) {
-      console.error('Product fetch error:', error)
+      logger.error('Product fetch error:', error)
       return null
     }
 
     if (!data) {
-      console.log('Product not found for ID:', id)
+      logger.debug('Product not found for ID', { id })
       return null
     }
 
@@ -484,7 +486,7 @@ export async function fetchProductById(id: string): Promise<{ id: string; name: 
       image: imageUrl
     }
   } catch (error) {
-    console.error('Product fetch error:', error)
+    logger.error('Product fetch error:', error)
     return null
   }
 }
@@ -501,13 +503,13 @@ export async function fetchCategories() {
       .order('name', { ascending: true })
 
     if (error) {
-      console.error('Supabase error:', error)
+      logger.error('Supabase error:', error)
       throw new Error('Kategoriler getirilemedi.')
     }
 
     return categories || []
   } catch (error) {
-    console.error('Database Error:', error)
+    logger.error('Database Error:', error)
     throw new Error('Kategoriler getirilemedi.')
   }
 }
@@ -537,7 +539,7 @@ export async function getProductStats() {
       recentProducts: recentProducts.count || 0,
     };
   } catch (error) {
-    console.error('Error in getProductStats:', error);
+    logger.error('Error in getProductStats:', error);
     return {
       totalProducts: 0,
       recentProducts: 0,
@@ -565,7 +567,7 @@ export async function fetchProducts() {
       .order('name', { ascending: true })
 
     if (error) {
-      console.error('Supabase error:', error)
+      logger.error('Supabase error:', error)
       throw new Error('Ürünler getirilemedi.')
     }
 
@@ -586,7 +588,7 @@ export async function fetchProducts() {
 
     return transformedProducts
   } catch (error) {
-    console.error('Database Error:', error)
+    logger.error('Database Error:', error)
     throw new Error('Ürünler getirilemedi.')
   }
 }
@@ -676,7 +678,7 @@ export async function fetchProductsFiltered(
     const { data: products, error } = await queryBuilder
 
     if (error) {
-      console.error('Supabase error:', error)
+      logger.error('Supabase error:', error)
       throw new Error('Ürünler getirilemedi.')
     }
 
@@ -696,7 +698,7 @@ export async function fetchProductsFiltered(
 
     return transformed
   } catch (error) {
-    console.error('Database Error:', error)
+    logger.error('Database Error:', error)
     throw new Error('Ürünler getirilemedi.')
   }
 }
@@ -742,12 +744,13 @@ export async function fetchColorSuggestions(limit: number = 24): Promise<string[
 
     return uniqueSorted.slice(0, limit)
   } catch (error) {
-    console.error('Renk önerileri getirilirken hata:', error)
+    logger.error('Renk önerileri getirilirken hata:', error)
     return ['#ffffff','#000000','#ff0000','#ffa500','#ffff00','#00ff00','#00ffff','#0000ff','#800080','#ff69b4']
   }
 }
 
 // Customer site functions
+
 const ITEMS_PER_PAGE = 12;
 
 export async function fetchProductsByCategory(
@@ -857,7 +860,7 @@ export async function fetchProductsByCategory(
     const { data: products, error } = await queryBuilder;
 
     if (error) {
-      console.error('Supabase error:', error);
+      logger.error('Supabase error:', error);
       return [];
     }
 
@@ -878,7 +881,7 @@ export async function fetchProductsByCategory(
       })
     );
   } catch (error) {
-    console.error('Kategori ürünleri getirilirken hata:', error);
+    logger.error('Kategori ürünleri getirilirken hata:', error);
     return [];
   }
 }
@@ -944,13 +947,13 @@ export async function fetchProductsCategoryPages(
     const { count, error } = await queryBuilder;
 
     if (error) {
-      console.error('Supabase error:', error);
+      logger.error('Supabase error:', error);
       return 0;
     }
 
     return Math.ceil((count || 0) / ITEMS_PER_PAGE);
   } catch (error) {
-    console.error('Kategori sayfa sayısı hesaplanırken hata:', error);
+    logger.error('Kategori sayfa sayısı hesaplanırken hata:', error);
     return 0;
   }
 }
@@ -977,13 +980,13 @@ export async function fetchCategoryBySlug(slug: string) {
       .single();
 
     if (error) {
-      console.error('Supabase error:', error);
+      logger.error('Supabase error:', error);
       return null;
     }
 
     return category;
   } catch (error) {
-    console.error('Kategori getirilirken hata:', error);
+    logger.error('Kategori getirilirken hata:', error);
     return null;
   }
 }
@@ -1008,18 +1011,18 @@ export async function fetchProductBySlug(slug: string) {
       .maybeSingle();
 
     if (error) {
-      console.error('Supabase error:', error);
+      logger.error('Supabase error:', error);
       return null;
     }
 
     if (!product) {
-      console.log('Product not found for slug:', slug);
+      logger.debug('Product not found for slug', { slug });
       return null;
     }
 
     return product;
   } catch (error) {
-    console.error('Ürün getirilirken hata:', error);
+    logger.error('Ürün getirilirken hata:', error);
     return null;
   }
 }
@@ -1049,7 +1052,7 @@ export async function fetchRelatedProducts(productId: string, categoryId: string
       .limit(limit);
 
     if (error) {
-      console.error('Supabase error:', error);
+      logger.error('Supabase error:', error);
       return [];
     }
 
@@ -1075,7 +1078,7 @@ export async function fetchRelatedProducts(productId: string, categoryId: string
       })
     });
   } catch (error) {
-    console.error('İlgili ürünler getirilirken hata:', error);
+    logger.error('İlgili ürünler getirilirken hata:', error);
     return [];
   }
 }
@@ -1151,7 +1154,7 @@ export async function fetchSearchProducts(
     const { data: products, error } = await queryBuilder;
 
     if (error) {
-      console.error('Supabase error:', error);
+      logger.error('Supabase error:', error);
       return [];
     }
 
@@ -1177,7 +1180,7 @@ export async function fetchSearchProducts(
       })
     });
   } catch (error) {
-    console.error('Arama ürünleri getirilirken hata:', error);
+    logger.error('Arama ürünleri getirilirken hata:', error);
     return [];
   }
 }
@@ -1208,13 +1211,13 @@ export async function fetchSearchProductsPages(
     const { count, error } = await queryBuilder;
 
     if (error) {
-      console.error('Supabase error:', error);
+      logger.error('Supabase error:', error);
       return 0;
     }
 
     return Math.ceil((count || 0) / ITEMS_PER_PAGE);
   } catch (error) {
-    console.error('Arama sayfa sayısı hesaplanırken hata:', error);
+    logger.error('Arama sayfa sayısı hesaplanırken hata:', error);
     return 0;
   }
 }
@@ -1279,7 +1282,7 @@ export async function fetchPriceRange(
       max: Math.max(...prices)
     };
   } catch (error) {
-    console.error('Fiyat aralığı hesaplanırken hata:', error);
+    logger.error('Fiyat aralığı hesaplanırken hata:', error);
     return { min: 0, max: 10000 };
   }
 }
@@ -1312,7 +1315,7 @@ export async function fetchFeaturedProducts(limit: number = 8): Promise<Featured
       .limit(limit);
 
     if (error) {
-      console.error('Öne çıkan ürünler getirilirken hata:', error);
+      logger.error('Öne çıkan ürünler getirilirken hata:', error);
       return [];
     }
 
@@ -1341,7 +1344,7 @@ export async function fetchFeaturedProducts(limit: number = 8): Promise<Featured
     // FeaturedProduct'a dönüştür
     return productsWithCategory.map(convertToFeaturedProduct);
   } catch (error) {
-    console.error('Öne çıkan ürünler getirilirken hata:', error);
+    logger.error('Öne çıkan ürünler getirilirken hata:', error);
     return [];
   }
 }
@@ -1374,7 +1377,7 @@ export async function fetchNewArrivals(limit: number = 8): Promise<SimpleProduct
     .limit(limit);
 
     if (error) {
-      console.error('Yeni ürünler getirilirken hata:', error);
+      logger.error('Yeni ürünler getirilirken hata:', error);
       return [];
     }
 
@@ -1403,7 +1406,13 @@ export async function fetchNewArrivals(limit: number = 8): Promise<SimpleProduct
     // SimpleProduct'a dönüştür
     return productsWithCategory.map(convertToSimpleProduct);
   } catch (error) {
-    console.error('Yeni ürünler getirilirken hata:', error);
+    logger.error('Yeni ürünler getirilirken hata:', error);
     return [];
   }
 }
+
+
+
+
+
+

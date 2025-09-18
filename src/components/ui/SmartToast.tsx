@@ -1,4 +1,4 @@
-'use client'
+﻿'use client'
 
 import { useState, useEffect, useRef, useCallback, ReactNode } from 'react'
 import { motion, AnimatePresence, useReducedMotion } from 'framer-motion'
@@ -394,3 +394,4 @@ export const toast = {
     return { type: 'info' as const, title, message, ...options }
   }
 }
+

@@ -1,4 +1,4 @@
-import { Metadata } from 'next';
+﻿import { Metadata } from 'next';
 import { AdminGuard } from '@/components/auth/AuthGuard';
 import { AdminLayout } from '@/components/admin/AdminLayout';
 import { UsersTable } from '@/components/admin/UsersTable';

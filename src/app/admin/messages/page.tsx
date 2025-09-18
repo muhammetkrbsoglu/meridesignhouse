@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 import Link from 'next/link'
 import { AdminGuard } from '@/components/auth/AuthGuard'
 import { AdminLayout } from '@/components/admin/AdminLayout'
@@ -35,7 +35,7 @@ const getMessageTypeDisplay = (type: string) => {
     case 'SUPPORT':
       return 'Destek'
     case 'COMPLAINT':
-      return 'Şikayet'
+      return 'Åikayet'
     case 'SUGGESTION':
       return 'Öneri'
     case 'ORDER_INQUIRY':

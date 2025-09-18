@@ -1,4 +1,4 @@
-'use server'
+﻿'use server'
 
 import { getSupabaseAdmin } from '@/lib/supabase'
 import { revalidatePath } from 'next/cache'
@@ -190,3 +190,4 @@ export async function toggleWhatsAppMessageStatus(id: string, is_active: boolean
     return { success: false, error: 'Beklenmeyen bir hata oluştu' }
   }
 }
+

@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import Image from 'next/image';
 import { getPresetImageUrl } from '@/lib/imagekit';
@@ -18,7 +18,7 @@ export default function InstagramTemplate({
     <div className="instagram-template">
       {/* Instagram Header */}
       <div className="instagram-header">
-        <div className="instagram-back-arrow">←</div>
+        <div className="instagram-back-arrow" aria-hidden="true">←</div>
         <div className="instagram-contact-info">
           <div className="instagram-avatar" aria-hidden="true">
             <div className="instagram-avatar-initial">
@@ -31,10 +31,10 @@ export default function InstagramTemplate({
             )}
           </div>
         </div>
-        <div className="instagram-actions">
-          <div className="instagram-action-icon">📹</div>
-          <div className="instagram-action-icon">📞</div>
-          <div className="instagram-action-icon">⋮</div>
+        <div className="instagram-actions" aria-hidden="true">
+          <div className="instagram-action-icon">☆</div>
+          <div className="instagram-action-icon">⋯</div>
+          <div className="instagram-action-icon">✉</div>
         </div>
       </div>
 
@@ -51,14 +51,14 @@ export default function InstagramTemplate({
       </div>
 
       {/* Instagram Input Area */}
-      <div className="instagram-input-area">
+      <div className="instagram-input-area" aria-hidden="true">
         <div className="instagram-input-container">
           <div className="instagram-input-icon">😊</div>
           <div className="instagram-input-field">
             <span className="instagram-input-placeholder">Mesaj gönder...</span>
           </div>
-          <div className="instagram-input-icon">📷</div>
-          <div className="instagram-send-button">📤</div>
+          <div className="instagram-input-icon">📎</div>
+          <div className="instagram-send-button">➤</div>
         </div>
       </div>
     </div>

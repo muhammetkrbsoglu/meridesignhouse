@@ -1,4 +1,4 @@
-'use client'
+﻿'use client'
 
 import { useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
@@ -126,7 +126,7 @@ const HELP_CATEGORIES = [
     color: 'from-green-500 to-teal-500',
     questions: [
       'Hesabımı nasıl oluştururum?',
-      'Şifremi nasıl sıfırlarım?',
+      'Åifremi nasıl sıfırlarım?',
       'Web sitesi çalışmıyor, ne yapmalıyım?',
       'Mobil uygulamanız var mı?'
     ]
@@ -568,3 +568,4 @@ export function ContactPageClient() {
     </div>
   )
 }
+

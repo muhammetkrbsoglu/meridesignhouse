@@ -1,4 +1,4 @@
-/**
+﻿/**
  * MeriDesignHouse Floating Action Button
  * Mobile-only FAB with haptic feedback and glassmorphism
  */
@@ -223,3 +223,4 @@ export function BackToTopFAB() {
     />
   )
 }
+

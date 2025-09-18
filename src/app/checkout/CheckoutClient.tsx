@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
@@ -9,10 +9,11 @@ import { Textarea } from '@/components/ui/textarea';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
 import { createOrderFromCart } from '@/lib/actions/orders';
-import { getCartItems, getFavoriteItems, addToCart } from '@/lib/actions/cart';
+import { getCartItems, getFavoriteItems, addToCart } from '@/lib/api/cartClient';
 import { listUserAddresses } from '@/lib/actions/profile';
 import { supabase } from '@/lib/supabase-browser';
 import { Loader2, ArrowLeft, ShoppingCart } from 'lucide-react';
+import type { CartItem } from '@/types/cart';
 import Link from 'next/link';
 import { toast } from 'sonner';
 
@@ -20,22 +21,6 @@ interface CheckoutClientProps {
   initialAddresses: any[];
 }
 
-interface CartItem {
-  id: string;
-  userId: string;
-  productId: string;
-  quantity: number;
-  createdAt: string;
-  updatedAt: string;
-  product: {
-    id: string;
-    name: string;
-    slug: string;
-    price: number;
-    product_images: Array<{ url: string; alt: string | null; sortOrder: number | null }>;
-    category: { name: string } | null;
-  };
-}
 
 interface CheckoutFormData {
   shippingFullName: string;
@@ -283,7 +268,7 @@ export default function CheckoutClient({ initialAddresses }: CheckoutClientProps
               </div>
               <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
                 <div>
-                  <Label htmlFor="shippingCity">Şehir *</Label>
+                  <Label htmlFor="shippingCity">Åehir *</Label>
                   <Input id="shippingCity" value={formData.shippingCity} onChange={(e) => handleInputChange('shippingCity', e.target.value)} required autoComplete="address-level2" />
                 </div>
                 <div>
@@ -350,5 +335,8 @@ export default function CheckoutClient({ initialAddresses }: CheckoutClientProps
     </div>
   );
 }
+
+
+
 
 

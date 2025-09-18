@@ -1,4 +1,4 @@
-'use client'
+﻿'use client'
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
@@ -32,34 +32,34 @@ interface WhatsAppTemplateFormProps {
 // Değişken tanımları
 const AVAILABLE_VARIABLES = {
   ORDER: [
-    { key: '{ad}', label: 'Müşteri Adı', description: 'Müşterinin adı ve soyadı', icon: '👤' },
-    { key: '{siparisNo}', label: 'Sipariş Numarası', description: 'Sipariş numarası', icon: '📋' },
-    { key: '{toplam}', label: 'Toplam Tutar', description: 'Sipariş toplam tutarı (₺)', icon: '💰' },
-    { key: '{tarih}', label: 'Tarih', description: 'Sipariş tarihi (Türkiye saati)', icon: '📅' },
-    { key: '{durum}', label: 'Sipariş Durumu', description: 'Güncel sipariş durumu', icon: '📊' },
-    { key: '{takipNo}', label: 'Kargo Takip No', description: 'Kargo takip numarası', icon: '🚚' },
-    { key: '{tahminiTeslim}', label: 'Tahmini Teslim', description: 'Tahmini teslim tarihi', icon: '📦' },
-    { key: '{kargoFirmasi}', label: 'Kargo Firması', description: 'Kargo firması adı', icon: '🏢' },
-    { key: '{adres}', label: 'Teslimat Adresi', description: 'Teslimat adresi', icon: '📍' },
-    { key: '{telefon}', label: 'Telefon', description: 'Müşteri telefon numarası', icon: '📞' },
-    { key: '{email}', label: 'E-posta', description: 'Müşteri e-posta adresi', icon: '📧' }
+    { key: '{ad}', label: 'Müşteri Adı', description: 'Müşterinin adı ve soyadı', icon: 'ğŸ‘¤' },
+    { key: '{siparisNo}', label: 'Sipariş Numarası', description: 'Sipariş numarası', icon: 'ğŸ“‹' },
+    { key: '{toplam}', label: 'Toplam Tutar', description: 'Sipariş toplam tutarı (₺)', icon: 'ğŸ’°' },
+    { key: '{tarih}', label: 'Tarih', description: 'Sipariş tarihi (Türkiye saati)', icon: 'ğŸ“…' },
+    { key: '{durum}', label: 'Sipariş Durumu', description: 'Güncel sipariş durumu', icon: 'ğŸ“Š' },
+    { key: '{takipNo}', label: 'Kargo Takip No', description: 'Kargo takip numarası', icon: 'ğŸšš' },
+    { key: '{tahminiTeslim}', label: 'Tahmini Teslim', description: 'Tahmini teslim tarihi', icon: 'ğŸ“¦' },
+    { key: '{kargoFirmasi}', label: 'Kargo Firması', description: 'Kargo firması adı', icon: 'ğŸ¢' },
+    { key: '{adres}', label: 'Teslimat Adresi', description: 'Teslimat adresi', icon: 'ğŸ“' },
+    { key: '{telefon}', label: 'Telefon', description: 'Müşteri telefon numarası', icon: 'ğŸ“' },
+    { key: '{email}', label: 'E-posta', description: 'Müşteri e-posta adresi', icon: 'ğŸ“§' }
   ],
   MESSAGE: [
-    { key: '{ad}', label: 'Müşteri Adı', description: 'Mesaj gönderen müşterinin adı ve soyadı', icon: '👤' },
-    { key: '{email}', label: 'E-posta', description: 'Müşteri e-posta adresi', icon: '📧' },
-    { key: '{telefon}', label: 'Telefon', description: 'Müşteri telefon numarası', icon: '📞' },
-    { key: '{konu}', label: 'Konu', description: 'Mesaj konusu', icon: '💬' },
-    { key: '{mesaj}', label: 'Mesaj', description: 'Müşteri mesajı', icon: '📝' },
-    { key: '{siparisNo}', label: 'Son Sipariş', description: 'Son sipariş numarası', icon: '📋' },
-    { key: '{tarih}', label: 'Tarih', description: 'Mesaj tarihi (Türkiye saati)', icon: '📅' }
+    { key: '{ad}', label: 'Müşteri Adı', description: 'Mesaj gönderen müşterinin adı ve soyadı', icon: 'ğŸ‘¤' },
+    { key: '{email}', label: 'E-posta', description: 'Müşteri e-posta adresi', icon: 'ğŸ“§' },
+    { key: '{telefon}', label: 'Telefon', description: 'Müşteri telefon numarası', icon: 'ğŸ“' },
+    { key: '{konu}', label: 'Konu', description: 'Mesaj konusu', icon: 'ğŸ’¬' },
+    { key: '{mesaj}', label: 'Mesaj', description: 'Müşteri mesajı', icon: 'ğŸ“' },
+    { key: '{siparisNo}', label: 'Son Sipariş', description: 'Son sipariş numarası', icon: 'ğŸ“‹' },
+    { key: '{tarih}', label: 'Tarih', description: 'Mesaj tarihi (Türkiye saati)', icon: 'ğŸ“…' }
   ],
   BOTH: [
-    { key: '{ad}', label: 'Müşteri Adı', description: 'Müşteri adı ve soyadı', icon: '👤' },
-    { key: '{telefon}', label: 'Telefon', description: 'Telefon numarası', icon: '📞' },
-    { key: '{email}', label: 'E-posta', description: 'E-posta adresi', icon: '📧' },
-    { key: '{tarih}', label: 'Tarih', description: 'Tarih (Türkiye saati)', icon: '📅' },
-    { key: '{saat}', label: 'Saat', description: 'Saat (Türkiye saati)', icon: '🕐' },
-    { key: '{sirket}', label: 'Şirket', description: 'Şirket adı', icon: '🏢' }
+    { key: '{ad}', label: 'Müşteri Adı', description: 'Müşteri adı ve soyadı', icon: 'ğŸ‘¤' },
+    { key: '{telefon}', label: 'Telefon', description: 'Telefon numarası', icon: 'ğŸ“' },
+    { key: '{email}', label: 'E-posta', description: 'E-posta adresi', icon: 'ğŸ“§' },
+    { key: '{tarih}', label: 'Tarih', description: 'Tarih (Türkiye saati)', icon: 'ğŸ“…' },
+    { key: '{saat}', label: 'Saat', description: 'Saat (Türkiye saati)', icon: 'ğŸ•' },
+    { key: '{sirket}', label: 'Åirket', description: 'Åirket adı', icon: 'ğŸ¢' }
   ]
 }
 
@@ -181,7 +181,7 @@ export function WhatsAppTemplateForm({ template }: WhatsAppTemplateFormProps) {
       if (result.success) {
         toast({
           title: 'Başarılı',
-          description: template?.id ? 'Şablon güncellendi' : 'Şablon eklendi',
+          description: template?.id ? 'Åablon güncellendi' : 'Åablon eklendi',
           intent: 'success'
         })
         router.refresh()
@@ -216,9 +216,9 @@ export function WhatsAppTemplateForm({ template }: WhatsAppTemplateFormProps) {
     <div className="space-y-6">
       <form onSubmit={handleSubmit} className="space-y-6">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          {/* Şablon Adı */}
+          {/* Åablon Adı */}
           <div className="space-y-2">
-            <Label htmlFor="name">Şablon Adı *</Label>
+            <Label htmlFor="name">Åablon Adı *</Label>
             <Input
               id="name"
               value={formData.name}
@@ -382,3 +382,4 @@ export function WhatsAppTemplateForm({ template }: WhatsAppTemplateFormProps) {
     </div>
   )
 }
+

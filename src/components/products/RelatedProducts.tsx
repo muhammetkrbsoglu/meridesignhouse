@@ -1,4 +1,4 @@
-import Link from 'next/link';
+﻿import Link from 'next/link';
 import Image from 'next/image';
 import { ProductWithCategory } from '@/types/product';
 import { formatCurrency } from '@/lib/utils';

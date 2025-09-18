@@ -1,4 +1,4 @@
-'use server'
+﻿'use server'
 
 import { getSupabaseAdmin } from '@/lib/supabase'
 import { formatPhoneForWhatsApp, isValidTurkishPhone } from '@/lib/whatsapp-utils'
@@ -39,5 +39,6 @@ export async function getOrderPublic(trackingCode: string, phone: string) {
     return { success: false, error: 'Bir hata oluştu' }
   }
 }
+
 
 

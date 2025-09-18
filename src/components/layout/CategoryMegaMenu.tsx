@@ -1,37 +1,20 @@
-'use client';
+﻿'use client';
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { ChevronRightIcon } from '@heroicons/react/24/outline';
 import { motion } from 'framer-motion';
-import { fetchFeaturedProductsForCategory, fetchWeeklyFeaturedProduct } from '@/lib/actions/menu';
+import type { CategoryWithChildren } from '@/types/category';
+import type { MenuProduct } from '@/types/menu';
+import { fetchFeaturedProductsForCategory, fetchWeeklyFeaturedProduct } from '@/lib/api/menuClient';
 import { formatCurrency } from '@/lib/utils';
 
 interface CategoryMegaMenuProps {
-  category: {
-    id: string;
-    name: string;
-    slug: string;
-    description?: string;
-    image?: string;
-    children: any[];
-  };
+  category: CategoryWithChildren;
   isOpen: boolean;
   onClose: () => void;
   onHoverChange: (isHovered: boolean) => void;
-}
-
-interface MenuProduct {
-  id: string;
-  name: string;
-  slug: string;
-  price: number;
-  images: string[];
-  categories: {
-    name: string;
-    slug: string;
-  }[];
 }
 
 export default function CategoryMegaMenu({ 
@@ -80,7 +63,7 @@ export default function CategoryMegaMenu({
   if (!isOpen) return null;
 
   // Kategori hiyerarşisini render et
-  const renderCategoryTree = (categories: any[], level: number = 0) => {
+  const renderCategoryTree = (categories: CategoryWithChildren[] = [], level: number = 0) => {
     if (!categories || categories.length === 0) return null;
 
     return (
@@ -299,3 +282,9 @@ export default function CategoryMegaMenu({
     </motion.div>
   );
 }
+
+
+
+
+
+

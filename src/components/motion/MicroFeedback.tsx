@@ -1,4 +1,4 @@
-/**
+﻿/**
  * MeriDesignHouse Micro Feedback Component
  * Tap/hover animations with haptic feedback
  */
@@ -247,3 +247,4 @@ export function AddToCartButton({
     </MicroFeedback>
   )
 }
+

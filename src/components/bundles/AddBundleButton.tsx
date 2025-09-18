@@ -1,7 +1,7 @@
-'use client'
+﻿'use client'
 
 import { useEffect, useState } from 'react'
-import { addBundleToCart } from '@/lib/actions/cart'
+import { addBundleToCart } from '@/lib/api/cartClient'
 import { toast } from '@/hooks/use-toast'
 import { MicroFeedback } from '@/components/motion/MicroFeedback'
 import { LoadingSpinner } from '@/components/motion/LoadingStates'
@@ -61,5 +61,6 @@ export function AddBundleButton({ bundleId, fullWidth = true }: { bundleId: stri
     </MicroFeedback>
   )
 }
+
 
 

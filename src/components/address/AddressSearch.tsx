@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import { useState, useEffect, useRef } from 'react';
 import { Input } from '@/components/ui/input';
@@ -207,3 +207,4 @@ export function AddressSearch({
     </div>
   );
 }
+

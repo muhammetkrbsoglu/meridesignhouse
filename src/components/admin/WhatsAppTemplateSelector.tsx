@@ -1,4 +1,4 @@
-'use client'
+﻿'use client'
 
 import { useState, useEffect } from 'react'
 import { Button } from '@/components/ui/button'
@@ -66,7 +66,7 @@ export function WhatsAppTemplateSelector({
         console.error('Error loading templates:', error)
         toast({
           title: 'Hata',
-          description: 'Şablonlar yüklenirken hata oluştu',
+          description: 'Åablonlar yüklenirken hata oluştu',
           intent: 'error'
         })
       }
@@ -141,7 +141,7 @@ export function WhatsAppTemplateSelector({
     return filledContent
   }
 
-  // Şablon seçildiğinde
+  // Åablon seçildiğinde
   const handleTemplateSelect = (templateId: string) => {
     const template = templates.find(t => t.id === templateId)
     if (template) {
@@ -196,9 +196,9 @@ export function WhatsAppTemplateSelector({
         </CardTitle>
       </CardHeader>
       <CardContent className="space-y-4">
-        {/* Şablon Seçimi */}
+        {/* Åablon Seçimi */}
         <div className="space-y-2">
-          <Label>Şablon Seçin</Label>
+          <Label>Åablon Seçin</Label>
           <Select onValueChange={handleTemplateSelect}>
             <SelectTrigger>
               <SelectValue placeholder="Bir şablon seçin..." />
@@ -275,3 +275,4 @@ export function WhatsAppTemplateSelector({
     </Card>
   )
 }
+

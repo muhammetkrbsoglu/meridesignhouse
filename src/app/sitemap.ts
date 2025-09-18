@@ -1,59 +1,36 @@
-import type { MetadataRoute } from 'next'
-import { getSupabaseAdmin } from '@/lib/supabase'
+﻿import type { MetadataRoute } from 'next'
+import { fetchAllMainCategoriesWithHierarchy } from '@/lib/actions/categories'
+import { fetchProducts } from '@/lib/actions/products'
+
+const siteUrl = 'https://meridesignhouse.com'
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
-  const base = 'https://meridesignhouse.com'
-  const now = new Date()
-
-  const staticPages: MetadataRoute.Sitemap = [
-    { url: `${base}`, lastModified: now, changeFrequency: 'daily', priority: 1.0 },
-    { url: `${base}/about`, lastModified: now, changeFrequency: 'monthly', priority: 0.8 },
-    { url: `${base}/contact`, lastModified: now, changeFrequency: 'monthly', priority: 0.8 },
-    { url: `${base}/products`, lastModified: now, changeFrequency: 'daily', priority: 0.9 },
-  ]
-
-  const supabase = getSupabaseAdmin()
-
-  // Categories
-  const { data: categories } = await supabase
-    .from('categories')
-    .select('slug, updatedAt, isActive')
-    .eq('isActive', true)
-
-  const categoryPages: MetadataRoute.Sitemap = (categories || []).map((c: any) => ({
-    url: `${base}/categories/${c.slug}`,
-    lastModified: c.updatedAt ? new Date(c.updatedAt) : now,
-    changeFrequency: 'weekly',
-    priority: 0.8,
+  const routes = ['', '/about', '/contact', '/products', '/design-studio', '/cart', '/favorites', '/orders', '/order-tracking']
+  const staticRoutes = routes.map((route) => ({
+    url: `${siteUrl}${route}`,
+    priority: route === '' ? 1 : route === '/products' ? 0.9 : 0.7,
+    changeFrequency: 'weekly' as const,
   }))
 
-  // Products
-  const { data: products } = await supabase
-    .from('products')
-    .select('slug, updatedAt, isActive')
-    .eq('isActive', true)
+  const [categories, products] = await Promise.all([
+    fetchAllMainCategoriesWithHierarchy(),
+    fetchProducts(),
+  ])
 
-  const productPages: MetadataRoute.Sitemap = (products || []).map((p: any) => ({
-    url: `${base}/products/${p.slug}`,
-    lastModified: p.updatedAt ? new Date(p.updatedAt) : now,
-    changeFrequency: 'weekly',
-    priority: 0.6,
-  }))
+  const categoryRoutes = categories.flatMap((category) => {
+    const paths = [category, ...(category.children ?? [])]
+    return paths.map((item) => ({
+      url: `${siteUrl}/categories/${item.slug}`,
+      priority: 0.8,
+      changeFrequency: 'weekly' as const,
+    }))
+  })
 
-  // Bundles
-  const { data: bundles } = await supabase
-    .from('bundles')
-    .select('slug, updatedAt, isActive')
-    .eq('isActive', true)
-
-  const bundlePages: MetadataRoute.Sitemap = (bundles || []).map((b: any) => ({
-    url: `${base}/bundles/${b.slug}`,
-    lastModified: b.updatedAt ? new Date(b.updatedAt) : now,
-    changeFrequency: 'weekly',
+  const productRoutes = products.map((product) => ({
+    url: `${siteUrl}/products/${product.slug}`,
     priority: 0.7,
+    changeFrequency: 'weekly' as const,
   }))
 
-  return [...staticPages, ...categoryPages, ...productPages, ...bundlePages]
+  return [...staticRoutes, ...categoryRoutes, ...productRoutes]
 }
-
-

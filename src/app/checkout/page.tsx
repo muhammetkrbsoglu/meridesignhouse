@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
@@ -292,18 +292,13 @@ export default function CheckoutPage() {
   }, [formData.shippingPostalCode, formData.shippingCity, cartItems]);
 
   const handleSubmit = async (e: React.FormEvent) => {
-    console.log('🚀 handleSubmit called', { event: e, cartItems: cartItems.length });
     e.preventDefault();
-    console.log('📋 Form validation check');
     if (cartItems.length === 0) {
-      console.log('❌ Cart is empty');
       toast.error('Sepetiniz boş');
       return;
     }
-    console.log('✅ Cart has items, proceeding with order creation');
     setSubmitting(true);
     try {
-      console.log('📝 Preparing checkout data', { formData });
       const checkoutData = {
         shippingAddress: {
           fullName: formData.shippingFullName,
@@ -325,23 +320,17 @@ export default function CheckoutPage() {
         paymentMethod: 'whatsapp_approval',
         notes: formData.notes
       };
-      console.log('📤 Calling createOrderFromCart with data:', checkoutData);
       const result = await createOrderFromCart(checkoutData);
-      console.log('📥 createOrderFromCart result:', result);
       if (result.success) {
-        console.log('✅ Order created successfully, order number:', result.orderNumber);
         setOrderNumber(result.orderNumber);
         setShowSuccessModal(true);
       } else {
-        console.log('❌ Order creation failed:', result.error);
-        console.log('🔍 Debug info:', result.debug);
         toast.error(result.error || 'Sipariş oluşturulurken hata oluştu');
       }
     } catch (error) {
-      console.error('💥 Checkout error:', error);
+      console.error('ğŸ’¥ Checkout error:', error);
       toast.error('Bir hata oluştu');
     } finally {
-      console.log('🏁 handleSubmit finished, setting submitting to false');
       setSubmitting(false);
     }
   };
@@ -494,7 +483,7 @@ export default function CheckoutPage() {
                           })}
                         </div>
                         <div className="mt-3 text-sm text-gray-600 bg-gray-50 p-3 rounded-lg">
-                          💡 <strong>İpucu:</strong> Kayıtlı adreslerinizden birini seçerek formu otomatik doldurabilirsiniz.
+                          ğŸ’¡ <strong>İpucu:</strong> Kayıtlı adreslerinizden birini seçerek formu otomatik doldurabilirsiniz.
                         </div>
                         <Separator className="my-4" />
                       </div>
@@ -515,7 +504,7 @@ export default function CheckoutPage() {
                     </div>
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                       <div>
-                        <Label>Şehir (PTT)</Label>
+                        <Label>Åehir (PTT)</Label>
                         <select
                           className="mt-1 w-full border rounded-md h-10 px-3"
                           value={selectedCityId}
@@ -641,7 +630,7 @@ export default function CheckoutPage() {
                               })}
                             </div>
                             <div className="mt-3 text-sm text-gray-600 bg-gray-50 p-3 rounded-lg">
-                              💡 <strong>İpucu:</strong> Fatura adresi için kayıtlı adreslerinizden birini seçebilirsiniz.
+                              ğŸ’¡ <strong>İpucu:</strong> Fatura adresi için kayıtlı adreslerinizden birini seçebilirsiniz.
                             </div>
                             <Separator className="my-4" />
                           </div>
@@ -670,7 +659,7 @@ export default function CheckoutPage() {
                         </div>
                         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                           <div>
-                            <Label htmlFor="billingCity">Şehir *</Label>
+                            <Label htmlFor="billingCity">Åehir *</Label>
                             <Input
                               id="billingCity"
                               value={formData.billingCity}
@@ -911,11 +900,11 @@ export default function CheckoutPage() {
                       className="w-full"
                       size="lg"
                       onClick={(e) => {
-                        console.log('🔘 Button clicked!', { 
-                          type: e.currentTarget.type, 
-                          form: e.currentTarget.form?.id,
+                        console.debug('checkout submit click', {
+                          type: e.currentTarget.type,
+                          formId: e.currentTarget.form?.id,
                           submitting,
-                          cartItems: cartItems.length 
+                          cartItemCount: cartItems.length
                         });
                       }}
                     >
@@ -1026,7 +1015,7 @@ export default function CheckoutPage() {
                     <div className="pt-2 border-t">
                       <Link href="/privacy" className="text-blue-600 hover:underline">Gizlilik Politikası</Link>
                       <span className="mx-2">•</span>
-                      <Link href="/terms" className="text-blue-600 hover:underline">Kullanım Şartları</Link>
+                      <Link href="/terms" className="text-blue-600 hover:underline">Kullanım Åartları</Link>
                     </div>
                   </div>
                 </CardContent>
@@ -1045,17 +1034,17 @@ export default function CheckoutPage() {
                     <div className="space-y-2">
                       <div className="font-medium text-gray-900">Müşteri Hizmetleri</div>
                       <div className="space-y-1">
-                        <div>📞 +90 555 123 45 67</div>
-                        <div>📧 info@meridesignhouse.com</div>
-                        <div>🕒 09:00 - 18:00 (Pazartesi-Cuma)</div>
+                        <div>ğŸ“ +90 555 123 45 67</div>
+                        <div>ğŸ“§ info@meridesignhouse.com</div>
+                        <div>ğŸ•’ 09:00 - 18:00 (Pazartesi-Cuma)</div>
                       </div>
                     </div>
                     <div className="space-y-2">
                       <div className="font-medium text-gray-900">WhatsApp Destek</div>
                       <div className="space-y-1">
-                        <div>💬 Anında yanıt</div>
-                        <div>📱 7/24 destek</div>
-                        <div>🔗 Sipariş takibi</div>
+                        <div>ğŸ’¬ Anında yanıt</div>
+                        <div>ğŸ“± 7/24 destek</div>
+                        <div>ğŸ”— Sipariş takibi</div>
                       </div>
                     </div>
                   </div>
@@ -1121,3 +1110,7 @@ export default function CheckoutPage() {
     </CustomerLayout>
   );
 }
+
+
+
+

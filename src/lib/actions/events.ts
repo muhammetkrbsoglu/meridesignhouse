@@ -1,4 +1,4 @@
-'use server'
+﻿'use server'
 
 import { getSupabaseAdmin } from '@/lib/supabase'
 import { revalidatePath } from 'next/cache'
@@ -496,3 +496,4 @@ export async function fetchProductEventThemeAssignments(): Promise<ProductEventT
     throw new Error('Failed to fetch product event theme assignments')
   }
 }
+

@@ -1,4 +1,4 @@
-import { AdminLayout } from '@/components/admin/AdminLayout'
+﻿import { AdminLayout } from '@/components/admin/AdminLayout'
 import { WhatsAppMessagesTable } from '@/components/admin/WhatsAppMessagesTable'
 import { HappyCustomerForm } from '@/components/admin/HappyCustomerForm'
 import { getAllWhatsAppMessages } from '@/lib/actions/whatsapp-messages'
@@ -44,3 +44,4 @@ export default async function WhatsAppMessagesAdminPage() {
     </AdminLayout>
   )
 }
+

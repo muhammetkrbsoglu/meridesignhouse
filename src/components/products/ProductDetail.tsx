@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import { useState, useEffect } from 'react';
 import Image from 'next/image';
@@ -6,7 +6,7 @@ import Link from 'next/link';
 import { HeartIcon, ShoppingCartIcon, ShareIcon } from '@heroicons/react/24/outline';
 import { HeartIcon as HeartSolidIcon } from '@heroicons/react/24/solid';
 import { ProductWithCategory } from '@/types/product';
-import { addToCart, addToFavorites, removeFromFavorites, isProductInFavorites } from '@/lib/actions/cart';
+import { addToCart, addToFavorites, removeFromFavorites, isProductInFavorites } from '@/lib/api/cartClient';
 import { formatCurrency } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
@@ -434,3 +434,4 @@ export function ProductDetail({ product }: ProductDetailProps) {
     </div>
   );
 }
+

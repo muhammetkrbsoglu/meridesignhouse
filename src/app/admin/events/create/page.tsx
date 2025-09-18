@@ -1,4 +1,4 @@
-import { AdminGuard } from '@/components/auth/AuthGuard'
+﻿import { AdminGuard } from '@/components/auth/AuthGuard'
 import { AdminLayout } from '@/components/admin/AdminLayout'
 import { EventTypeForm } from '@/components/admin/EventTypeForm'
 import { ArrowLeft } from 'lucide-react'

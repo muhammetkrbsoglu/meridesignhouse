@@ -1,4 +1,4 @@
-'use client'
+﻿'use client'
 
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
@@ -8,8 +8,8 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Separator } from '@/components/ui/separator'
 import { ShoppingCartIcon, TrashIcon, PlusIcon, MinusIcon, HeartIcon } from '@heroicons/react/24/outline'
-import { getCartItems, removeFromCart, updateCartItemQuantity, clearCart, addToCart, getCartBundles, updateCartBundleQuantity, removeCartBundle, addToFavorites } from '@/lib/actions/cart'
-import { CartItem, CartBundleLine } from '@/lib/actions/cart'
+import { getCartItems, removeFromCart, updateCartItemQuantity, clearCart, addToCart, getCartBundles, updateCartBundleQuantity, removeCartBundle, addToFavorites } from '@/lib/api/cartClient'
+import type { CartItem, CartBundleLine } from '@/types/cart'
 import { formatCurrency } from '@/lib/utils'
 import { toast } from '@/hooks/use-toast'
 import { ToastAction } from '@/components/ui/toast'
@@ -443,7 +443,7 @@ export function CartContent() {
                           }}
                         />
                       ) : (
-                        <span className="text-2xl">🛍️</span>
+                        <span className="text-2xl">ğŸ›ï¸</span>
                       )}
                     </div>
                   </div>
@@ -618,3 +618,5 @@ export function CartContent() {
     </>
   )
 }
+
+

@@ -1,4 +1,4 @@
-import { getSupabaseAdmin } from '@/lib/supabase'
+﻿import { getSupabaseAdmin } from '@/lib/supabase'
 import { unstable_cache } from 'next/cache'
 import { prisma } from '../prisma'
 import { MessageStatus } from '@prisma/client'
@@ -240,3 +240,4 @@ export const getRecentActivity = unstable_cache(
   ['recent-activity'],
   { revalidate: 30 } // 30 saniye cache
 )
+

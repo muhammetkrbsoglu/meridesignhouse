@@ -1,4 +1,4 @@
-'use server'
+﻿'use server'
 
 import { getSupabaseAdmin } from '@/lib/supabase'
 import { revalidatePath } from 'next/cache'
@@ -123,5 +123,6 @@ export async function setColorActive(id: string, isActive: boolean) {
   revalidatePath('/admin/settings/colors')
   return { success: true }
 }
+
 
 

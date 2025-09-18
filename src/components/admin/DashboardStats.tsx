@@ -1,4 +1,4 @@
-import { Card, CardContent } from '@/components/ui/card'
+﻿import { Card, CardContent } from '@/components/ui/card'
 import { 
   Package, 
   FolderTree, 
@@ -118,3 +118,4 @@ export function DashboardStats({ stats }: DashboardStatsProps) {
     </div>
   )
 }
+

@@ -1,4 +1,4 @@
-/**
+﻿/**
  * MeriDesignHouse Empty State Component
  * Enhanced empty states with fade-in illustrations and animations
  */
@@ -206,3 +206,4 @@ export function EmptySearch({ onClearSearch }: { onClearSearch: () => void }) {
     />
   )
 }
+

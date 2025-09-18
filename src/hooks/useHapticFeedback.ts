@@ -1,4 +1,4 @@
-/**
+﻿/**
  * MeriDesignHouse Haptic Feedback Hook
  * Graceful fallback for devices without haptic support
  */
@@ -98,3 +98,4 @@ export function useHapticFeedback() {
     heavy,
   }
 }
+

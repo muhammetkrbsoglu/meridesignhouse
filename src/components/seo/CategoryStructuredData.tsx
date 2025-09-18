@@ -1,4 +1,4 @@
-'use client'
+﻿'use client'
 
 interface CategoryStructuredDataProps {
   category: { name: string; slug: string; description?: string }
@@ -40,5 +40,6 @@ export function CategoryStructuredData({ category, products }: CategoryStructure
     />
   )
 }
+
 
 

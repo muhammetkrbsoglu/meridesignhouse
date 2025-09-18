@@ -1,4 +1,4 @@
-'use client'
+﻿'use client'
 
 import { motion } from 'framer-motion'
 import { Sparkles, Heart, Star, Zap } from 'lucide-react'
@@ -359,3 +359,4 @@ export function BrandedSkeleton({
     </div>
   )
 }
+

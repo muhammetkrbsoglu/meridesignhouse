@@ -1,4 +1,4 @@
-"use client"
+﻿"use client"
 
 import { useState } from 'react'
 import { BottomSheet } from '@/components/motion/BottomSheet'
@@ -31,12 +31,13 @@ export function ProductsFilterSheetClient({ children }: { children?: React.React
           {children}
           {/* Placeholder content - connect existing filter controls here or reuse sidebar on mobile */}
           <div className="text-sm text-gray-600">
-            Filtre seçenekleri yakında burada görünecek. Şimdilik sol sütundaki filtreleri kullanabilirsiniz.
+            Filtre seçenekleri yakında burada görünecek. Åimdilik sol sütundaki filtreleri kullanabilirsiniz.
           </div>
         </div>
       </BottomSheet>
     </>
   )
 }
+
 
 

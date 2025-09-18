@@ -1,4 +1,4 @@
-'use client'
+﻿'use client'
 
 import { useState, useEffect, useRef, useCallback } from 'react'
 import { motion, useMotionValue, useTransform, useSpring, useReducedMotion } from 'framer-motion'
@@ -304,3 +304,4 @@ export function PullToRefresh({
     </div>
   )
 }
+

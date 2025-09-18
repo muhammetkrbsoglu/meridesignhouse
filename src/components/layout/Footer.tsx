@@ -1,4 +1,4 @@
-'use client'
+﻿'use client'
 
 import Link from 'next/link'
 import { Heart, Sparkles, Star, Mail, Phone, MapPin, Instagram, Facebook, Twitter } from 'lucide-react'
@@ -222,7 +222,7 @@ export function Footer() {
           <div className="flex flex-col md:flex-row justify-between items-center">
             <div className="flex flex-col md:flex-row items-center space-y-2 md:space-y-0 md:space-x-6">
               <p className="text-gray-600 text-sm">
-                © 2024 MeriDesignHouse. Tüm hakları saklıdır.
+                Â© 2024 MeriDesignHouse. Tüm hakları saklıdır.
               </p>
               <div className="flex space-x-4 text-sm">
                 <Link href="/privacy" className="text-gray-500 hover:text-rose-600 transition-colors duration-300">

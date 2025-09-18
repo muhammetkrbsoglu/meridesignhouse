@@ -1,4 +1,4 @@
-"use client"
+﻿"use client"
 
 import React from 'react'
 import { FunnelIcon, ChevronDownIcon } from '@heroicons/react/24/outline'
@@ -85,3 +85,4 @@ export function AutoSubmitSelect({
     </form>
   )
 }
+

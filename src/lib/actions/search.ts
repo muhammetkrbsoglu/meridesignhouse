@@ -1,8 +1,8 @@
-'use server'
+﻿'use server'
 
 import { prisma } from '../prisma'
+import { logger } from '@/lib/logger'
 import { Decimal } from '@prisma/client/runtime/library'
-
 interface Product {
   id: string
   name: string
@@ -137,14 +137,14 @@ export async function getSearchSuggestions(query: string): Promise<SearchSuggest
 
     return suggestions
   } catch (_error) {
-    console.error('Error fetching search suggestions:', _error)
+    logger.error('Error fetching search suggestions:', _error)
     return []
   }
 }
 
 export async function getPopularSearches(): Promise<string[]> {
   // Bu özellik gelecekte analytics verilerine dayalı olarak geliştirilebilir
-  // Şimdilik sabit popüler aramalar döndürüyoruz
+  // Åimdilik sabit popüler aramalar döndürüyoruz
   return [
     'düğün süsleri',
     'doğum günü',
@@ -159,8 +159,15 @@ export async function logSearch(query: string, userId?: string) {
   // Gelecekte search analytics için kullanılabilir
   try {
     // Analytics tablosu oluşturulduğunda burada log kaydı yapılacak
-    console.log(`Search logged: ${query} by user: ${userId || 'anonymous'}`)
+    logger.info(`Search logged: ${query} by user: ${userId || 'anonymous'}`)
   } catch (error) {
-    console.error('Error logging search:', error)
+    logger.error('Error logging search:', error)
   }
 }
+
+
+
+
+
+
+

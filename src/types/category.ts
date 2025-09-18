@@ -1,9 +1,13 @@
-export interface Category {
+﻿export interface Category {
   id: string
   name: string
   slug: string
-  description?: string
-  image?: string
-  children: Category[]
-  level: number
+  description?: string | null
+  image?: string | null
+  parentId?: string | null
+  isActive?: boolean
+  sortOrder?: number
+  children?: Category[]
+  productCount?: number
+  level?: number
 }

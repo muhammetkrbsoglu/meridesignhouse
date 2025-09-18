@@ -1,4 +1,4 @@
-import { StarIcon } from '@heroicons/react/24/solid'
+﻿import { StarIcon } from '@heroicons/react/24/solid'
 
 interface Testimonial {
   id: string

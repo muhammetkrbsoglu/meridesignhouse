@@ -1,8 +1,9 @@
-'use client';
+﻿'use client';
 
 import { useState } from 'react';
 import Link from 'next/link';
-import { CartItem, clearCart } from '@/lib/actions/cart';
+import type { CartItem } from '@/types/cart';
+import { clearCart } from '@/lib/api/cartClient';
 import { formatCurrency } from '@/lib/utils';
 import { toast } from 'sonner';
 
@@ -139,3 +140,5 @@ export function CartSummary({ items }: CartSummaryProps) {
     </div>
   );
 }
+
+

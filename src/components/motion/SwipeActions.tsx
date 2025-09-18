@@ -1,4 +1,4 @@
-"use client"
+﻿"use client"
 
 import { motion, useDragControls, useMotionValue, useTransform, useReducedMotion } from 'framer-motion'
 import { useState, useRef, useEffect } from 'react'
@@ -273,3 +273,4 @@ export function SwipeActions({
     </div>
   )
 }
+

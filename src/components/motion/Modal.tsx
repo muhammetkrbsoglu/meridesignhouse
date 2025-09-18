@@ -1,4 +1,4 @@
-/**
+﻿/**
  * MeriDesignHouse Modal Component
  * Smooth open/close animations with focus trap
  */
@@ -199,3 +199,4 @@ export function Modal({
     document.body
   )
 }
+

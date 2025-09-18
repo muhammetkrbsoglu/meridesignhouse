@@ -1,4 +1,4 @@
-"use client"
+﻿"use client"
 
 import React from 'react'
 import { usePathname, useRouter, useSearchParams } from 'next/navigation'
@@ -111,3 +111,4 @@ export function ColorFilter({
     </div>
   )
 }
+

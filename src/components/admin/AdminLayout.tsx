@@ -1,4 +1,4 @@
-'use client'
+﻿'use client'
 
 import { useState } from 'react'
 import { useAuth } from '@/contexts/AuthContext'
@@ -91,7 +91,7 @@ const navigation = [
     icon: MessageSquare,
   },
   {
-    name: 'Mesaj Şablonları',
+    name: 'Mesaj Åablonları',
     href: '/admin/settings/whatsapp-templates',
     icon: MessageSquare,
   },

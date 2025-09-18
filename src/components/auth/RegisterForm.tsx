@@ -1,4 +1,4 @@
-'use client'
+﻿'use client'
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
@@ -21,10 +21,10 @@ const registerSchema = z.object({
   name: z.string().min(2, 'İsim en az 2 karakter olmalıdır'),
   email: z.string().email('Geçerli bir email adresi giriniz'),
   phone: z.string().optional(),
-  password: z.string().min(6, 'Şifre en az 6 karakter olmalıdır'),
+  password: z.string().min(6, 'Åifre en az 6 karakter olmalıdır'),
   confirmPassword: z.string(),
 }).refine((data) => data.password === data.confirmPassword, {
-  message: 'Şifreler eşleşmiyor',
+  message: 'Åifreler eşleşmiyor',
   path: ['confirmPassword'],
 })
 
@@ -72,7 +72,7 @@ export function RegisterForm({
         if (error.message.includes('User already registered')) {
           setError('Bu email adresi zaten kayıtlı')
         } else if (error.message.includes('Password should be at least 6 characters')) {
-          setError('Şifre en az 6 karakter olmalıdır')
+          setError('Åifre en az 6 karakter olmalıdır')
         } else {
           setError('Kayıt olurken bir hata oluştu')
         }
@@ -179,7 +179,7 @@ export function RegisterForm({
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="password">Şifre</Label>
+            <Label htmlFor="password">Åifre</Label>
             <div className="relative">
               <Input
                 id="password"
@@ -209,7 +209,7 @@ export function RegisterForm({
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="confirmPassword">Şifre Tekrar</Label>
+            <Label htmlFor="confirmPassword">Åifre Tekrar</Label>
             <div className="relative">
               <Input
                 id="confirmPassword"

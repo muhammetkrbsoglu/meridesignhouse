@@ -1,4 +1,4 @@
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+﻿import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Package, Truck, CheckCircle, XCircle, RefreshCw, TrendingUp } from 'lucide-react';
 
 interface OrdersStatsProps {

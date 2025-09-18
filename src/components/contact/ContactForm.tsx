@@ -1,4 +1,4 @@
-'use client'
+﻿'use client'
 
 import { useState } from 'react'
 import { useForm } from 'react-hook-form'
@@ -10,7 +10,7 @@ import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Loader2, Send, CheckCircle, Phone, Mail, MapPin } from 'lucide-react'
-import { createContactMessage } from '@/lib/actions/messages'
+import { createContactMessage } from '@/lib/api/messagesClient'
 import { isValidTurkishPhone, getWhatsAppHref } from '@/lib/whatsapp-utils'
 import { useToast } from '@/hooks/use-toast'
 
@@ -134,7 +134,7 @@ export function ContactForm() {
                 <p className="font-medium text-gray-900">Adres</p>
                 <p className="text-gray-600">
                   Merkez Mahallesi, Design Sokak No:123<br />
-                  Şişli / İstanbul
+                  Åişli / İstanbul
                 </p>
               </div>
             </div>
@@ -292,3 +292,4 @@ export function ContactForm() {
     </div>
   )
 }
+

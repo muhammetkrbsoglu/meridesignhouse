@@ -1,14 +1,13 @@
-'use server'
+﻿'use server'
 
 import { revalidatePath } from 'next/cache'
 import { z } from 'zod'
 import { prisma } from '../prisma'
 import { createServerClient, createAnonClient } from '@/lib/supabase'
+import { logger } from '@/lib/logger'
 import { MessageStatus } from '@prisma/client'
 import { sendContactFormResponse } from '../whatsapp'
 import { formatPhoneForWhatsApp, isValidTurkishPhone } from '../whatsapp-utils'
-
-// Contact form schema
 const contactSchema = z.object({
   name: z.string().min(2, 'İsim en az 2 karakter olmalıdır'),
   email: z.string().email('Geçerli bir email adresi giriniz'),
@@ -42,7 +41,7 @@ export async function createContactMessage(data: ContactFormData) {
       }
     } catch {
       // If auth fails, continue with anon client
-      console.log('No authenticated user, using anon client')
+      logger.debug('No authenticated user, using anon client')
     }
 
     const { data: inserted, error } = await client
@@ -334,3 +333,5 @@ export async function backfillMessageUserIds() {
     }
   }
 }
+
+

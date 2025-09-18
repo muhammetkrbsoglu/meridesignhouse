@@ -1,13 +1,8 @@
-import type { Metadata } from 'next'
+﻿import type { Metadata } from 'next'
 import { Geist, Geist_Mono } from 'next/font/google'
 import './globals.css'
 import { AuthProviderWrapper } from '@/components/providers/AuthProviderWrapper'
-import { GestureHintProvider } from '@/contexts/GestureHintContext'
 import { Toaster } from '@/components/ui/toaster'
-// import { TooltipProvider } from '@/components/ui/tooltip'
-// import { WebsiteStructuredData } from '@/components/seo/WebsiteStructuredData'
-// import { OrganizationStructuredData } from '@/components/seo/OrganizationStructuredData'
-// import { ThemeProvider } from 'next-themes'
 
 const geist = Geist({
   variable: '--font-geist-sans',
@@ -66,27 +61,21 @@ export function reportWebVitals(metric: any) {
     })
   }
 
-  // Basit eşik uyarıları (console + optional custom event)
   try {
-    const name = metric.name
-    const val = metric.value
     const thresholds = {
-      LCP: 2500, // ms
-      INP: 200,  // ms
+      LCP: 2500,
+      INP: 200,
       CLS: 0.1,
     } as const
 
-    if (name === 'LCP' && val > thresholds.LCP) {
-      console.warn('[WebVitals] LCP slow:', val)
+    if (metric.name === 'LCP' && metric.value > thresholds.LCP) {
+      console.warn('[WebVitals] LCP slow:', metric.value)
     }
-    if (name === 'INP' && val > thresholds.INP) {
-      console.warn('[WebVitals] INP slow:', val)
+    if (metric.name === 'INP' && metric.value > thresholds.INP) {
+      console.warn('[WebVitals] INP slow:', metric.value)
     }
-    if (name === 'CLS' && val > thresholds.CLS) {
-      console.warn('[WebVitals] CLS high:', val)
+    if (metric.name === 'CLS' && metric.value > thresholds.CLS) {
+      console.warn('[WebVitals] CLS high:', metric.value)
     }
   } catch {}
 }
-"// Build trigger" 
-"// Cache bust" 
-"// Force rebuild"

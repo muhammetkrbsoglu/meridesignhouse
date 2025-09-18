@@ -1,4 +1,4 @@
-'use server'
+﻿'use server'
 
 import { getSupabaseAdmin } from '@/lib/supabase'
 
@@ -80,5 +80,6 @@ export async function seedWhatsAppTemplatesIfEmpty(defaults: Array<{
   if (insErr) return { success: false }
   return { success: true, seeded: true }
 }
+
 
 

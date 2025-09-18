@@ -1,10 +1,11 @@
-'use client';
+﻿'use client';
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { ChevronRightIcon } from '@heroicons/react/24/outline';
-import { MenuCategory, MenuProduct, fetchMenuCategories, fetchFeaturedProductsForCategory, fetchWeeklyFeaturedProduct } from '@/lib/actions/menu';
+import type { MenuCategory, MenuProduct } from '@/types/menu';
+import { fetchMenuCategories, fetchFeaturedProductsForCategory, fetchWeeklyFeaturedProduct } from '@/lib/api/menuClient';
 import { formatCurrency } from '@/lib/utils';
 
 interface MegaMenuProps {
@@ -329,3 +330,5 @@ export default function MegaMenu({ isOpen, onClose, onHoverChange }: MegaMenuPro
     </>
   );
 }
+
+

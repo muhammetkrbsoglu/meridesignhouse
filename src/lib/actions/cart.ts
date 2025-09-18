@@ -1,72 +1,9 @@
-'use server';
+﻿'use server';
 
-import { getSupabaseAdmin, createServerClient } from '@/lib/supabase';
-import { revalidatePath } from 'next/cache';
-
-export interface CartItem {
-  id: string;
-  userId: string;
-  productId: string;
-  quantity: number;
-  createdAt: string;
-  updatedAt: string;
-  product: {
-    id: string;
-    name: string;
-    slug: string;
-    price: number;
-    product_images: Array<{
-      url: string;
-      alt: string | null;
-      sortOrder: number | null;
-    }>;
-    category: {
-      name: string;
-    } | null;
-  };
-}
-
-export interface CartBundleItemProduct {
-  id: string;
-  name: string;
-  slug: string;
-  price: number;
-  product_images: Array<{ url: string; alt: string | null; sortOrder: number | null }>;
-}
-
-export interface CartBundleLine {
-  id: string;
-  userId: string;
-  bundleId: string;
-  quantity: number;
-  price: number; // bundle price per set
-  createdAt: string;
-  updatedAt: string;
-  bundle: { id: string; name: string; slug: string } | null;
-  items: Array<{ id: string; productId: string; quantity: number; product: CartBundleItemProduct | null }>
-}
-
-export interface FavoriteItem {
-  id: string;
-  userId: string;
-  productId: string;
-  createdAt: string;
-  product: {
-    id: string;
-    name: string;
-    slug: string;
-    price: number;
-    product_images: Array<{
-      url: string;
-      alt: string | null;
-      sortOrder: number | null;
-    }>;
-    category: {
-      name: string;
-    } | null;
-  };
-}
-
+import { getSupabaseAdmin, createServerClient } from '@/lib/supabase'
+import { logger } from '@/lib/logger'
+import type { CartItem, CartBundleLine, FavoriteItem } from '@/types/cart'
+import { revalidatePath } from 'next/cache'
 /**
  * Add item to cart
  */
@@ -75,7 +12,7 @@ export async function addToCart(productId: string, quantity: number = 1) {
     // Get user from server client for authentication check
     const serverClient = await createServerClient();
     const { data: { user }, error: authError } = await serverClient.auth.getUser();
-    console.log('[cart.addToCart] auth', { hasUser: !!user, authError });
+    logger.debug('[cart.addToCart] auth', { hasUser: !!user, authError });
     
     if (authError || !user) {
       return { success: false, error: 'Giriş yapmanız gerekiyor' };
@@ -83,7 +20,7 @@ export async function addToCart(productId: string, quantity: number = 1) {
 
     // Use admin client for database operations (bypasses RLS)
     const supabase = getSupabaseAdmin();
-    console.log('[cart.addToCart] input', { productId, quantity });
+    logger.debug('[cart.addToCart] input', { productId, quantity });
 
     // Check if item already exists in cart
     const { data: existingItems, error: checkError } = await supabase
@@ -91,10 +28,10 @@ export async function addToCart(productId: string, quantity: number = 1) {
       .select('id, quantity')
       .eq('userId', user.id)
       .eq('productId', productId);
-    console.log('[cart.addToCart] existingItems', { existingItems, checkError });
+    logger.debug('[cart.addToCart] existingItems', { existingItems, checkError });
 
     if (checkError) {
-      console.error('[cart.addToCart] check error', checkError);
+      logger.error('[cart.addToCart] check error', checkError);
       return { success: false, error: 'Sepet kontrol edilirken hata oluştu' };
     }
 
@@ -109,10 +46,10 @@ export async function addToCart(productId: string, quantity: number = 1) {
           updatedAt: new Date().toISOString(),
         })
         .eq('id', existingItem.id);
-      console.log('[cart.addToCart] update', { updateError });
+      logger.debug('[cart.addToCart] update', { updateError });
 
       if (updateError) {
-        console.error('[cart.addToCart] update error', updateError);
+        logger.error('[cart.addToCart] update error', updateError);
         return { success: false, error: 'Sepet güncellenirken hata oluştu' };
       }
     } else {
@@ -126,10 +63,10 @@ export async function addToCart(productId: string, quantity: number = 1) {
           quantity,
           updatedAt: new Date().toISOString(),
         });
-      console.log('[cart.addToCart] insert', { insertError });
+      logger.debug('[cart.addToCart] insert', { insertError });
 
       if (insertError) {
-        console.error('[cart.addToCart] insert error', insertError);
+        logger.error('[cart.addToCart] insert error', insertError);
         return { success: false, error: 'Ürün sepete eklenirken hata oluştu' };
       }
     }
@@ -138,7 +75,7 @@ export async function addToCart(productId: string, quantity: number = 1) {
     
     return { success: true };
   } catch (error) {
-    console.error('[cart.addToCart] unexpected error', error);
+    logger.error('[cart.addToCart] unexpected error', error);
     return { success: false, error: 'Bir hata oluştu' };
   }
 }
@@ -168,7 +105,7 @@ export async function addManyToCart(items: { productId: string; quantity: number
         .maybeSingle();
 
       if (checkError && checkError.code !== 'PGRST116') {
-        console.error('[cart.addManyToCart] check error', checkError);
+        logger.error('[cart.addManyToCart] check error', checkError);
         continue;
       }
 
@@ -197,7 +134,7 @@ export async function addManyToCart(items: { productId: string; quantity: number
     
     return { success: true };
   } catch (error) {
-    console.error('[cart.addManyToCart] unexpected error', error);
+    logger.error('[cart.addManyToCart] unexpected error', error);
     return { success: false, error: 'Bir hata oluştu' };
   }
 }
@@ -234,11 +171,11 @@ export async function addBundleToCart(bundleId: string) {
     ])
 
     if (bundleErr || !bundleRow) {
-      console.error('[cart.addBundleToCart] bundle fetch error', bundleErr)
+      logger.error('[cart.addBundleToCart] bundle fetch error', bundleErr)
       return { success: false, error: 'Set bulunamadı' }
     }
     if (itemsErr) {
-      console.error('[cart.addBundleToCart] items fetch error', itemsErr)
+      logger.error('[cart.addBundleToCart] items fetch error', itemsErr)
       return { success: false, error: 'Set ürünleri alınamadı' }
     }
 
@@ -251,7 +188,7 @@ export async function addBundleToCart(bundleId: string) {
       .maybeSingle()
 
     if (existingErr) {
-      console.error('[cart.addBundleToCart] existing check error', existingErr)
+      logger.error('[cart.addBundleToCart] existing check error', existingErr)
     }
 
     const priceNumber = typeof bundleRow.bundleprice === 'number' ? bundleRow.bundleprice : Number(bundleRow.bundleprice)
@@ -264,7 +201,7 @@ export async function addBundleToCart(bundleId: string) {
         .update({ quantity: existing.quantity + 1, updatedat: nowIso })
         .eq('id', existing.id)
       if (updErr) {
-        console.error('[cart.addBundleToCart] update bundle qty error', updErr)
+        logger.error('[cart.addBundleToCart] update bundle qty error', updErr)
         return { success: false, error: 'Sepet güncellenemedi' }
       }
     } else {
@@ -273,7 +210,7 @@ export async function addBundleToCart(bundleId: string) {
         .from('cart_bundles')
         .insert({ id: newId, userid: user.id, bundleid: bundleId, quantity: 1, price: priceNumber, createdat: nowIso, updatedat: nowIso })
       if (insErr) {
-        console.error('[cart.addBundleToCart] insert bundle error', insErr)
+        logger.error('[cart.addBundleToCart] insert bundle error', insErr)
         return { success: false, error: 'Set sepete eklenemedi' }
       }
       cartBundleId = newId
@@ -281,7 +218,7 @@ export async function addBundleToCart(bundleId: string) {
       if (items && items.length > 0) {
         const rows = items.map((it: any) => ({ id: crypto.randomUUID(), cartbundleid: newId, productid: it.productid, quantity: it.quantity || 1 }))
         const { error: itemsInsErr } = await supabase.from('cart_bundle_items').insert(rows)
-        if (itemsInsErr) console.error('[cart.addBundleToCart] insert bundle items error', itemsInsErr)
+        if (itemsInsErr) logger.error('[cart.addBundleToCart] insert bundle items error', itemsInsErr)
       }
     }
 
@@ -291,7 +228,7 @@ export async function addBundleToCart(bundleId: string) {
     }
     return { success: true }
   } catch (error) {
-    console.error('[cart.addBundleToCart] unexpected error', error);
+    logger.error('[cart.addBundleToCart] unexpected error', error);
     return { success: false, error: 'Bir hata oluştu' };
   }
 }
@@ -311,7 +248,7 @@ export async function getCartBundles(): Promise<CartBundleLine[]> {
       .order('createdat', { ascending: false })
 
     if (error) {
-      console.error('[cart.getCartBundles] fetch error', error)
+      logger.error('[cart.getCartBundles] fetch error', error)
       return []
     }
 
@@ -363,7 +300,7 @@ export async function getCartBundles(): Promise<CartBundleLine[]> {
       items: itemsByCartBundle.get(b.id) || [],
     }))
   } catch (e) {
-    console.error('[cart.getCartBundles] unexpected error', e)
+    logger.error('[cart.getCartBundles] unexpected error', e)
     return []
   }
 }
@@ -387,14 +324,14 @@ export async function updateCartBundleQuantity(cartBundleId: string, quantity: n
       .eq('userid', user.id)
 
     if (error) {
-      console.error('[cart.updateCartBundleQuantity] error', error)
+      logger.error('[cart.updateCartBundleQuantity] error', error)
       return { success: false, error: 'Sepet güncellenemedi' }
     }
 
     // Client components should refresh their own state and emit events.
     return { success: true }
   } catch (e) {
-    console.error('[cart.updateCartBundleQuantity] unexpected', e)
+    logger.error('[cart.updateCartBundleQuantity] unexpected', e)
     return { success: false, error: 'Bir hata oluştu' }
   }
 }
@@ -414,14 +351,14 @@ export async function removeCartBundle(cartBundleId: string) {
       .eq('userid', user.id)
 
     if (error) {
-      console.error('[cart.removeCartBundle] error', error)
+      logger.error('[cart.removeCartBundle] error', error)
       return { success: false, error: 'Set sepetten çıkarılamadı' }
     }
 
     // Client components should refresh their own state and emit events.
     return { success: true }
   } catch (e) {
-    console.error('[cart.removeCartBundle] unexpected', e)
+    logger.error('[cart.removeCartBundle] unexpected', e)
     return { success: false, error: 'Bir hata oluştu' }
   }
 }
@@ -449,7 +386,7 @@ export async function removeFromCart(cartItemId: string) {
       .eq('userId', user.id);
 
     if (error) {
-      console.error('Error removing from cart:', error);
+      logger.error('Error removing from cart:', error);
       return { success: false, error: 'Ürün sepetten çıkarılırken hata oluştu' };
     }
 
@@ -457,7 +394,7 @@ export async function removeFromCart(cartItemId: string) {
     
     return { success: true };
   } catch (error) {
-    console.error('[cart.removeFromCart] unexpected error', error);
+    logger.error('[cart.removeFromCart] unexpected error', error);
     return { success: false, error: 'Bir hata oluştu' };
   }
 }
@@ -504,7 +441,7 @@ export async function updateCartItemQuantity(productId: string, quantity: number
       .eq('userId', user.id);
 
     if (error) {
-      console.error('Error updating cart quantity:', error);
+      logger.error('Error updating cart quantity:', error);
       return { success: false, error: 'Sepet güncellenirken hata oluştu' };
     }
 
@@ -512,7 +449,7 @@ export async function updateCartItemQuantity(productId: string, quantity: number
     
     return { success: true };
   } catch (error) {
-    console.error('[cart.updateCartItemQuantity] unexpected error', error);
+    logger.error('[cart.updateCartItemQuantity] unexpected error', error);
     return { success: false, error: 'Bir hata oluştu' };
   }
 }
@@ -558,13 +495,13 @@ export async function getCartItems(): Promise<CartItem[]> {
 
 
     if (error) {
-      console.error('Error fetching cart items:', error);
+      logger.error('Error fetching cart items:', error);
       return [];
     }
 
     return data || [];
   } catch (error) {
-    console.error('[cart.getCartItems] unexpected error', error);
+    logger.error('[cart.getCartItems] unexpected error', error);
     return [];
   }
 }
@@ -597,11 +534,11 @@ export async function getCartCount(): Promise<number> {
     ])
 
     if (itemsRes.error) {
-      console.error('Error fetching cart items count:', itemsRes.error);
+      logger.error('Error fetching cart items count:', itemsRes.error);
       return 0;
     }
     if (bundlesRes.error) {
-      console.error('Error fetching cart bundles for count:', bundlesRes.error);
+      logger.error('Error fetching cart bundles for count:', bundlesRes.error);
       return itemsRes.count || 0;
     }
 
@@ -609,7 +546,7 @@ export async function getCartCount(): Promise<number> {
     const itemsCount = itemsRes.count || 0
     return itemsCount + bundleQty
   } catch (error) {
-    console.error('[cart.getCartCount] unexpected error', error);
+    logger.error('[cart.getCartCount] unexpected error', error);
     return 0;
   }
 }
@@ -643,12 +580,12 @@ export async function clearCart() {
     ]);
 
     if (itemsResult.error) {
-      console.error('Error clearing cart items:', itemsResult.error);
+      logger.error('Error clearing cart items:', itemsResult.error);
       return { success: false, error: 'Sepet ürünleri temizlenirken hata oluştu' };
     }
 
     if (bundlesResult.error) {
-      console.error('Error clearing cart bundles:', bundlesResult.error);
+      logger.error('Error clearing cart bundles:', bundlesResult.error);
       return { success: false, error: 'Sepet setleri temizlenirken hata oluştu' };
     }
 
@@ -656,7 +593,7 @@ export async function clearCart() {
     
     return { success: true };
   } catch (error) {
-    console.error('[cart.clearCart] unexpected error', error);
+    logger.error('[cart.clearCart] unexpected error', error);
     return { success: false, error: 'Bir hata oluştu' };
   }
 }
@@ -676,7 +613,7 @@ export async function addToFavorites(productId: string) {
 
     // Use admin client for database operations (bypasses RLS)
     const supabase = getSupabaseAdmin();
-    console.log('[favorites.add] input', { productId });
+    logger.debug('[favorites.add] input', { productId });
 
     // Check if item already exists in favorites
     const { data: existingItem, error: checkError } = await supabase
@@ -685,10 +622,10 @@ export async function addToFavorites(productId: string) {
       .eq('userId', user.id)
       .eq('productId', productId)
       .single();
-    console.log('[favorites.add] existingItem', { existingItem, checkError });
+    logger.debug('[favorites.add] existingItem', { existingItem, checkError });
 
     if (checkError && checkError.code !== 'PGRST116') {
-      console.error('[favorites.add] check error', checkError);
+      logger.error('[favorites.add] check error', checkError);
       return { success: false, error: 'Favoriler kontrol edilirken hata oluştu' };
     }
 
@@ -704,17 +641,17 @@ export async function addToFavorites(productId: string) {
         userId: user.id,
         productId: productId,
       });
-    console.log('[favorites.add] insert', { insertError });
+    logger.debug('[favorites.add] insert', { insertError });
 
     if (insertError) {
-      console.error('[favorites.add] insert error', insertError);
+      logger.error('[favorites.add] insert error', insertError);
       return { success: false, error: 'Ürün favorilere eklenirken hata oluştu' };
     }
 
     revalidatePath('/favorites');
     return { success: true };
   } catch (error) {
-    console.error('[favorites.add] unexpected error', error);
+    logger.error('[favorites.add] unexpected error', error);
     return { success: false, error: 'Bir hata oluştu' };
   }
 }
@@ -742,14 +679,14 @@ export async function removeFromFavorites(productId: string) {
       .eq('productId', productId);
 
     if (error) {
-      console.error('[favorites.remove] delete error', error);
+      logger.error('[favorites.remove] delete error', error);
       return { success: false, error: 'Ürün favorilerden çıkarılırken hata oluştu' };
     }
 
     revalidatePath('/favorites');
     return { success: true };
   } catch (error) {
-    console.error('[favorites.remove] unexpected error', error);
+    logger.error('[favorites.remove] unexpected error', error);
     return { success: false, error: 'Bir hata oluştu' };
   }
 }
@@ -790,13 +727,13 @@ export async function getFavoriteItems(): Promise<FavoriteItem[]> {
 
 
     if (error) {
-      console.error('Error fetching favorite items:', error);
+      logger.error('Error fetching favorite items:', error);
       return [];
     }
 
     return data || [];
   } catch (error) {
-    console.error('[favorites.getFavoriteItems] unexpected error', error);
+    logger.error('[favorites.getFavoriteItems] unexpected error', error);
     return [];
   }
 }
@@ -825,13 +762,13 @@ export async function isProductInFavorites(productId: string): Promise<boolean> 
       .single();
 
     if (error && error.code !== 'PGRST116') {
-      console.error('[favorites.isProductInFavorites] check error', error);
+      logger.error('[favorites.isProductInFavorites] check error', error);
       return false;
     }
 
     return !!data;
   } catch (error) {
-    console.error('[favorites.isProductInFavorites] unexpected error', error);
+    logger.error('[favorites.isProductInFavorites] unexpected error', error);
     return false;
   }
 }
@@ -858,13 +795,20 @@ export async function getFavoriteCount(): Promise<number> {
       .eq('userId', user.id);
 
     if (error) {
-      console.error('Error fetching favorite count:', error);
+      logger.error('Error fetching favorite count:', error);
       return 0;
     }
 
     return count || 0;
   } catch (error) {
-    console.error('[favorites.getFavoriteCount] unexpected error', error);
+    logger.error('[favorites.getFavoriteCount] unexpected error', error);
     return 0;
   }
 }
+
+
+
+
+
+
+

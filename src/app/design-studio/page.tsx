@@ -1,4 +1,4 @@
-import { CustomerLayout } from '@/components/layout/CustomerLayout'
+﻿import { CustomerLayout } from '@/components/layout/CustomerLayout'
 import Image from 'next/image'
 
 export default function DesignStudioComingSoon() {
@@ -62,7 +62,7 @@ export default function DesignStudioComingSoon() {
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
                 </svg>
               </div>
-              <h3 className="text-xl font-semibold text-gray-800 mb-2">Hazır Şablonlar</h3>
+              <h3 className="text-xl font-semibold text-gray-800 mb-2">Hazır Åablonlar</h3>
               <p className="text-gray-600">Profesyonel hazır şablonlardan seçim yapın</p>
             </div>
 
@@ -100,7 +100,7 @@ export default function DesignStudioComingSoon() {
           {/* Alt Bilgi */}
           <div className="mt-12 text-gray-500">
             <p className="text-sm">
-              Bu özellik yakında aktif olacaktır. Sabırla beklediğiniz için teşekkür ederiz! 💕
+              Bu özellik yakında aktif olacaktır. Sabırla beklediğiniz için teşekkür ederiz! ğŸ’•
             </p>
           </div>
         </div>
@@ -108,3 +108,4 @@ export default function DesignStudioComingSoon() {
     </CustomerLayout>
   )
 }
+

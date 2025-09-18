@@ -65,8 +65,6 @@ let _supabaseAdmin: ReturnType<typeof createClient> | null = null
 export const getSupabaseAdmin = () => {
   if (!_supabaseAdmin) {
     const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY
-    console.log('Service Role Key exists:', !!serviceRoleKey)
-    console.log('Service Role Key length:', serviceRoleKey?.length || 0)
     if (!serviceRoleKey) {
       throw new Error('SUPABASE_SERVICE_ROLE_KEY is required for admin operations')
     }
@@ -587,3 +585,5 @@ export type Database = {
 export type Tables<T extends keyof Database['public']['Tables']> = Database['public']['Tables'][T]['Row']
 export type InsertTables<T extends keyof Database['public']['Tables']> = Database['public']['Tables'][T]['Insert']
 export type UpdateTables<T extends keyof Database['public']['Tables']> = Database['public']['Tables'][T]['Update']
+
+

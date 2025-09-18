@@ -1,4 +1,4 @@
-import Link from 'next/link'
+﻿import Link from 'next/link'
 
 export const metadata = {
   title: '404 - Sayfa Bulunamadı | Meri DesignHouse',
@@ -60,5 +60,6 @@ export default function NotFound() {
     </div>
   )
 }
+
 
 

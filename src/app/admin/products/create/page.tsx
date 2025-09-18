@@ -1,4 +1,4 @@
-import { AdminGuard } from '@/components/auth/AuthGuard'
+﻿import { AdminGuard } from '@/components/auth/AuthGuard'
 import { AdminLayout } from '@/components/admin/AdminLayout'
 import { ProductForm } from '@/components/admin/ProductForm'
 import { fetchCategories } from '@/lib/actions/products'

@@ -1,4 +1,4 @@
-'use client'
+﻿'use client'
 
 import { useState, useEffect } from 'react'
 import { motion } from 'framer-motion'
@@ -201,3 +201,4 @@ export function PerformanceBudget() {
     </Card>
   )
 }
+

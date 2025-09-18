@@ -1,4 +1,4 @@
-/**
+﻿/**
  * MeriDesignHouse Mobile Checkout Stepper
  * Step-by-step checkout process optimized for mobile
  */
@@ -315,3 +315,4 @@ export function useCheckoutSteps(initialStep: string = 'shipping') {
     goToPreviousStep
   }
 }
+

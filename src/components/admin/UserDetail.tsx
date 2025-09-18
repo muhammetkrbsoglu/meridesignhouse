@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 // Removed unused useState
 import Link from 'next/link';

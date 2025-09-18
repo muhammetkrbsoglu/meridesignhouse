@@ -1,4 +1,4 @@
-'use client'
+﻿'use client'
 
 import { motion } from 'framer-motion'
 import { Award, Sparkles, Heart, Star, Shield, Zap } from 'lucide-react'
@@ -197,3 +197,4 @@ export function ElYapimiBadgeWithFeatures({
     </div>
   )
 }
+

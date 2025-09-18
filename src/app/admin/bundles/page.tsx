@@ -1,4 +1,4 @@
-import Link from 'next/link'
+﻿import Link from 'next/link'
 import { fetchBundles, deleteBundle } from '@/lib/actions/bundles'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
@@ -62,5 +62,6 @@ export default async function BundlesListPage() {
     </AdminGuard>
   )
 }
+
 
 

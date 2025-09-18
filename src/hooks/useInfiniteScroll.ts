@@ -1,4 +1,4 @@
-/**
+﻿/**
  * MeriDesignHouse Infinite Scroll Hook
  * Viewport-aware infinite scroll with smooth loading and accessibility
  */
@@ -156,3 +156,4 @@ export function useProductInfiniteScroll(
     hasMore: displayedProducts.length < products.length
   }
 }
+

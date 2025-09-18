@@ -1,9 +1,10 @@
-'use client';
+﻿'use client';
 
 import { useState } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
-import { FavoriteItem, removeFromFavorites, addToCart, addToFavorites } from '@/lib/actions/cart';
+import type { FavoriteItem } from '@/types/cart';
+import { removeFromFavorites, addToCart, addToFavorites } from '@/lib/api/cartClient';
 import { ToastAction } from '@/components/ui/toast';
 import { toast } from '@/hooks/use-toast';
 import { formatCurrency } from '@/lib/utils';
@@ -195,3 +196,5 @@ export function FavoriteItems({ items }: FavoriteItemsProps) {
     </div>
   );
 }
+
+

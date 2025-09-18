@@ -1,4 +1,4 @@
-"use client"
+﻿"use client"
 
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
@@ -23,7 +23,7 @@ import {
 } from '@heroicons/react/24/solid'
 import { getOptimalGlassConfig } from '@/lib/glassmorphism'
 import { cn } from '@/lib/utils'
-import { getCartCount, getFavoriteCount } from '@/lib/actions/cart'
+import { getCartCount, getFavoriteCount } from '@/lib/api/cartClient'
 import { motion, useReducedMotion, AnimatePresence } from 'framer-motion'
 import { SearchAutocomplete } from '@/components/ui/SearchAutocomplete'
 
@@ -276,3 +276,4 @@ export function BottomTabBar() {
     </motion.nav>
   )
 }
+

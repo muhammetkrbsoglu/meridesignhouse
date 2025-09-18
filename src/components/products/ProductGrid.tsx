@@ -1,11 +1,11 @@
-'use client';
+﻿'use client';
 
 import Link from 'next/link';
 import { motion } from 'framer-motion';
 import { HeartIcon, ShoppingCartIcon } from '@heroicons/react/24/outline';
 import { HeartIcon as HeartSolidIcon } from '@heroicons/react/24/solid';
 import { ProductWithCategory } from '@/types/product';
-import { addToCart, addToFavorites, removeFromFavorites, isProductInFavorites } from '@/lib/actions/cart';
+import { addToCart, addToFavorites, removeFromFavorites, isProductInFavorites } from '@/lib/api/cartClient';
 import { formatCurrency } from '@/lib/utils';
 import { useState, useEffect } from 'react';
 import { toast } from '@/hooks/use-toast';
@@ -348,3 +348,4 @@ export function ProductGrid({ products, loading = false, skeletonCount = 8, enab
     </div>
   );
 }
+

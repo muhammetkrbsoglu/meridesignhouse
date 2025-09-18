@@ -1,10 +1,8 @@
-import { Suspense } from 'react'
+﻿import { Suspense } from 'react'
 import { CustomerLayout } from '@/components/layout/CustomerLayout'
 import { CartContent } from '@/components/cart/CartContent'
 import { CartSkeleton } from '@/components/cart/CartSkeleton'
 import { PageTransition } from '@/components/motion/PageTransition'
-import { CartSwipeHint } from '@/components/motion/GestureHint'
-import { EmptyCart } from '@/components/ui/EmptyState'
 
 export default function CartPage() {
   return (
@@ -18,9 +16,7 @@ export default function CartPage() {
             </div>
 
             <Suspense fallback={<CartSkeleton />}>
-              <CartSwipeHint showOnMount delay={800}>
-                <CartContent />
-              </CartSwipeHint>
+              <CartContent />
             </Suspense>
           </div>
         </div>
@@ -28,3 +24,4 @@ export default function CartPage() {
     </CustomerLayout>
   )
 }
+

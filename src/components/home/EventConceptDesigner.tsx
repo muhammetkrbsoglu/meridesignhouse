@@ -1,4 +1,4 @@
-'use client'
+﻿'use client'
 
 import { useState, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
@@ -17,30 +17,8 @@ import {
   Gem,
   Shapes
 } from 'lucide-react'
-import { fetchEventTypes, fetchThemeStyles } from '@/lib/actions/events'
-
-// Type definitions
-interface EventType {
-  id: string
-  name: string
-  description: string | null
-  isActive: boolean
-  sortOrder: number
-  created_at: string
-  updated_at: string
-}
-
-interface ThemeStyle {
-  id: string
-  name: string
-  description: string | null
-  isActive: boolean
-  sortOrder: number
-  created_at: string
-  updated_at: string
-  colors?: string[]
-}
-
+import { fetchEventTypes, fetchThemeStyles } from '@/lib/api/eventsClient'
+import type { EventType, ThemeStyle } from '@/types/event'
 // Icon mapping for event types
 const eventIcons: { [key: string]: React.ComponentType<{ className?: string }> } = {
   'doğum günü': Cake,
@@ -91,46 +69,23 @@ export function EventConceptDesigner() {
 
   useEffect(() => {
     const loadData = async () => {
-    try {
-      // Fetch event types and theme styles using server actions
-      const [events, themes] = await Promise.all([
-        fetchEventTypes(),
-        fetchThemeStyles()
-      ])
-      
-      // Convert server action data to component format
-      const formattedEvents = events.map(event => ({
-        id: event.id,
-        name: event.name,
-        description: event.description,
-        isActive: event.isActive,
-        sortOrder: event.sortOrder,
-        created_at: event.createdAt ? event.createdAt.toISOString() : new Date().toISOString(),
-        updated_at: event.updatedAt ? event.updatedAt.toISOString() : new Date().toISOString()
-      }))
-      
-      const formattedThemes = themes.map(theme => ({
-        id: theme.id,
-        name: theme.name,
-        description: theme.description,
-        isActive: theme.isActive,
-        sortOrder: theme.sortOrder,
-        colors: theme.colors || [],
-        created_at: theme.createdAt ? theme.createdAt.toISOString() : new Date().toISOString(),
-        updated_at: theme.updatedAt ? theme.updatedAt.toISOString() : new Date().toISOString()
-      }))
-      
-      setEventTypes(formattedEvents)
-      setThemeStyles(formattedThemes)
-    } catch (_error) {
-      console.error('Veri yüklenirken hata:', _error)
-    } finally {
-      setLoading(false)
+      try {
+        const [events, themes] = await Promise.all([
+          fetchEventTypes(),
+          fetchThemeStyles()
+        ])
+
+        setEventTypes(events)
+        setThemeStyles(themes)
+      } catch (_error) {
+        console.error('Veri yüklenirken hata:', _error)
+      } finally {
+        setLoading(false)
+      }
     }
-  }
-    
+
     loadData()
-  }, [])
+  }, []);
 
   const handleNext = () => {
     if (currentStep < 3) {
@@ -436,3 +391,30 @@ export function EventConceptDesigner() {
     </section>
   )
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

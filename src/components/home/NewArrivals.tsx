@@ -1,4 +1,4 @@
-'use client'
+﻿'use client'
 
 import { useState, useEffect } from 'react'
 import Image from 'next/image'
@@ -7,7 +7,7 @@ import { motion } from 'framer-motion'
 import { HeartIcon, ShoppingCartIcon } from '@heroicons/react/24/outline'
 import { HeartIcon as HeartSolidIcon } from '@heroicons/react/24/solid'
 
-import { addToCart, addToFavorites, removeFromFavorites, isProductInFavorites } from '@/lib/actions/cart'
+import { addToCart, addToFavorites, removeFromFavorites, isProductInFavorites } from '@/lib/api/cartClient'
 import { toast } from 'sonner'
 import { SimpleProduct } from '@/types/product'
 import { useDesktopAnimations } from '@/hooks/useDesktopAnimations'
@@ -149,7 +149,7 @@ export function NewArrivals({ products }: NewArrivalsProps) {
             transition={{ duration: 0.6 }}
             viewport={{ once: true }}
           >
-            🆕 Yeni Koleksiyon
+            ğŸ†• Yeni Koleksiyon
           </motion.div>
           <motion.h2 
             className="text-3xl sm:text-4xl md:text-5xl font-bold mb-4 sm:mb-6 bg-gradient-to-r from-rose-600 to-purple-600 bg-clip-text text-transparent"
@@ -274,3 +274,4 @@ export function NewArrivals({ products }: NewArrivalsProps) {
     </section>
   )
 }
+

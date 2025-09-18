@@ -1,4 +1,4 @@
-import { Metadata } from 'next'
+﻿import { Metadata } from 'next'
 import { ContactForm } from '@/components/contact/ContactForm'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { CustomerLayout } from '@/components/layout/CustomerLayout'

@@ -1,4 +1,4 @@
-import { AdminGuard } from '@/components/auth/AuthGuard'
+﻿import { AdminGuard } from '@/components/auth/AuthGuard'
 import { AdminLayout } from '@/components/admin/AdminLayout'
 import { listAllColors, upsertColor, deleteColor, setColorActive, seedColorsIfEmpty } from '@/lib/actions/colors'
 import { Color } from '@/lib/actions/colors'
@@ -84,5 +84,6 @@ export default async function ColorsAdminPage() {
     </AdminGuard>
   )
 }
+
 
 

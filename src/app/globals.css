@@ -1,4 +1,4 @@
-@import "tailwindcss";
+﻿@import "tailwindcss";
 @import "tw-animate-css";
 
 /* Tasarım Atölyesi için özel stiller */
@@ -642,3 +642,4 @@
     }
   }
 }
+

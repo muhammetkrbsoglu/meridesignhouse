@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
-import { getCartCount } from '@/lib/actions/cart';
+import { getCartCount } from '@/lib/api/cartClient';
 
 export function CartIcon() {
   const [cartCount, setCartCount] = useState(0);

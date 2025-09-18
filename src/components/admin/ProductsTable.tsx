@@ -1,4 +1,4 @@
-import Image from 'next/image'
+﻿import Image from 'next/image'
 import { UpdateProduct, DeleteProduct } from '@/components/admin/ProductButtons'
 import { formatCurrency } from '@/lib/utils'
 import { fetchFilteredProducts } from '@/lib/actions/products'

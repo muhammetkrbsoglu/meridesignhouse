@@ -1,4 +1,4 @@
-import { Suspense } from 'react';
+﻿import { Suspense } from 'react';
 import { AdminGuard } from '@/components/auth/AuthGuard';
 import { AdminLayout } from '@/components/admin/AdminLayout';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
