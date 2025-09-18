@@ -9,8 +9,6 @@ const NewArrivals = dynamic(() => import('./NewArrivals').then(m => ({ default: 
 const FeaturedProducts = dynamic(() => import('./FeaturedProducts').then(m => ({ default: m.FeaturedProducts })), { ssr: false })
 const HappyCustomers = dynamic(() => import('./HappyCustomers'), { ssr: false })
 const TestimonialsSection = dynamic(() => import('./TestimonialsSection').then(m => ({ default: m.TestimonialsSection })), { ssr: false })
-import InstagramTemplate from './InstagramTemplate'
-import WhatsAppTemplate from './WhatsAppTemplate'
 import { UstaninNotu } from '@/components/brand/UstaninNotu'
 const CollectionStory = dynamic(() => import('@/components/brand/CollectionStory').then(m => ({ default: m.CollectionStory })), { ssr: false })
 
@@ -34,16 +32,6 @@ export function HomePageClient({ newArrivals, featuredProducts }: HomePageClient
       <UstaninNotu variant="featured" showStats={true} />
       <CollectionStory variant="timeline" />
       <TestimonialsSection />
-      <InstagramTemplate
-        screenshotUrl="/placeholder-product.jpg"
-        customerName="Musteri"
-        altText="Instagram mesaj ekran goruntusu"
-      />
-      <WhatsAppTemplate
-        screenshotUrl="/placeholder-product.jpg"
-        customerName="Musteri"
-        altText="WhatsApp mesaj ekran goruntusu"
-      />
     </motion.div>
   )
 }

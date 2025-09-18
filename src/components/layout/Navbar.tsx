@@ -97,16 +97,25 @@ export function Navbar() {
 
   // Compact/expand davranışı: aşağı kayınca kompakt, yukarıda geniş
   useEffect(() => {
-    const threshold = 12
+    let lastTime = 0
     const onScroll = () => {
       if (tickingRef.current) return
       tickingRef.current = true
       requestAnimationFrame(() => {
         const y = window.scrollY || 0
         const last = lastScrollYRef.current
-        if (y > last + threshold && y > 80) {
+        const now = Date.now()
+        const deltaTime = now - lastTime
+        lastTime = now
+        
+        // Dinamik threshold: yavaş scroll'da daha düşük threshold
+        const scrollDelta = Math.abs(y - last)
+        const scrollSpeed = scrollDelta / (deltaTime || 16) // pixels per ms
+        const dynamicThreshold = scrollSpeed < 0.5 ? 3 : 8 // Yavaş scroll'da 3px, hızlı scroll'da 8px
+        
+        if (y > last + dynamicThreshold && y > 60) {
           setIsCompact(true)
-        } else if (y < last - threshold) {
+        } else if (y < last - dynamicThreshold) {
           setIsCompact(false)
         }
         lastScrollYRef.current = y
@@ -562,7 +571,7 @@ export function Navbar() {
                 href="/sale"
                 className="flex items-center text-white bg-gradient-to-r from-red-500 to-pink-500 hover:from-red-600 hover:to-pink-600 font-medium transition-all duration-300 hover:scale-105 px-2.5 py-1 rounded-full shadow-lg hover:shadow-xl text-sm"
               >
-                ğŸ”¥ İndirim
+                🔥 İndirim
               </Link>
             </motion.div>
           </div>

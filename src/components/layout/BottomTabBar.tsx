@@ -1,19 +1,21 @@
-﻿"use client"
 
-import { useState, useEffect } from 'react'
+"use client"
+
+import { useState, useEffect, useCallback } from 'react'
 import Link from 'next/link'
+import Image from 'next/image'
 import { usePathname } from 'next/navigation'
 import { useAuth } from '@/contexts/AuthContext'
-import { 
-  HomeIcon, 
-  Squares2X2Icon, 
-  HeartIcon, 
-  ShoppingBagIcon, 
+import {
+  HomeIcon,
+  Squares2X2Icon,
+  HeartIcon,
+  ShoppingBagIcon,
   MagnifyingGlassIcon,
   UserIcon,
-  Bars3Icon
+  XMarkIcon
 } from '@heroicons/react/24/outline'
-import { 
+import {
   HomeIcon as HomeIconSolid,
   Squares2X2Icon as Squares2X2IconSolid,
   HeartIcon as HeartIconSolid,
@@ -22,56 +24,68 @@ import {
   UserIcon as UserIconSolid
 } from '@heroicons/react/24/solid'
 import { getOptimalGlassConfig } from '@/lib/glassmorphism'
-import { cn } from '@/lib/utils'
+import { cn, formatPrice } from '@/lib/utils'
 import { getCartCount, getFavoriteCount } from '@/lib/api/cartClient'
 import { motion, useReducedMotion, AnimatePresence } from 'framer-motion'
 import { SearchAutocomplete } from '@/components/ui/SearchAutocomplete'
+import { createAnonClient } from '@/lib/supabase'
+import { useKeyboardInsets } from '@/hooks/useKeyboardInsets'
+
+type WeeklyProductHighlight = {
+  id: string
+  name: string
+  slug: string
+  price?: number | string | null
+  image?: string | null
+}
+
+const WEEKLY_PRODUCT_FETCH_LIMIT = 6
 
 const items = [
-  { 
-    href: '/', 
-    label: 'Ana', 
-    icon: HomeIcon, 
+  {
+    href: '/',
+    label: 'Ana',
+    icon: HomeIcon,
     activeIcon: HomeIconSolid,
     showBadge: false
   },
-  { 
-    href: '/products', 
-    label: 'Ürünler', 
-    icon: Squares2X2Icon, 
+  {
+    href: '/products',
+    label: 'Urunler',
+    icon: Squares2X2Icon,
     activeIcon: Squares2X2IconSolid,
     showBadge: false
   },
-  { 
-    href: '/search', 
-    label: 'Ara', 
-    icon: MagnifyingGlassIcon, 
+  {
+    href: '/search',
+    label: 'Ara',
+    icon: MagnifyingGlassIcon,
     activeIcon: MagnifyingGlassIconSolid,
     showBadge: false
   },
-  { 
-    href: '/favorites', 
-    label: 'Favori', 
-    icon: HeartIcon, 
+  {
+    href: '/favorites',
+    label: 'Favori',
+    icon: HeartIcon,
     activeIcon: HeartIconSolid,
     showBadge: true,
     badgeKey: 'favorites'
   },
-  { 
-    href: '/cart', 
-    label: 'Sepetim', 
-    icon: ShoppingBagIcon, 
+  {
+    href: '/cart',
+    label: 'Sepetim',
+    icon: ShoppingBagIcon,
     activeIcon: ShoppingBagIconSolid,
     showBadge: true,
     badgeKey: 'cart'
   },
-  { 
-    href: '/profile', 
-    label: 'Profil', 
-    icon: UserIcon, 
+  {
+    href: '/profile',
+    label: 'Profil',
+    icon: UserIcon,
     activeIcon: UserIconSolid,
     showBadge: false
-  },
+  }
 ]
 
 export function BottomTabBar() {
@@ -82,6 +96,19 @@ export function BottomTabBar() {
   const [isScrolled, setIsScrolled] = useState(false)
   const shouldReduceMotion = useReducedMotion()
   const [isSearchOpen, setIsSearchOpen] = useState(false)
+  const [weeklyProduct, setWeeklyProduct] = useState<WeeklyProductHighlight | null>(null)
+  const [isWeeklyProductLoading, setIsWeeklyProductLoading] = useState(false)
+  const { bottom: keyboardInset } = useKeyboardInsets()
+
+  const handleOpenSearch = useCallback(() => {
+    setIsSearchOpen(true)
+  }, [])
+
+  const closeSearch = useCallback(() => {
+    setIsSearchOpen(false)
+  }, [])
+
+  const keyboardPadding = Math.max(16, Math.round(keyboardInset)) + 16
 
   // Scroll detection for navbar shrinking
   useEffect(() => {
@@ -106,7 +133,7 @@ export function BottomTabBar() {
           setCartCount(cart)
           setFavoriteCount(favorites)
         } catch (error) {
-          console.error('Counts yüklenirken hata:', error)
+          console.error('Counts yuklenirken hata:', error)
         }
       }
       loadCounts()
@@ -139,6 +166,85 @@ export function BottomTabBar() {
     }
   }, [user])
 
+  // Prevent background scroll when search is open
+  useEffect(() => {
+    if (typeof document === 'undefined') return
+    if (!isSearchOpen) return
+
+    const previousOverflow = document.body.style.overflow
+    document.body.style.overflow = 'hidden'
+
+    return () => {
+      document.body.style.overflow = previousOverflow
+    }
+  }, [isSearchOpen])
+
+  // Fetch weekly product when search opens
+  useEffect(() => {
+    if (!isSearchOpen) return
+
+    let isCancelled = false
+
+    const loadWeeklyProduct = async () => {
+      try {
+        setIsWeeklyProductLoading(true)
+        const supabase = createAnonClient()
+        const { data, error } = await supabase
+          .from('products')
+          .select('id,name,slug,price,product_images(url,sortOrder)')
+          .eq('isActive', true)
+          .eq('isProductOfWeek', true)
+          .limit(WEEKLY_PRODUCT_FETCH_LIMIT)
+
+        if (isCancelled) {
+          return
+        }
+
+        if (error) {
+          console.error('Haftanin urunu getirilirken hata:', error)
+          setWeeklyProduct(null)
+          return
+        }
+
+        if (data && data.length > 0) {
+          const randomIndex = Math.floor(Math.random() * data.length)
+          const raw = data[randomIndex] as any
+
+          const sortedImages = Array.isArray(raw?.product_images)
+            ? [...raw.product_images].sort(
+                (a: any, b: any) => ((a?.sortOrder ?? 0) - (b?.sortOrder ?? 0))
+              )
+            : []
+
+          setWeeklyProduct({
+            id: raw.id,
+            name: raw.name,
+            slug: raw.slug,
+            price: raw.price,
+            image: sortedImages[0]?.url ?? null
+          })
+        } else {
+          setWeeklyProduct(null)
+        }
+      } catch (error) {
+        if (!isCancelled) {
+          console.error('Haftanin urunu getirilirken hata:', error)
+          setWeeklyProduct(null)
+        }
+      } finally {
+        if (!isCancelled) {
+          setIsWeeklyProductLoading(false)
+        }
+      }
+    }
+
+    loadWeeklyProduct()
+
+    return () => {
+      isCancelled = true
+    }
+  }, [isSearchOpen])
+
   const getBadgeCount = (badgeKey: string) => {
     switch (badgeKey) {
       case 'cart':
@@ -151,129 +257,255 @@ export function BottomTabBar() {
   }
 
   return (
-    <motion.nav 
-      initial={{ y: 100, opacity: 0 }}
-      animate={{ 
-        y: 0, 
-        opacity: 1,
-        height: isScrolled ? 60 : 80,
-        paddingTop: isScrolled ? 4 : 8,
-        paddingBottom: isScrolled ? 4 : 8
-      }}
-      transition={{ 
-        type: "spring", 
-        stiffness: 300, 
-        damping: 30,
-        delay: 0.1
-      }}
-      className={cn(
-        'fixed bottom-0 left-0 right-0 z-[900] safe-pb md:hidden',
-        'border-t border-white/20',
-        getOptimalGlassConfig('bottom-bar')
-      )}
-    >
-      <div className="mx-auto max-w-7xl px-2 py-1">
-        <ul className="grid grid-cols-6 gap-1">
-          {items.map(({ href, label, icon: Icon, activeIcon: ActiveIcon, showBadge, badgeKey }) => {
-            const active = pathname === href || (href !== '/' && pathname.startsWith(href))
-            const badgeCount = showBadge ? getBadgeCount(badgeKey!) : 0
-            const showBadgeNumber = badgeCount > 0
-            
-            return (
-              <motion.li 
-                key={href} 
-                className="flex"
-                whileTap={{ scale: shouldReduceMotion ? 1 : 0.95 }}
-                transition={{ type: "spring", stiffness: 400, damping: 17 }}
-              >
-                <Link
-                  href={href}
-                  className={cn(
-                    'flex-1 flex flex-col items-center justify-center rounded-xl py-2 px-1 relative',
-                    'motion-safe:transition-all motion-safe:duration-200',
-                    active
-                      ? 'text-rose-600 bg-rose-50/80 backdrop-blur-sm'
-                      : 'text-gray-700 hover:text-rose-600 hover:bg-rose-50/40'
-                  )}
-                  aria-label={label}
-                  onClick={(e) => {
-                    if (href === '/search') {
-                      e.preventDefault()
-                      setIsSearchOpen(true)
-                    }
-                  }}
+    <>
+      <motion.nav
+        initial={{ y: 100, opacity: 0 }}
+        animate={{
+          y: 0,
+          opacity: isSearchOpen ? 0 : 1,
+          height: isScrolled ? 60 : 80,
+          paddingTop: isScrolled ? 4 : 8,
+          paddingBottom: isScrolled ? 4 : 8
+        }}
+        transition={{
+          type: 'spring',
+          stiffness: 300,
+          damping: 30,
+          delay: 0.1
+        }}
+        className={cn(
+          'fixed bottom-0 left-0 right-0 z-[900] safe-pb md:hidden',
+          'border-t border-white/20',
+          getOptimalGlassConfig('bottom-bar')
+        )}
+        style={{ pointerEvents: isSearchOpen ? 'none' : 'auto' }}
+      >
+        <div className="mx-auto max-w-7xl px-2 py-1">
+          <ul className="grid grid-cols-6 gap-1">
+            {items.map(({ href, label, icon: Icon, activeIcon: ActiveIcon, showBadge, badgeKey }) => {
+              const active = pathname === href || (href !== '/' && pathname.startsWith(href))
+              const badgeCount = showBadge ? getBadgeCount(badgeKey!) : 0
+              const showBadgeNumber = badgeCount > 0
+
+              return (
+                <motion.li
+                  key={href}
+                  className="flex"
+                  whileTap={{ scale: shouldReduceMotion ? 1 : 0.95 }}
+                  transition={{ type: 'spring', stiffness: 400, damping: 17 }}
                 >
-                  <div className="relative">
-                    {active ? (
-                      <ActiveIcon className={cn("transition-all duration-200", isScrolled ? "h-5 w-5" : "h-6 w-6")} />
-                    ) : (
-                      <Icon className={cn("transition-all duration-200", isScrolled ? "h-5 w-5" : "h-6 w-6")} />
+                  <Link
+                    href={href}
+                    className={cn(
+                      'relative flex flex-1 flex-col items-center justify-center rounded-xl px-1 py-2',
+                      'motion-safe:transition-all motion-safe:duration-200',
+                      active
+                        ? 'bg-rose-50/80 text-rose-600 backdrop-blur-sm'
+                        : 'text-gray-700 hover:bg-rose-50/40 hover:text-rose-600'
                     )}
-                    {showBadgeNumber && (
-                      <motion.span
-                        initial={{ scale: 0 }}
-                        animate={{ scale: 1 }}
-                        className={cn(
-                          'absolute -top-1 -right-1 h-5 w-5 rounded-full flex items-center justify-center text-xs font-semibold',
-                          'bg-rose-500 text-white border-2 border-white',
-                          'motion-safe:animate-pulse'
-                        )}
-                      >
-                        {badgeCount > 99 ? '99+' : badgeCount}
-                      </motion.span>
+                    aria-label={label}
+                    onClick={(e) => {
+                      if (href === '/search') {
+                        e.preventDefault()
+                        handleOpenSearch()
+                      }
+                    }}
+                  >
+                    <div className="relative">
+                      {active ? (
+                        <ActiveIcon className={cn('transition-all duration-200', isScrolled ? 'h-5 w-5' : 'h-6 w-6')} />
+                      ) : (
+                        <Icon className={cn('transition-all duration-200', isScrolled ? 'h-5 w-5' : 'h-6 w-6')} />
+                      )}
+                      {showBadgeNumber && (
+                        <motion.span
+                          initial={{ scale: 0 }}
+                          animate={{ scale: 1 }}
+                          className={cn(
+                            'absolute -top-1 -right-1 flex h-5 w-5 items-center justify-center rounded-full text-xs font-semibold',
+                            'border-2 border-white bg-rose-500 text-white',
+                            'motion-safe:animate-pulse'
+                          )}
+                        >
+                          {badgeCount > 99 ? '99+' : badgeCount}
+                        </motion.span>
+                      )}
+                    </div>
+                    <span
+                      className={cn(
+                        'mt-1 leading-3 font-medium transition-all duration-200',
+                        isScrolled ? 'text-[9px]' : 'text-[10px]',
+                        active ? 'text-rose-600' : 'text-gray-600'
+                      )}
+                    >
+                      {label}
+                    </span>
+
+                    {active && (
+                      <motion.div
+                        layoutId="activeTab"
+                        className="absolute bottom-0 left-1/2 h-1 w-1 -translate-x-1/2 rounded-full bg-rose-500"
+                        transition={{ type: 'spring', stiffness: 500, damping: 30 }}
+                      />
                     )}
-                  </div>
-                  <span className={cn(
-                    'leading-3 mt-1 font-medium transition-all duration-200',
-                    isScrolled ? 'text-[9px]' : 'text-[10px]',
-                    active ? 'text-rose-600' : 'text-gray-600'
-                  )}>
-                    {label}
-                  </span>
-                  
-                  {/* Active indicator */}
-                  {active && (
-                    <motion.div
-                      layoutId="activeTab"
-                      className="absolute bottom-0 left-1/2 -translate-x-1/2 w-1 h-1 bg-rose-500 rounded-full"
-                      transition={{ type: "spring", stiffness: 500, damping: 30 }}
-                    />
-                  )}
-                </Link>
-              </motion.li>
-            )
-          })}
-        </ul>
-      </div>
-      {/* Search Modal */}
+                  </Link>
+                </motion.li>
+              )
+            })}
+          </ul>
+        </div>
+      </motion.nav>
+
       <AnimatePresence>
         {isSearchOpen && (
           <motion.div
+            key="mobile-search-sheet"
+            className="fixed inset-0 z-[1200] md:hidden"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 z-[1200] flex items-center justify-center bg-black/40 backdrop-blur-sm md:hidden"
-            onClick={() => setIsSearchOpen(false)}
+            transition={{ duration: shouldReduceMotion ? 0 : 0.2 }}
             role="dialog"
             aria-modal="true"
+            aria-label="Mobil arama"
           >
             <motion.div
-              initial={{ y: 40, opacity: 0 }}
-              animate={{ y: 0, opacity: 1 }}
-              exit={{ y: 40, opacity: 0 }}
-              transition={{ type: 'spring', stiffness: 300, damping: 30 }}
-              className="w-[92%] rounded-2xl bg-white p-3 shadow-2xl"
-              onClick={(e) => e.stopPropagation()}
+              className="absolute inset-0 bg-slate-900/45 backdrop-blur-md"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: shouldReduceMotion ? 0 : 0.2 }}
+              onClick={closeSearch}
+            />
+
+            <motion.div
+              className="relative flex h-full w-full justify-center"
+              initial={{ y: shouldReduceMotion ? 0 : 40 }}
+              animate={{ y: 0 }}
+              exit={{ y: shouldReduceMotion ? 0 : 40 }}
+              transition={{ type: 'spring', stiffness: 320, damping: 28 }}
             >
-              <SearchAutocomplete
-                placeholder="Ürün, kategori veya set ara..."
-                className="w-full"
-              />
+              <div
+                className="relative flex h-full w-full max-w-3xl flex-col px-4"
+                style={{
+                  paddingTop: 'calc(env(safe-area-inset-top, 0px) + 1rem)',
+                  paddingBottom: `calc(env(safe-area-inset-bottom, 0px) + ${keyboardPadding}px)`
+                }}
+              >
+                <div
+                  className={cn(
+                    'flex h-full flex-col gap-4 rounded-t-3xl border border-white/20 p-4 shadow-2xl',
+                    getOptimalGlassConfig('modal')
+                  )}
+                  onClick={(event) => event.stopPropagation()}
+                >
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm font-medium uppercase tracking-wide text-gray-600">Arama</span>
+                    <button
+                      type="button"
+                      onClick={closeSearch}
+                      className="rounded-full bg-white/60 p-2 text-gray-600 transition hover:bg-white/90"
+                      aria-label="Kapat"
+                    >
+                      <XMarkIcon className="h-5 w-5" />
+                    </button>
+                  </div>
+
+                  <SearchAutocomplete
+                    placeholder="Urun, kategori veya set ara..."
+                    className="w-full"
+                    autoFocus
+                    maxSuggestions={4}
+                    onSearch={closeSearch}
+                    onNavigate={closeSearch}
+                    footerContent={
+                      <WeeklyProductFooter
+                        product={weeklyProduct}
+                        isLoading={isWeeklyProductLoading}
+                        onSelect={closeSearch}
+                      />
+                    }
+                  />
+                </div>
+              </div>
             </motion.div>
           </motion.div>
         )}
       </AnimatePresence>
-    </motion.nav>
+    </>
   )
 }
 
+function WeeklyProductFooter({
+  product,
+  isLoading,
+  onSelect
+}: {
+  product: WeeklyProductHighlight | null
+  isLoading: boolean
+  onSelect: () => void
+}) {
+  if (isLoading) {
+    return (
+      <div className="px-4 py-6">
+        <div className="h-16 w-full animate-pulse rounded-2xl bg-gray-100" />
+      </div>
+    )
+  }
+
+  if (!product) {
+    return (
+      <div className="px-4 py-6 text-xs text-gray-500">
+        Bu hafta one cikan bir urun bulunamadi.
+      </div>
+    )
+  }
+
+  const priceValue = typeof product.price === 'number'
+    ? product.price
+    : product.price
+      ? Number(product.price)
+      : null
+
+  const formattedPrice = typeof priceValue === 'number' && !Number.isNaN(priceValue)
+    ? formatPrice(priceValue)
+    : null
+
+  return (
+    <div className="px-4 py-4">
+      <div className="mb-3 text-xs font-semibold uppercase tracking-wide text-gray-500">
+        Haftanin Urunu
+      </div>
+      <Link
+        href={`/products/${product.slug}`}
+        onClick={onSelect}
+        className="flex items-center gap-3 rounded-2xl border border-white/30 bg-white/70 p-3 text-left shadow-sm transition hover:bg-white/80"
+      >
+        {product.image ? (
+          <div className="relative h-16 w-16 overflow-hidden rounded-xl">
+            <Image
+              src={product.image}
+              alt={product.name}
+              fill
+              className="object-cover"
+              sizes="64px"
+            />
+          </div>
+        ) : (
+          <div className="flex h-16 w-16 items-center justify-center rounded-xl bg-rose-100 text-rose-500">
+            <MagnifyingGlassIcon className="h-6 w-6" />
+          </div>
+        )}
+        <div className="flex flex-1 flex-col overflow-hidden">
+          <span className="truncate text-sm font-semibold text-gray-900">{product.name}</span>
+          {formattedPrice && (
+            <span className="text-sm font-semibold text-rose-600">{formattedPrice}</span>
+          )}
+        </div>
+        <span className="text-xs font-semibold uppercase tracking-wide text-rose-500">
+          Detay
+        </span>
+      </Link>
+    </div>
+  )
+}

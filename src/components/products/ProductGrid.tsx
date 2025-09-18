@@ -195,17 +195,31 @@ export function ProductGrid({ products, loading = false, skeletonCount = 8, enab
   }
 
   return (
-    <div ref={containerRef} className={cn(responsiveGrid.productGrid, responsiveSpacing.grid)}>
+    <div ref={containerRef} className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 xl:grid-cols-5 gap-4 sm:gap-6 lg:gap-8">
       {displayProducts.map((product, index) => (
         <motion.div 
           key={product.id} 
-          className="group relative bg-white rounded-lg border hover:shadow-lg transition-shadow duration-300"
+          className="group relative bg-white rounded-2xl shadow-lg hover:shadow-2xl transition-shadow duration-300 ease-out overflow-hidden"
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true, amount: 0.2 }}
-          transition={{ delay: index < featuredCount ? index * 0.08 : 0, duration: index < featuredCount ? 0.5 : 0.3, ease: "easeOut" }}
-          whileHover={{ scale: index < featuredCount ? 1.03 : 1.01, y: index < featuredCount ? -4 : -2 }}
-          whileTap={{ scale: 0.98 }}
+          transition={{ 
+            delay: index * 0.05, 
+            duration: 0.4, 
+            ease: "easeOut" 
+          }}
+          whileHover={{ 
+            scale: 1.02, 
+            y: -8,
+            transition: { duration: 0.2, ease: "easeOut" }
+          }}
+          whileTap={{ 
+            scale: 0.98,
+            transition: { duration: 0.1 }
+          }}
+          style={{
+            willChange: 'transform, box-shadow'
+          }}
           onClick={() => {
             // Haptic feedback for card tap
             if (navigator.vibrate) {
@@ -214,18 +228,18 @@ export function ProductGrid({ products, loading = false, skeletonCount = 8, enab
           }}
         >
           {/* Product Image */}
-          <div className="aspect-[3/4] relative overflow-hidden rounded-t-lg">
+          <div className="relative aspect-square overflow-hidden rounded-t-2xl">
             <Link href={`/products/${product.slug}`} aria-label={`Ürün sayfasına git: ${product.name}`}>
               {product.images.length > 0 ? (
                 <ProductImage
                   src={product.images[0]?.url || '/placeholder-product.svg'}
                   alt={product.name}
-                  className="group-hover:scale-105 transition-transform duration-300"
-                  sizes="(min-width: 1280px) 33vw, (min-width: 1024px) 33vw, (min-width: 640px) 50vw, 50vw"
+                  className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300 ease-out"
+                  sizes="(min-width: 1280px) 25vw, (min-width: 1024px) 33vw, (min-width: 640px) 50vw, 100vw"
                 />
               ) : (
-                <div className="w-full h-full bg-gray-200 flex items-center justify-center" aria-hidden="true">
-                  <span className="text-gray-400 text-sm">Resim Yok</span>
+                <div className="w-full h-full bg-gradient-to-br from-gray-100 to-gray-200 flex items-center justify-center" aria-hidden="true">
+                  <span className="text-gray-400 text-sm font-medium">Resim Yok</span>
                 </div>
               )}
             </Link>
@@ -234,7 +248,7 @@ export function ProductGrid({ products, loading = false, skeletonCount = 8, enab
             <motion.button
               type="button"
               disabled={loadingStates.favorites.has(product.id)}
-              className="absolute top-2 right-2 sm:top-3 sm:right-3 z-10 p-3 bg-white rounded-full shadow-md hover:shadow-lg transition-shadow disabled:opacity-50"
+              className="absolute top-3 right-3 z-10 p-3 bg-white rounded-full shadow-md hover:shadow-lg transition-shadow disabled:opacity-50"
               aria-label={`${favorites.has(product.id) ? 'Favorilerden çıkar' : 'Favorilere ekle'}: ${product.name}`}
               {...createButtonAnimation({
                 hapticType: 'success',
@@ -243,70 +257,99 @@ export function ProductGrid({ products, loading = false, skeletonCount = 8, enab
               onClick={() => toggleFavorite(product.id)}
             >
               {favorites.has(product.id) ? (
-                <HeartSolidIcon className="h-5 w-5 sm:h-5 sm:w-5 text-red-500" />
+                <HeartSolidIcon className="h-5 w-5 text-rose-500" />
               ) : (
-                <HeartIcon className="h-5 w-5 sm:h-5 sm:w-5 text-gray-400 hover:text-red-500" />
+                <HeartIcon className="h-5 w-5 text-gray-600 hover:text-rose-500" />
               )}
             </motion.button>
+
+            {/* Overlay Quick View */}
+            <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-all duration-300 hidden sm:flex items-center justify-center opacity-0 group-hover:opacity-100 pointer-events-none">
+              <Link
+                href={`/products/${product.slug}`}
+                className="px-4 py-2 bg-white text-gray-900 text-sm font-medium rounded-md shadow-lg hover:bg-gray-50 transition-colors pointer-events-auto"
+                aria-label={`Ürün detaylarını gör: ${product.name}`}
+              >
+                Ürün detaylarını gör
+              </Link>
+            </div>
+
+            {/* Category Badge */}
+            <div className="absolute top-3 left-3">
+              <span className="bg-gradient-to-r from-rose-500 to-pink-500 text-white text-xs px-3 py-1.5 rounded-full font-medium shadow-lg">
+                {product.category.name}
+              </span>
+            </div>
           </div>
 
           {/* Product Info */}
-          <div className={cn(responsiveSpacing.card, 'p-2 sm:p-3')}>
-            {/* Category */}
-            <Link 
-              href={`/categories/${product.category.slug}`}
-              className={cn(responsiveTypography.caption, 'text-gray-700 font-medium hover:text-rose-600 transition-colors')}
-              aria-label={`Kategoriye git: ${product.category.name}`}
-            >
-              Kategori: {product.category.name}
-            </Link>
-            
+          <div className="p-6">
             {/* Product Name */}
             <Link href={`/products/${product.slug}`} aria-label={`Ürünü incele: ${product.name}`}>
-              <h3 className={cn(responsiveTypography.h5, 'mt-0.5 text-gray-900 line-clamp-2 group-hover:text-rose-600 transition-colors')}>
+              <h3 className="text-lg font-bold text-gray-900 mb-2 hover:text-rose-600 transition-colors line-clamp-1">
                 {product.name}
               </h3>
             </Link>
             
             {/* Description */}
             {product.description && (
-              <p className={cn(responsiveTypography.caption, 'mt-1 text-gray-500 line-clamp-2')}>
+              <p className="text-gray-600 text-sm mb-4 line-clamp-2 leading-relaxed">
                 {product.description}
               </p>
             )}
             
-            {/* Price */}
-            <div className="mt-3 flex items-center justify-between">
-              <span className={cn(responsiveTypography.h4, 'font-semibold text-rose-600')}>
-                {formatCurrency(typeof product.price === 'number' ? product.price : product.price.toNumber())}
-              </span>
+            {/* Price and Actions */}
+            <div className="flex items-center justify-between mb-4">
+              <div className="flex flex-col">
+                <span className="text-2xl font-bold bg-gradient-to-r from-rose-600 to-purple-600 bg-clip-text text-transparent">
+                  {formatCurrency(typeof product.price === 'number' ? product.price : product.price.toNumber())}
+                </span>
+                {product.originalPrice && product.originalPrice > product.price && (
+                  <span className="text-sm text-gray-500 line-through">
+                    {formatCurrency(typeof product.originalPrice === 'number' ? product.originalPrice : product.originalPrice.toNumber())}
+                  </span>
+                )}
+              </div>
               
               {/* Add to Cart Button */}
               <motion.button
+                type="button"
                 disabled={loadingStates.cart.has(product.id)}
-                className="flex items-center space-x-1 px-3 py-2 sm:px-3 sm:py-1.5 bg-rose-600 text-white text-xs font-medium rounded-md hover:bg-rose-700 transition-colors disabled:opacity-50"
+                className="p-3 bg-gradient-to-r from-rose-500 to-pink-500 hover:from-rose-600 hover:to-pink-600 text-white rounded-full shadow-lg hover:shadow-xl transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
                 aria-label={`Sepete ekle: ${product.name}`}
                 {...createButtonAnimation({
                   hapticType: 'success',
                   hapticMessage: `Sepete eklendi: ${product.name}`
                 })}
                 onClick={() => handleAddToCart(product.id)}
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
               >
-                <ShoppingCartIcon className="h-5 w-5 sm:h-4 sm:w-4" />
-                <span>{loadingStates.cart.has(product.id) ? 'Ekleniyor...' : 'Sepete Ekle'}</span>
+                {loadingStates.cart.has(product.id) ? (
+                  <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                ) : (
+                  <ShoppingCartIcon className="w-5 h-5" />
+                )}
               </motion.button>
             </div>
-          </div>
-          
-          {/* Quick View Overlay */}
-          <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-all duration-300 rounded-lg hidden sm:flex items-start justify-center pt-18 opacity-0 group-hover:opacity-100 pointer-events-none">
-            <Link
-              href={`/products/${product.slug}`}
-              className="px-4 py-2 bg-white text-gray-900 text-sm font-medium rounded-md shadow-lg hover:bg-gray-50 transition-transform duration-300 pointer-events-auto"
-              aria-label={`Ürün detaylarını gör: ${product.name}`}
-            >
-              Ürün detaylarını gör
-            </Link>
+
+            {/* Stock Status */}
+            <div className="flex items-center justify-between text-xs">
+              <span className={`px-2 py-1 rounded-full font-medium ${
+                product.stock > 10 
+                  ? 'bg-green-100 text-green-800' 
+                  : product.stock > 0 
+                    ? 'bg-yellow-100 text-yellow-800' 
+                    : 'bg-red-100 text-red-800'
+              }`}>
+                {product.stock > 10 ? 'Stokta' : product.stock > 0 ? 'Az Stokta' : 'Stokta Yok'}
+              </span>
+              {product.stock > 0 && (
+                <span className="text-gray-500">
+                  {product.stock} adet
+                </span>
+              )}
+            </div>
           </div>
         </motion.div>
       ))}

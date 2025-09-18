@@ -14,6 +14,7 @@ import { ColorFilter } from '@/components/products/ColorFilter'
 import { SearchAutocomplete } from '@/components/ui/SearchAutocomplete'
 import { AutoSubmitNumberInput } from '@/components/products/AutoSubmitField'
 import { SortDropdown } from '@/components/products/SortDropdown'
+import { FilterToggleClient } from '@/components/products/FilterToggleClient'
 import Image from 'next/image'
 const BLUR_DATA_URL = 'data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///ywAAAAAAQABAAACAUwAOw=='
 
@@ -134,14 +135,13 @@ export default async function ProductsPage({ searchParams }: Props) {
     <CustomerLayout showMobileNav={true}>
       <PageTransition direction="fade">
         <main role="main" aria-labelledby="products-heading">
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
-      <h1 id="products-heading" className="text-2xl sm:text-3xl font-bold mb-6">
-        {query ? `"${query}" için arama sonuçları` : 'Tüm Ürünler'}
-      </h1>
+    <div className="max-w-8xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
       {query && (
-        <p className="text-gray-600 mb-6">
-          {products.length} ürün bulundu
-        </p>
+        <div className="mb-6">
+          <p className="text-gray-600">
+            {products.length} ürün bulundu
+          </p>
+        </div>
       )}
 
       {/* Active Filters Chips */}
@@ -186,17 +186,18 @@ export default async function ProductsPage({ searchParams }: Props) {
         )
       })()}
 
-      <div className="grid grid-cols-12 gap-6">
-        {/* Sidebar Filters */}
-        <aside className="col-span-12 md:col-span-3 lg:col-span-3" aria-label="Filtreler">
-          <div className="bg-white rounded-xl border p-4">
+      <FilterToggleClient 
+        title={query ? `"${query}" için arama sonuçları` : 'Tüm Ürünler'}
+        sortComponent={<SortDropdown current={sort} />}
+      >
+        <div className="bg-white rounded-xl border p-4 lg:p-6">
             {/* Arama Terimi */}
-            <div className="mb-4">
-              <h3 className="text-sm font-semibold mb-3">Arama</h3>
+            <div className="mb-3">
+              <h3 className="text-sm font-semibold mb-2">Arama</h3>
               <SearchAutocomplete placeholder="Ürün, kategori veya set ara..." />
 
               {/* Üst Filtreler: Min/Max fiyat ve Sıralama (server-side) */}
-              <div className="mt-4 space-y-3">
+              <div className="mt-3 space-y-2">
                 <div className="grid grid-cols-2 gap-2">
                   {/* Min price */}
                   <AutoSubmitNumberInput
@@ -233,16 +234,12 @@ export default async function ProductsPage({ searchParams }: Props) {
                     ]}
                   />
                 </div>
-                {/* Sort - custom dropdown */}
-                <div className="flex justify-end">
-                  <SortDropdown current={sort} />
-                </div>
               </div>
             </div>
 
             {/* Kategori Filtresi */}
-            <h3 className="text-sm font-semibold mb-3">Kategori</h3>
-            <form action="/products" className="mb-4 space-y-2">
+            <h3 className="text-sm font-semibold mb-2">Kategori</h3>
+            <form action="/products" className="mb-3 space-y-2">
               <input type="hidden" name="bundleFilter" value={bundleFilter} />
               {eventId && <input type="hidden" name="event" value={eventId} />}
               {themeId && <input type="hidden" name="theme" value={themeId} />} 
@@ -296,7 +293,7 @@ export default async function ProductsPage({ searchParams }: Props) {
               </div>
             </form>
 
-            <h3 className="text-sm font-semibold mb-3">Renkler</h3>
+            <h3 className="text-sm font-semibold mb-2">Renkler</h3>
             {/* Selected chips */}
             {selectedColors.length > 0 && (
               <div className="mb-3">
@@ -331,11 +328,11 @@ export default async function ProductsPage({ searchParams }: Props) {
             />
 
             {/* Removed: Stock filter and lower price/sort section */}
-          </div>
-        </aside>
+        </div>
+      </FilterToggleClient>
 
-        {/* Right Column Content */}
-        <div className="col-span-12 md:col-span-9 lg:col-span-9">
+      {/* Products Grid - Full Width When Filters Hidden */}
+      <div className="w-full">
 
           {showBundles && Array.isArray(bundles) && bundles.length > 0 && (
             <section className="mb-10" aria-labelledby="bundles-heading">
@@ -448,7 +445,6 @@ export default async function ProductsPage({ searchParams }: Props) {
               <ProductGrid products={products as any} />
             </section>
           )}
-        </div>
       </div>
     </div>
         </main>

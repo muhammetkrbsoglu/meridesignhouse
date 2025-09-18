@@ -1,6 +1,7 @@
-﻿'use client'
 
-import { useState, useEffect, useRef } from 'react'
+'use client'
+
+import { useState, useEffect, useRef, type ReactNode, type KeyboardEvent } from 'react'
 import { useRouter } from 'next/navigation'
 import { MagnifyingGlassIcon, XMarkIcon, ClockIcon } from '@heroicons/react/24/outline'
 import { useDebounce } from '@/hooks/useDebounce'
@@ -12,12 +13,20 @@ interface SearchAutocompleteProps {
   placeholder?: string
   className?: string
   onSearch?: (query: string) => void
+  autoFocus?: boolean
+  maxSuggestions?: number
+  footerContent?: ReactNode
+  onNavigate?: () => void
 }
 
-export function SearchAutocomplete({ 
-  placeholder = "Ürün, kategori veya set ara...", 
-  className = "",
-  onSearch
+export function SearchAutocomplete({
+  placeholder = 'Urun, kategori veya set ara...',
+  className = '',
+  onSearch,
+  autoFocus = false,
+  maxSuggestions,
+  footerContent,
+  onNavigate
 }: SearchAutocompleteProps) {
   const router = useRouter()
   const [query, setQuery] = useState('')
@@ -26,11 +35,25 @@ export function SearchAutocomplete({
   const [popularSearches, setPopularSearches] = useState<string[]>([])
   const [isLoading, setIsLoading] = useState(false)
   const [recentSearches, setRecentSearches] = useState<string[]>([])
-  
+
   const debouncedQuery = useDebounce(query, 300)
   const searchRef = useRef<HTMLDivElement>(null)
   const inputRef = useRef<HTMLInputElement>(null)
   const listboxId = 'search-suggestions'
+
+  const limitedSuggestions = typeof maxSuggestions === 'number' && maxSuggestions >= 0
+    ? suggestions.slice(0, maxSuggestions)
+    : suggestions
+
+  // Auto focus when requested
+  useEffect(() => {
+    if (!autoFocus) return
+    if (typeof window === 'undefined') return
+    const timer = window.setTimeout(() => {
+      inputRef.current?.focus()
+    }, 50)
+    return () => window.clearTimeout(timer)
+  }, [autoFocus])
 
   // Load recent searches from localStorage
   useEffect(() => {
@@ -81,19 +104,16 @@ export function SearchAutocomplete({
   const handleSearch = (searchQuery: string) => {
     if (!searchQuery.trim()) return
 
-    // Save to recent searches
-    const updated = [searchQuery, ...recentSearches.filter(s => s !== searchQuery)].slice(0, 5)
+    const updated = [searchQuery, ...recentSearches.filter((s) => s !== searchQuery)].slice(0, 5)
     setRecentSearches(updated)
     localStorage.setItem('recentSearches', JSON.stringify(updated))
 
-    // Log search
     logSearch(searchQuery)
 
-    // Navigate to search page
     router.push(`/products?query=${encodeURIComponent(searchQuery)}`)
     setIsOpen(false)
     setQuery('')
-    
+
     if (onSearch) {
       onSearch(searchQuery)
     }
@@ -109,6 +129,9 @@ export function SearchAutocomplete({
     }
     setIsOpen(false)
     setQuery('')
+    if (onNavigate) {
+      onNavigate()
+    }
   }
 
   const handleRecentSearchClick = (search: string) => {
@@ -121,38 +144,43 @@ export function SearchAutocomplete({
     localStorage.removeItem('recentSearches')
   }
 
-  const handleKeyDown = (e: React.KeyboardEvent) => {
-    if (e.key === 'Enter') {
+  const handleKeyDown = (event: KeyboardEvent<HTMLInputElement>) => {
+    if (event.key === 'Enter') {
       handleSearch(query)
-    } else if (e.key === 'Escape') {
+    } else if (event.key === 'Escape') {
       setIsOpen(false)
     }
   }
 
-  const showDropdown = isOpen && (query.length >= 2 || recentSearches.length > 0 || popularSearches.length > 0)
+  const hasDropdownContent =
+    query.length >= 2 ||
+    recentSearches.length > 0 ||
+    popularSearches.length > 0 ||
+    Boolean(footerContent)
+
+  const showDropdown = isOpen && hasDropdownContent
 
   return (
     <div ref={searchRef} className={`relative ${className}`}>
       <div className="relative">
-        {/* Visible label for accessibility but visually hidden */}
-        <label htmlFor="site-search" className="sr-only">Site içi arama</label>
+        <label htmlFor="site-search" className="sr-only">Site ici arama</label>
         <input
           id="site-search"
           ref={inputRef}
           type="text"
           value={query}
-          onChange={(e) => setQuery(e.target.value)}
+          onChange={(event) => setQuery(event.target.value)}
           onFocus={() => setIsOpen(true)}
           onKeyDown={handleKeyDown}
           placeholder={placeholder}
-          aria-label="Site içi arama"
+          aria-label="Site ici arama"
           aria-expanded={showDropdown}
           aria-haspopup="listbox"
           aria-controls={showDropdown ? listboxId : undefined}
-          className="w-full pl-4 pr-10 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
+          className="w-full rounded-lg border border-gray-300 pl-4 pr-10 py-2 transition-all duration-200 focus:border-transparent focus:ring-2 focus:ring-blue-500"
         />
-        
-        <div className="absolute right-2 top-1/2 transform -translate-y-1/2 flex items-center space-x-1">
+
+        <div className="absolute right-2 top-1/2 -translate-y-1/2 transform flex items-center space-x-1">
           {query && (
             <button
               onClick={() => {
@@ -160,7 +188,7 @@ export function SearchAutocomplete({
                 setSuggestions([])
                 inputRef.current?.focus()
               }}
-              className="p-1 hover:bg-gray-100 rounded-full transition-colors"
+              className="rounded-full p-1 transition-colors hover:bg-gray-100"
               type="button"
               aria-label="Arama metnini temizle"
             >
@@ -169,7 +197,7 @@ export function SearchAutocomplete({
           )}
           <button
             onClick={() => handleSearch(query)}
-            className="p-1 hover:bg-gray-100 rounded-full transition-colors"
+            className="rounded-full p-1 transition-colors hover:bg-gray-100"
             type="button"
             aria-label="Ara"
           >
@@ -178,65 +206,64 @@ export function SearchAutocomplete({
         </div>
       </div>
 
-      {/* Dropdown */}
       {showDropdown && (
         <div
           id={listboxId}
           role="listbox"
-          aria-label="Arama önerileri"
-          className="absolute top-full left-0 right-0 mt-1 bg-white border border-gray-200 rounded-lg shadow-lg z-[100000000] max-h-96 overflow-y-auto"
+          aria-label="Arama onerileri"
+          className="absolute top-full left-0 right-0 z-[200] mt-1 max-h-[60vh] overflow-y-auto rounded-lg border border-gray-200 bg-white shadow-lg"
         >
-          {/* Loading */}
           {isLoading && (
             <div className="p-4 text-center text-gray-500" aria-live="polite">
-              <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-500 mx-auto" aria-hidden="true"></div>
-              <span className="sr-only">Yükleniyor</span>
+              <div className="mx-auto h-6 w-6 animate-spin rounded-full border-b-2 border-blue-500" aria-hidden="true" />
+              <span className="sr-only">Yukleniyor</span>
             </div>
           )}
 
-          {/* Suggestions */}
-          {!isLoading && suggestions.length > 0 && (
+          {!isLoading && limitedSuggestions.length > 0 && (
             <div className="border-b border-gray-100">
-              <div className="px-4 py-2 text-xs font-medium text-gray-500 uppercase tracking-wide">
-                Öneriler
+              <div className="px-4 py-2 text-xs font-medium uppercase tracking-wide text-gray-500">
+                Oneriler
               </div>
-              {suggestions.map((suggestion) => (
+              {limitedSuggestions.map((suggestion) => (
                 <button
                   key={`${suggestion.type}-${suggestion.id}`}
                   onClick={() => handleSuggestionClick(suggestion)}
-                  className="w-full px-4 py-3 text-left hover:bg-gray-50 flex items-center space-x-3 transition-colors"
+                  className="flex w-full items-center space-x-3 px-4 py-3 text-left transition-colors hover:bg-gray-50"
                   role="option"
                   aria-selected="false"
-                  aria-label={`${suggestion.name} - ${suggestion.type === 'product' ? 'Ürün' : suggestion.type === 'category' ? 'Kategori' : 'Set'}`}
+                  aria-label={`${suggestion.name} - ${suggestion.type === 'product' ? 'Urun' : suggestion.type === 'category' ? 'Kategori' : 'Set'}`}
                 >
                   {suggestion.image && (
-                    <div className="flex-shrink-0 w-10 h-10 bg-gray-100 rounded-md overflow-hidden" aria-hidden="true">
+                    <div className="h-10 w-10 flex-shrink-0 overflow-hidden rounded-md bg-gray-100" aria-hidden="true">
                       <Image
                         src={suggestion.image}
                         alt={suggestion.name}
                         width={40}
                         height={40}
-                        className="w-full h-full object-cover"
+                        className="h-full w-full object-cover"
                       />
                     </div>
                   )}
-                  <div className="flex-1 min-w-0">
+                  <div className="min-w-0 flex-1">
                     <div className="flex items-center space-x-2">
-                      <span className="text-sm font-medium text-gray-900 truncate">
+                      <span className="truncate text-sm font-medium text-gray-900">
                         {suggestion.name}
                       </span>
-                      <span className={`text-xs px-2 py-1 rounded-full ${
-                        suggestion.type === 'product' 
-                          ? 'bg-blue-100 text-blue-800' 
-                          : suggestion.type === 'category'
-                            ? 'bg-green-100 text-green-800'
-                            : 'bg-purple-100 text-purple-800'
-                      }`}>
-                        {suggestion.type === 'product' ? 'Ürün' : suggestion.type === 'category' ? 'Kategori' : 'Set'}
+                      <span
+                        className={`text-xs rounded-full px-2 py-1 ${
+                          suggestion.type === 'product'
+                            ? 'bg-blue-100 text-blue-800'
+                            : suggestion.type === 'category'
+                              ? 'bg-green-100 text-green-800'
+                              : 'bg-purple-100 text-purple-800'
+                        }`}
+                      >
+                        {suggestion.type === 'product' ? 'Urun' : suggestion.type === 'category' ? 'Kategori' : 'Set'}
                       </span>
                     </div>
                     {suggestion.price && (
-                      <div className="text-sm text-gray-600 mt-1">
+                      <div className="mt-1 text-sm text-gray-600">
                         {formatPrice(suggestion.price)}
                       </div>
                     )}
@@ -246,18 +273,17 @@ export function SearchAutocomplete({
             </div>
           )}
 
-          {/* Recent Searches */}
           {!isLoading && query.length < 2 && recentSearches.length > 0 && (
             <div className="border-b border-gray-100">
-              <div className="px-4 py-2 flex items-center justify-between">
-                <span className="text-xs font-medium text-gray-500 uppercase tracking-wide">
+              <div className="flex items-center justify-between px-4 py-2">
+                <span className="text-xs font-medium uppercase tracking-wide text-gray-500">
                   Son Aramalar
                 </span>
                 <button
                   onClick={clearRecentSearches}
-                  className="text-xs text-blue-600 hover:text-blue-800"
+                  className="text-xs text-blue-600 transition-colors hover:text-blue-800"
                   type="button"
-                  aria-label="Son aramaları temizle"
+                  aria-label="Son aramalari temizle"
                 >
                   Temizle
                 </button>
@@ -266,46 +292,52 @@ export function SearchAutocomplete({
                 <button
                   key={index}
                   onClick={() => handleRecentSearchClick(search)}
-                  className="w-full px-4 py-2 text-left hover:bg-gray-50 flex items-center space-x-3 transition-colors"
+                  className="flex w-full items-center space-x-3 px-4 py-2 text-left transition-colors hover:bg-gray-50"
                   role="option"
                   aria-selected="false"
                   aria-label={`Son arama: ${search}`}
                 >
-                  <ClockIcon className="h-4 w-4 text-gray-400 flex-shrink-0" aria-hidden="true" />
+                  <ClockIcon className="h-4 w-4 flex-shrink-0 text-gray-400" aria-hidden="true" />
                   <span className="text-sm text-gray-700">{search}</span>
                 </button>
               ))}
             </div>
           )}
 
-          {/* Popular Searches */}
           {!isLoading && query.length < 2 && popularSearches.length > 0 && (
-            <div>
-              <div className="px-4 py-2 text-xs font-medium text-gray-500 uppercase tracking-wide">
-                Popüler Aramalar
+            <div className="border-b border-gray-100">
+              <div className="px-4 py-2 text-xs font-medium uppercase tracking-wide text-gray-500">
+                Populer Aramalar
               </div>
               {popularSearches.map((search, index) => (
                 <button
                   key={index}
                   onClick={() => handleRecentSearchClick(search)}
-                  className="w-full px-4 py-2 text-left hover:bg-gray-50 flex items-center space-x-3 transition-colors"
+                  className="flex w-full items-center space-x-3 px-4 py-2 text-left transition-colors hover:bg-gray-50"
                   role="option"
                   aria-selected="false"
-                  aria-label={`Popüler arama: ${search}`}
+                  aria-label={`Populer arama: ${search}`}
                 >
-                  <MagnifyingGlassIcon className="h-4 w-4 text-gray-400 flex-shrink-0" aria-hidden="true" />
+                  <MagnifyingGlassIcon className="h-4 w-4 flex-shrink-0 text-gray-400" aria-hidden="true" />
                   <span className="text-sm text-gray-700">{search}</span>
                 </button>
               ))}
             </div>
           )}
 
-          {/* No Results */}
-          {!isLoading && query.length >= 2 && suggestions.length === 0 && (
+          {!isLoading && query.length >= 2 && limitedSuggestions.length === 0 && (
             <div className="px-4 py-8 text-center text-gray-500" aria-live="polite">
-              <MagnifyingGlassIcon className="h-8 w-8 mx-auto mb-2 text-gray-300" aria-hidden="true" />
-              <p className="text-sm">&quot;<span className="font-medium">{query}</span>&quot; için sonuç bulunamadı</p>
-              <p className="text-xs mt-1">Farklı anahtar kelimeler deneyebilirsiniz</p>
+              <MagnifyingGlassIcon className="mx-auto mb-2 h-8 w-8 text-gray-300" aria-hidden="true" />
+              <p className="text-sm">
+                "<span className="font-medium">{query}</span>" icin sonuc bulunamadi
+              </p>
+              <p className="mt-1 text-xs">Farkli anahtar kelimeler deneyebilirsiniz</p>
+            </div>
+          )}
+
+          {footerContent && (
+            <div className="border-t border-gray-100">
+              {footerContent}
             </div>
           )}
         </div>
