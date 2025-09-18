@@ -60,28 +60,36 @@ export const createServerClient = async () => {
 }
 
 // Admin client with service role key (lazy loaded)
-let _supabaseAdmin: ReturnType<typeof createClient> | null = null
+let _supabaseAdmin: ReturnType<typeof createSupabaseClient> | null = null
+let warnedAboutMissingServiceRoleKey = false
 
 export const getSupabaseAdmin = () => {
-  if (!_supabaseAdmin) {
-    const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY
-    if (!serviceRoleKey) {
-      throw new Error('SUPABASE_SERVICE_ROLE_KEY is required for admin operations')
-    }
-    
-    _supabaseAdmin = createSupabaseClient(
-      supabaseUrl,
-      serviceRoleKey,
-      {
-        auth: {
-          autoRefreshToken: false,
-          persistSession: false
-        }
-      }
-    )
+  if (_supabaseAdmin) {
+    return _supabaseAdmin
   }
+
+  const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY
+  const clientKey = serviceRoleKey || supabaseAnonKey
+
+  if (!serviceRoleKey && !warnedAboutMissingServiceRoleKey) {
+    warnedAboutMissingServiceRoleKey = true
+    console.warn('SUPABASE_SERVICE_ROLE_KEY is not set. Falling back to anon key; RLS may limit data access.')
+  }
+
+  _supabaseAdmin = createSupabaseClient(
+    supabaseUrl,
+    clientKey,
+    {
+      auth: {
+        autoRefreshToken: false,
+        persistSession: false
+      }
+    }
+  )
+
   return _supabaseAdmin
 }
+
 
 // Anon client for public operations (no cookies needed)
 export const createAnonClient = () => {
