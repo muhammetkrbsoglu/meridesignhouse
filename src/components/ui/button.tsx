@@ -1,9 +1,6 @@
 import * as React from "react"
 import { Slot } from "@radix-ui/react-slot"
 import { cva, type VariantProps } from "class-variance-authority"
-import { motion } from "framer-motion"
-import { useReducedMotion } from "framer-motion"
-import { useDesktopAnimations } from "@/hooks/useDesktopAnimations"
 
 import { cn } from "@/lib/utils"
 
@@ -53,33 +50,16 @@ function Button({
     animated?: boolean
   }) {
   const Comp = asChild ? Slot : "button"
-  const shouldReduceMotion = useReducedMotion()
-  const { createButtonHoverAnimation } = useDesktopAnimations()
 
-  // Desktop-only hover animations
-  const isDesktop = typeof window !== 'undefined' ? window.innerWidth >= 768 : true
-  const hoverProps = animated && !shouldReduceMotion && isDesktop
-    ? createButtonHoverAnimation({ contextLevel })
-    : {}
-
-  if (asChild || !animated || shouldReduceMotion) {
-    return (
-      <Comp
-        data-slot="button"
-        className={cn(buttonVariants({ variant, size, className }))}
-        {...props}
-      />
-    )
-  }
+  // Prevent non-DOM props from leaking to the element
+  const { contextLevel: _contextLevel, animated: _animated, ...domProps } = props as any
 
   return (
-    <motion.div {...hoverProps}>
-      <Comp
-        data-slot="button"
-        className={cn(buttonVariants({ variant, size, className }))}
-        {...props}
-      />
-    </motion.div>
+    <Comp
+      data-slot="button"
+      className={cn(buttonVariants({ variant, size, className }))}
+      {...domProps}
+    />
   )
 }
 
