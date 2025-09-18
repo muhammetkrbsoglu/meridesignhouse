@@ -1,11 +1,14 @@
 import * as React from "react"
 import { Slot } from "@radix-ui/react-slot"
 import { cva, type VariantProps } from "class-variance-authority"
+import { motion } from "framer-motion"
+import { useReducedMotion } from "framer-motion"
+import { useDesktopAnimations } from "@/hooks/useDesktopAnimations"
 
 import { cn } from "@/lib/utils"
 
 const buttonVariants = cva(
-  "inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium transition-all disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 shrink-0 [&_svg]:shrink-0 outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive",
+  "inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium transition-all disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 shrink-0 [&_svg]:shrink-0 outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] focus-visible:ring-offset-2 aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive",
   {
     variants: {
       variant: {
@@ -40,19 +43,43 @@ function Button({
   variant,
   size,
   asChild = false,
+  contextLevel,
+  animated = true,
   ...props
 }: React.ComponentProps<"button"> &
   VariantProps<typeof buttonVariants> & {
     asChild?: boolean
+    contextLevel?: "hero" | "featured" | "minimal"
+    animated?: boolean
   }) {
   const Comp = asChild ? Slot : "button"
+  const shouldReduceMotion = useReducedMotion()
+  const { createButtonHoverAnimation } = useDesktopAnimations()
+
+  // Desktop-only hover animations
+  const isDesktop = typeof window !== 'undefined' ? window.innerWidth >= 768 : true
+  const hoverProps = animated && !shouldReduceMotion && isDesktop
+    ? createButtonHoverAnimation({ contextLevel })
+    : {}
+
+  if (asChild || !animated || shouldReduceMotion) {
+    return (
+      <Comp
+        data-slot="button"
+        className={cn(buttonVariants({ variant, size, className }))}
+        {...props}
+      />
+    )
+  }
 
   return (
-    <Comp
-      data-slot="button"
-      className={cn(buttonVariants({ variant, size, className }))}
-      {...props}
-    />
+    <motion.div {...hoverProps}>
+      <Comp
+        data-slot="button"
+        className={cn(buttonVariants({ variant, size, className }))}
+        {...props}
+      />
+    </motion.div>
   )
 }
 
