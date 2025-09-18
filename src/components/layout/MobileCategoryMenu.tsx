@@ -5,6 +5,7 @@ import Link from 'next/link'
 import { motion, AnimatePresence } from 'framer-motion'
 import { ChevronDownIcon, ChevronRightIcon } from '@heroicons/react/24/outline'
 import { Star } from 'lucide-react'
+import { useAuth } from '@/contexts/AuthContext' // Assuming an AuthContext exists
 
 import { Category } from '@/types/category'
 
@@ -27,6 +28,7 @@ export default function MobileCategoryMenu({ categories, onCategoryClick }: Mobi
   const [expandedCategories, setExpandedCategories] = useState<Set<string>>(new Set())
   const [featuredProducts, setFeaturedProducts] = useState<{ [categoryId: string]: FeaturedProduct[] }>({})
   const [weeklyPicks, setWeeklyPicks] = useState<{ [categoryId: string]: FeaturedProduct }>({})
+  const { logout } = useAuth() // Assuming useAuth provides a logout function
 
   // Toggle category expansion
   const toggleCategory = (categoryId: string) => {
@@ -219,6 +221,15 @@ export default function MobileCategoryMenu({ categories, onCategoryClick }: Mobi
   return (
     <div className="space-y-1">
       {categories.map((category) => renderCategory(category))}
+      <button
+        onClick={() => {
+          logout()
+          onCategoryClick() // Close the menu after logout
+        }}
+        className="w-full flex items-center py-2 px-4 text-red-600 hover:text-white hover:bg-red-500 rounded-lg transition-all duration-300 mt-4"
+      >
+        Çıkış Yap
+      </button>
     </div>
   )
 }

@@ -1,9 +1,9 @@
 "use client"
 import dynamic from 'next/dynamic'
 import { Footer } from './Footer'
-import { ToastContainer } from '@/components/ui/ToastContainer'
-import { ToastProvider } from '@/contexts/ToastContext'
-import { useGestureHint } from '@/contexts/GestureHintContext'
+// import { ToastContainer } from '@/components/ui/ToastContainer'
+// import { ToastProvider } from '@/contexts/ToastContext'
+// import { useGestureHint } from '@/contexts/GestureHintContext'
 import { useReducedMotion } from 'framer-motion'
 
 const Navbar = dynamic(() => import('./Navbar').then(m => ({ default: m.Navbar })), { ssr: false })
@@ -11,47 +11,34 @@ const BottomTabBar = dynamic(() => import('./BottomTabBar').then(m => ({ default
 
 interface CustomerLayoutProps {
   children: React.ReactNode
-  showMobileNav?: boolean
-  showPullToRefresh?: boolean
-  enableHaptic?: boolean
 }
 
-export function CustomerLayout({ 
-  children, 
-  showMobileNav = true, 
-  showPullToRefresh = false,
-  enableHaptic = true 
-}: CustomerLayoutProps) {
-  const { resetHints, showHints } = useGestureHint()
-  const shouldReduceMotion = useReducedMotion()
+export function CustomerLayout({ children }: CustomerLayoutProps) {
+  // const { showGestureHint } = useGestureHint()
+  const reducedMotion = useReducedMotion()
+
   return (
-    <ToastProvider>
-      <div className="min-h-screen flex flex-col">
-        <Navbar />
-        <main className="flex-1 pb-16 supports-[padding:max(0px)]:pb-[calc(64px+env(safe-area-inset-bottom))]">
-          {children}
-        </main>
-        {showMobileNav && <BottomTabBar />}
-        {/* Mobile-only minimal controls for gesture hints */}
-        <div className="md:hidden fixed bottom-[88px] right-4 z-40 flex flex-col gap-2">
-          <button
-            onClick={() => resetHints()}
-            aria-label="İpuçlarını sıfırla"
-            className="px-3 py-2 rounded-full bg-white/90 backdrop-blur-md border text-xs shadow-lg motion-safe:transition-all motion-safe:duration-200 active:scale-[0.98]"
+    <div className="flex min-h-screen flex-col">
+      <Navbar />
+      <main className="flex-grow">
+        {children}
+      </main>
+      <BottomTabBar />
+      <Footer />
+      {/* {showGestureHint && (
+        <div className="fixed bottom-20 left-0 right-0 z-50 flex justify-center">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: 20 }}
+            transition={{ duration: 0.3 }}
+            className="rounded-full bg-blue-500 px-4 py-2 text-white shadow-lg"
           >
-            İpuçlarını sıfırla
-          </button>
-          <button
-            onClick={() => showHints()}
-            aria-label="İpuçlarını göster"
-            className="px-3 py-2 rounded-full bg-white/90 backdrop-blur-md border text-xs shadow-lg motion-safe:transition-all motion-safe:duration-200 active:scale-[0.98]"
-          >
-            İpuçlarını göster
-          </button>
+            Kaydırmak için dokunun
+          </motion.div>
         </div>
-        <Footer />
-        <ToastContainer />
-      </div>
-    </ToastProvider>
+      )} */}
+      {/* <ToastContainer /> */}
+    </div>
   )
 }

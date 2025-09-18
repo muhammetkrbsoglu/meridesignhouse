@@ -14,7 +14,7 @@ import InstagramTemplate from './InstagramTemplate'
 import WhatsAppTemplate from './WhatsAppTemplate'
 import { UstaninNotu } from '@/components/brand/UstaninNotu'
 const CollectionStory = dynamic(() => import('@/components/brand/CollectionStory').then(m => ({ default: m.CollectionStory })), { ssr: false })
-import { PullRefreshHint } from '@/components/motion/GestureHint'
+// import { PullRefreshHint } from '@/components/motion/GestureHint'
 import { useHapticFeedback } from '@/hooks/useHapticFeedback'
 import { usePerformanceMeasurement } from '@/hooks/usePerformanceMeasurement'
 
@@ -27,7 +27,7 @@ export function HomePageClient({ newArrivals, featuredProducts }: HomePageClient
   const [isRefreshing, setIsRefreshing] = useState(false)
   const [refreshKey, setRefreshKey] = useState(0)
   const { success, error } = useHapticFeedback()
-  const { measureAsync } = usePerformanceMeasurement()
+  const { measureAsync } = usePerformanceMeasurement('HomePageClient')
 
   const handleRefresh = useCallback(async () => {
     if (isRefreshing) return
@@ -59,60 +59,48 @@ export function HomePageClient({ newArrivals, featuredProducts }: HomePageClient
   }, [isRefreshing, measureAsync, success, error])
 
   return (
-    <PullRefreshHint showOnMount={true} delay={2000}>
-      <PullToRefresh
-        onRefresh={handleRefresh}
-        disabled={isRefreshing}
-        refreshText="Ana sayfayı yenilemek için çekin"
-        releaseText="Bırakın"
-        refreshingText="Yenileniyor..."
-        successText="Ana sayfa yenilendi!"
-        errorText="Yenileme hatası"
-      >
-        <motion.div
-          key={refreshKey}
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ duration: 0.3 }}
-        >
-          {/* Hero Banner */}
-          <HeroSection />
+    <motion.div
+      key={refreshKey}
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      transition={{ duration: 0.3 }}
+    >
+      {/* Hero Banner */}
+      <HeroSection />
 
-          {/* Event Concept Designer */}
-          <EventConceptDesigner />
+      {/* Event Concept Designer */}
+      <EventConceptDesigner />
 
-          {/* Featured Products */}
-          <FeaturedProducts products={featuredProducts} />
+      {/* Featured Products */}
+      <FeaturedProducts products={featuredProducts} />
 
-          {/* New Arrivals */}
-          <NewArrivals products={newArrivals} />
+      {/* New Arrivals */}
+      <NewArrivals products={newArrivals} />
 
-          {/* Happy Customers Section */}
-          <HappyCustomers />
+      {/* Happy Customers Section */}
+      <HappyCustomers />
 
-          {/* Brand Story Modules */}
-          <UstaninNotu variant="featured" showStats={true} />
-          
-          <CollectionStory variant="timeline" />
+      {/* Brand Story Modules */}
+      <UstaninNotu variant="featured" showStats={true} />
+      
+      <CollectionStory variant="timeline" />
 
-          {/* Testimonials Section */}
-          <TestimonialsSection />
+      {/* Testimonials Section */}
+      <TestimonialsSection />
 
-          {/* Instagram Template */}
-          <InstagramTemplate 
-            screenshotUrl="/placeholder-product.jpg" 
-            customerName="Müşteri" 
-            altText="Instagram mesaj ekran görüntüsü"
-          />
+      {/* Instagram Template */}
+      <InstagramTemplate 
+        screenshotUrl="/placeholder-product.jpg" 
+        customerName="Müşteri" 
+        altText="Instagram mesaj ekran görüntüsü"
+      />
 
-          {/* WhatsApp Template */}
-          <WhatsAppTemplate 
-            screenshotUrl="/placeholder-product.jpg" 
-            customerName="Müşteri" 
-            altText="WhatsApp mesaj ekran görüntüsü"
-          />
-        </motion.div>
-      </PullToRefresh>
-    </PullRefreshHint>
+      {/* WhatsApp Template */}
+      <WhatsAppTemplate 
+        screenshotUrl="/placeholder-product.jpg" 
+        customerName="Müşteri" 
+        altText="WhatsApp mesaj ekran görüntüsü"
+      />
+    </motion.div>
   )
 }

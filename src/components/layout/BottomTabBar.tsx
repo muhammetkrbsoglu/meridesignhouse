@@ -58,6 +58,14 @@ const items = [
     badgeKey: 'favorites'
   },
   { 
+    href: '/cart', 
+    label: 'Sepetim', 
+    icon: ShoppingBagIcon, 
+    activeIcon: ShoppingBagIconSolid,
+    showBadge: true,
+    badgeKey: 'cart'
+  },
+  { 
     href: '/profile', 
     label: 'Profil', 
     icon: UserIcon, 
@@ -165,7 +173,7 @@ export function BottomTabBar() {
       )}
     >
       <div className="mx-auto max-w-7xl px-2 py-1">
-        <ul className="grid grid-cols-5 gap-1">
+        <ul className="grid grid-cols-6 gap-1">
           {items.map(({ href, label, icon: Icon, activeIcon: ActiveIcon, showBadge, badgeKey }) => {
             const active = pathname === href || (href !== '/' && pathname.startsWith(href))
             const badgeCount = showBadge ? getBadgeCount(badgeKey!) : 0
@@ -244,7 +252,7 @@ export function BottomTabBar() {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 z-[1200] flex items-start justify-center bg-black/40 backdrop-blur-sm md:hidden"
+            className="fixed inset-0 z-[1200] flex items-center justify-center bg-black/40 backdrop-blur-sm md:hidden"
             onClick={() => setIsSearchOpen(false)}
             role="dialog"
             aria-modal="true"
@@ -254,7 +262,7 @@ export function BottomTabBar() {
               animate={{ y: 0, opacity: 1 }}
               exit={{ y: 40, opacity: 0 }}
               transition={{ type: 'spring', stiffness: 300, damping: 30 }}
-              className="mt-16 w-[92%] rounded-2xl bg-white p-3 shadow-2xl"
+              className="w-[92%] rounded-2xl bg-white p-3 shadow-2xl"
               onClick={(e) => e.stopPropagation()}
             >
               <SearchAutocomplete

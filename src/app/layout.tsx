@@ -4,10 +4,12 @@ import './globals.css'
 import { AuthProviderWrapper } from '@/components/providers/AuthProviderWrapper'
 import { GestureHintProvider } from '@/contexts/GestureHintContext'
 import { Toaster } from '@/components/ui/toaster'
-import { WebsiteStructuredData } from '@/components/seo/WebsiteStructuredData'
-import { OrganizationStructuredData } from '@/components/seo/OrganizationStructuredData'
+// import { TooltipProvider } from '@/components/ui/tooltip'
+// import { WebsiteStructuredData } from '@/components/seo/WebsiteStructuredData'
+// import { OrganizationStructuredData } from '@/components/seo/OrganizationStructuredData'
+// import { ThemeProvider } from 'next-themes'
 
-const geistSans = Geist({
+const geist = Geist({
   variable: '--font-geist-sans',
   subsets: ['latin'],
 })
@@ -44,24 +46,11 @@ export default function RootLayout({
   children: React.ReactNode
 }) {
   return (
-    <html lang="tr">
-      <head>
-        <link rel="preconnect" href="https://ik.imagekit.io" crossOrigin="anonymous" />
-        <link rel="preconnect" href="https://images.unsplash.com" crossOrigin="anonymous" />
-        <link rel="preconnect" href="https://lh3.googleusercontent.com" crossOrigin="anonymous" />
-      </head>
-      <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased`}
-      >
+    <html lang="tr" className={`${geist.variable} ${geistMono.variable}`}>
+      <body className="min-h-screen bg-background font-sans antialiased">
         <AuthProviderWrapper>
-          <GestureHintProvider>
-            {children}
-            {/* Live region for polite announcements (toasts/async) */}
-            <div aria-live="polite" aria-atomic="true" className="sr-only" />
-            <Toaster />
-            <WebsiteStructuredData />
-            <OrganizationStructuredData />
-          </GestureHintProvider>
+          {children}
+          <Toaster />
         </AuthProviderWrapper>
       </body>
     </html>
@@ -100,4 +89,4 @@ export function reportWebVitals(metric: any) {
 }
 "// Build trigger" 
 "// Cache bust" 
-"// Force rebuild"  
+"// Force rebuild"

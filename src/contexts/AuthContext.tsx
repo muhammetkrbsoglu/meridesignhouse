@@ -16,6 +16,7 @@ interface AuthContextType {
   signInWithProvider: (provider: 'google' | 'facebook' | 'twitter' | 'spotify') => Promise<{ error: Error | null }>
   signUpWithProvider: (provider: 'google' | 'facebook' | 'twitter' | 'spotify') => Promise<{ error: Error | null }>
   signOut: () => Promise<void>
+  logout: () => Promise<void>
   updateProfile: (updates: Partial<UserProfile>) => Promise<{ error: Error | null }>
 }
 
@@ -293,6 +294,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     signInWithProvider,
     signUpWithProvider,
     signOut,
+    logout: signOut, // Alias for signOut
     updateProfile,
   }
 
