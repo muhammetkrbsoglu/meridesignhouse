@@ -1,4 +1,4 @@
-﻿/**
+/**
  * MeriDesignHouse Floating Action Button
  * Mobile-only FAB with haptic feedback and glassmorphism
  */
@@ -69,26 +69,52 @@ export function FloatingActionButton({
   className,
   disabled = false
 }: FloatingActionButtonProps) {
-  const [isVisible, setIsVisible] = useState(!showOnScroll)
-  const [isScrolled, setIsScrolled] = useState(false)
+  const [isVisible, setIsVisible] = useState(false)
+  const [hasMounted, setHasMounted] = useState(false)
+  const [isMobile, setIsMobile] = useState(false)
   const { createButtonAnimation } = useMicroAnimations()
   const shouldReduceMotion = useReducedMotion()
 
   useEffect(() => {
-    if (!showOnScroll) return
+    setHasMounted(true)
+  }, [])
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return
+
+    const evaluateViewport = () => {
+      const mobile = window.innerWidth < 768
+      setIsMobile(mobile)
+
+      if (!showOnScroll) {
+        setIsVisible(mobile)
+      } else if (!mobile) {
+        setIsVisible(false)
+      }
+    }
+
+    evaluateViewport()
+    window.addEventListener('resize', evaluateViewport, { passive: true })
+    return () => window.removeEventListener('resize', evaluateViewport)
+  }, [showOnScroll])
+
+  useEffect(() => {
+    if (!showOnScroll || !isMobile) {
+      setIsVisible(isMobile && !showOnScroll)
+      return
+    }
 
     const handleScroll = () => {
       const scrolled = window.scrollY > scrollThreshold
-      setIsScrolled(scrolled)
       setIsVisible(scrolled)
     }
 
+    handleScroll()
     window.addEventListener('scroll', handleScroll, { passive: true })
     return () => window.removeEventListener('scroll', handleScroll)
-  }, [showOnScroll, scrollThreshold])
+  }, [isMobile, showOnScroll, scrollThreshold])
 
-  // Don't show on desktop
-  if (typeof window !== 'undefined' && window.innerWidth >= 768) {
+  if (!hasMounted || !isMobile) {
     return null
   }
 
@@ -213,7 +239,7 @@ export function BackToTopFAB() {
   return (
     <FloatingActionButton
       icon={require('lucide-react').ArrowUp}
-      label="Yukarı"
+      label="Yukari"
       onClick={scrollToTop}
       position="bottom-right"
       size="sm"
