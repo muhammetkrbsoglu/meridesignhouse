@@ -213,8 +213,8 @@ export function Navbar() {
         </motion.div>
       </div>
 
-      {/* Top Bar */}
-      <div className={`relative bg-gradient-to-r from-rose-100/50 to-pink-100/50 border-b border-rose-200/30 overflow-hidden transition-[height,opacity] duration-150 ${isCompact ? 'h-0 opacity-0' : 'h-10 opacity-100'}`}>
+      {/* Top Bar - mobile gizli */}
+      <div className={`relative bg-gradient-to-r from-rose-100/50 to-pink-100/50 border-b border-rose-200/30 overflow-hidden transition-[height,opacity] duration-150 ${isCompact ? 'h-0 opacity-0' : 'h-10 opacity-100'} hidden md:block`}>
         <div className={`max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 ${isCompact ? 'pointer-events-none' : ''}`}>
           <div className="flex justify-between items-center h-10 text-sm">
             <div className="flex items-center space-x-4">
@@ -372,7 +372,8 @@ export function Navbar() {
                 </Button>
               </div>
             ) : (
-              <div className="flex items-center space-x-3">
+              // Mobilde Giriş/Kayıt Ol butonlarını gizle (hamburger içinde sunulacak)
+              <div className="hidden md:flex items-center space-x-3">
                 <Link href="/auth/login">
                   <Button 
                     variant="ghost" 
@@ -413,10 +414,10 @@ export function Navbar() {
         </div>
       </div>
 
-      {/* Main Navigation */}
-      <nav className="relative bg-gradient-to-r from-rose-50/50 to-pink-50/50 border-t border-rose-200/30 transition-[height,opacity] duration-150">
+      {/* Main Navigation - mobile gizli */}
+      <nav className="relative bg-gradient-to-r from-rose-50/50 to-pink-50/50 border-t border-rose-200/30 transition-[height,opacity] duration-150 hidden md:block">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-center items-center space-x-8 h-12 overflow-x-auto">
+          <div className="flex justify-center items-center space-x-8 h-12">
             <motion.div
               initial={{ opacity: 0, y: -10 }}
               animate={{ opacity: 1, y: 0 }}
@@ -514,10 +515,10 @@ export function Navbar() {
         </div>
       </nav>
 
-      {/* Categories Navigation */}
-      <nav className="relative bg-gradient-to-r from-rose-50/50 to-pink-50/50 border-t border-rose-200/30 z-[99998] overflow-visible">
+      {/* Categories Navigation - mobile gizli */}
+      <nav className="relative bg-gradient-to-r from-rose-50/50 to-pink-50/50 border-t border-rose-200/30 z-[99998] overflow-visible hidden md:block">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-center items-center space-x-2 h-12 overflow-x-auto scrollbar-hide relative overflow-visible">
+          <div className="flex justify-center items-center space-x-2 h-12 relative overflow-visible">
             {categories.map((category, index) => (
               <motion.div
                 key={category.id}
@@ -617,6 +618,20 @@ export function Navbar() {
                   onClick={() => setIsMobileMenuOpen(false)}
                 >
                   🏠 Ana Sayfa
+                </Link>
+                <Link
+                  href="/design-studio"
+                  className="flex items-center py-3 px-4 text-purple-600 hover:text-white hover:bg-gradient-to-r hover:from-purple-500 hover:to-pink-500 rounded-xl transition-all duration-300 font-medium"
+                  onClick={() => setIsMobileMenuOpen(false)}
+                >
+                  🎨 Tasarım Atölyesi
+                </Link>
+                <Link
+                  href="/sale"
+                  className="flex items-center py-3 px-4 text-red-600 hover:text-white hover:bg-gradient-to-r hover:from-red-500 hover:to-pink-500 rounded-xl transition-all duration-300 font-medium"
+                  onClick={() => setIsMobileMenuOpen(false)}
+                >
+                  ⭐ Haftanın Ürünü
                 </Link>
                 <Link
                   href="/about"
