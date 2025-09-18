@@ -76,7 +76,7 @@ export default function AboutPage() {
               <div className="relative">
                 <div className="bg-gradient-to-br from-rose-100 to-pink-100 rounded-3xl p-8 shadow-2xl">
                   <div className="text-center">
-                    <div className="text-6xl mb-4">ğŸ¨</div>
+                    <div className="text-6xl mb-4">🎨</div>
                     <h3 className="text-2xl font-semibold text-gray-800 mb-4">Yaratıcılık & Kalite</h3>
                     <p className="text-gray-600">
                       Her projede özgün tasarımlar ve yüksek kalite standartları

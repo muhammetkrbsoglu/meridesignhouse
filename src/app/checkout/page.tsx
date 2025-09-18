@@ -328,7 +328,7 @@ export default function CheckoutPage() {
         toast.error(result.error || 'Sipariş oluşturulurken hata oluştu');
       }
     } catch (error) {
-      console.error('ğŸ’¥ Checkout error:', error);
+      console.error('💥 Checkout error:', error);
       toast.error('Bir hata oluştu');
     } finally {
       setSubmitting(false);
@@ -483,7 +483,7 @@ export default function CheckoutPage() {
                           })}
                         </div>
                         <div className="mt-3 text-sm text-gray-600 bg-gray-50 p-3 rounded-lg">
-                          ğŸ’¡ <strong>İpucu:</strong> Kayıtlı adreslerinizden birini seçerek formu otomatik doldurabilirsiniz.
+                          💡 <strong>İpucu:</strong> Kayıtlı adreslerinizden birini seçerek formu otomatik doldurabilirsiniz.
                         </div>
                         <Separator className="my-4" />
                       </div>
@@ -504,7 +504,7 @@ export default function CheckoutPage() {
                     </div>
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                       <div>
-                        <Label>Åehir (PTT)</Label>
+                        <Label>Şehir (PTT)</Label>
                         <select
                           className="mt-1 w-full border rounded-md h-10 px-3"
                           value={selectedCityId}
@@ -630,7 +630,7 @@ export default function CheckoutPage() {
                               })}
                             </div>
                             <div className="mt-3 text-sm text-gray-600 bg-gray-50 p-3 rounded-lg">
-                              ğŸ’¡ <strong>İpucu:</strong> Fatura adresi için kayıtlı adreslerinizden birini seçebilirsiniz.
+                              💡 <strong>İpucu:</strong> Fatura adresi için kayıtlı adreslerinizden birini seçebilirsiniz.
                             </div>
                             <Separator className="my-4" />
                           </div>
@@ -659,7 +659,7 @@ export default function CheckoutPage() {
                         </div>
                         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                           <div>
-                            <Label htmlFor="billingCity">Åehir *</Label>
+                            <Label htmlFor="billingCity">Şehir *</Label>
                             <Input
                               id="billingCity"
                               value={formData.billingCity}
@@ -1015,7 +1015,7 @@ export default function CheckoutPage() {
                     <div className="pt-2 border-t">
                       <Link href="/privacy" className="text-blue-600 hover:underline">Gizlilik Politikası</Link>
                       <span className="mx-2">•</span>
-                      <Link href="/terms" className="text-blue-600 hover:underline">Kullanım Åartları</Link>
+                      <Link href="/terms" className="text-blue-600 hover:underline">Kullanım Şartları</Link>
                     </div>
                   </div>
                 </CardContent>
@@ -1034,17 +1034,17 @@ export default function CheckoutPage() {
                     <div className="space-y-2">
                       <div className="font-medium text-gray-900">Müşteri Hizmetleri</div>
                       <div className="space-y-1">
-                        <div>ğŸ“ +90 555 123 45 67</div>
-                        <div>ğŸ“§ info@meridesignhouse.com</div>
-                        <div>ğŸ•’ 09:00 - 18:00 (Pazartesi-Cuma)</div>
+                        <div>📞 +90 555 123 45 67</div>
+                        <div>✉️ info@meridesignhouse.com</div>
+                        <div>🕒 09:00 - 18:00 (Pazartesi-Cuma)</div>
                       </div>
                     </div>
                     <div className="space-y-2">
                       <div className="font-medium text-gray-900">WhatsApp Destek</div>
                       <div className="space-y-1">
-                        <div>ğŸ’¬ Anında yanıt</div>
-                        <div>ğŸ“± 7/24 destek</div>
-                        <div>ğŸ”— Sipariş takibi</div>
+                        <div>💬 Anında yanıt</div>
+                        <div>📱 7/24 destek</div>
+                        <div>🔗 Sipariş takibi</div>
                       </div>
                     </div>
                   </div>

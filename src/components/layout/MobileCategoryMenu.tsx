@@ -92,7 +92,7 @@ export default function MobileCategoryMenu({ categories, onCategoryClick }: Mobi
             onClick={onCategoryClick}
             style={{ marginLeft: depth * 16 }}
           >
-            ğŸ·ï¸ {category.name}
+            🏷️ {category.name}
           </Link>
           
           {hasChildren && (

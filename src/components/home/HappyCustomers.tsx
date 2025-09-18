@@ -142,7 +142,7 @@ export default function HappyCustomers({ messages: initialMessages }: HappyCusto
             transition={{ duration: 0.5, delay: 0.1 }}
             viewport={{ once: true }}
           >
-            ğŸ’¬ Müşteri Yorumları
+            💬 Müşteri Yorumları
           </motion.div>
           <motion.h2 
             className="text-3xl sm:text-4xl md:text-5xl font-bold mb-4 sm:mb-6 bg-gradient-to-r from-rose-600 to-purple-600 bg-clip-text text-transparent"
@@ -194,7 +194,7 @@ export default function HappyCustomers({ messages: initialMessages }: HappyCusto
                 ) : (
                   <div className="flex items-center justify-center h-full">
                     <div className="text-center">
-                      <div className="text-4xl mb-2">ğŸ•¯ï¸</div>
+                      <div className="text-4xl mb-2">🖼️</div>
                       <span className="text-rose-500 font-medium">Ürün Görseli</span>
                     </div>
                   </div>
@@ -274,13 +274,13 @@ export default function HappyCustomers({ messages: initialMessages }: HappyCusto
               </p>
               <div className="mt-6 flex flex-wrap gap-2">
                 <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-rose-100 text-rose-700">
-                  ğŸ¯ Kalite Garantisi
+                  🎯 Kalite Garantisi
                 </span>
                 <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-pink-100 text-pink-700">
-                  ğŸ’° Uygun Fiyat
+                  💰 Uygun Fiyat
                 </span>
                 <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-purple-100 text-purple-700">
-                  ğŸš€ Hızlı Teslimat
+                  🚀 Hızlı Teslimat
                 </span>
               </div>
             </div>

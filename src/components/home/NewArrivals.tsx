@@ -149,7 +149,7 @@ export function NewArrivals({ products }: NewArrivalsProps) {
             transition={{ duration: 0.6 }}
             viewport={{ once: true }}
           >
-            ğŸ†• Yeni Koleksiyon
+            🆕 Yeni Koleksiyon
           </motion.div>
           <motion.h2 
             className="text-3xl sm:text-4xl md:text-5xl font-bold mb-4 sm:mb-6 bg-gradient-to-r from-rose-600 to-purple-600 bg-clip-text text-transparent"

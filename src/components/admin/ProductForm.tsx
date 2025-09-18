@@ -439,7 +439,7 @@ export function ProductForm({ categories, product, colors = [] }: ProductFormPro
               {uploadedImages.length > 1 && (
                 <div className="mt-4 p-3 bg-blue-50 rounded-lg">
                   <p className="text-xs text-blue-700">
-                    ğŸ’¡ Görselleri sürükleyip bırakarak sıralayabilirsiniz. İlk görsel ana görsel olarak kullanılır.
+                    💡 Görselleri sürükleyip bırakarak sıralayabilirsiniz. İlk görsel ana görsel olarak kullanılır.
                   </p>
                 </div>
               )}

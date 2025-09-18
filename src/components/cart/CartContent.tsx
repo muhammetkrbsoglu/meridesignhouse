@@ -443,7 +443,7 @@ export function CartContent() {
                           }}
                         />
                       ) : (
-                        <span className="text-2xl">ğŸ›ï¸</span>
+                        <span className="text-2xl">🛍️</span>
                       )}
                     </div>
                   </div>

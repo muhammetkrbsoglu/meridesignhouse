@@ -126,7 +126,7 @@ export function HeroSection() {
                       animate={shouldReduceMotion ? undefined : { rotate: [0, 10, -10, 0] }}
                       transition={{ duration: 2, repeat: Infinity }}
                     >
-                      ğŸ¨
+                      🎨
                     </motion.div>
                     <h3 className="text-xl font-semibold text-gray-800 mb-2">Etkinlik Konsept Tasarımcısı</h3>
                     <p className="text-gray-600 text-sm">Hayalinizdeki etkinliği tasarlayın</p>

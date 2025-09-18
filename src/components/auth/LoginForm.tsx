@@ -19,7 +19,7 @@ import { useToast } from '@/hooks/use-toast'
 
 const loginSchema = z.object({
   email: z.string().email('Geçerli bir email adresi giriniz'),
-  password: z.string().min(6, 'Åifre en az 6 karakter olmalıdır'),
+  password: z.string().min(6, 'Şifre en az 6 karakter olmalıdır'),
 })
 
 type LoginFormData = z.infer<typeof loginSchema>
@@ -120,7 +120,7 @@ export function LoginForm({
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="password">Åifre</Label>
+            <Label htmlFor="password">Şifre</Label>
             <div className="relative">
               <Input
                 id="password"

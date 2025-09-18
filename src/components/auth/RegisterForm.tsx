@@ -21,10 +21,10 @@ const registerSchema = z.object({
   name: z.string().min(2, 'İsim en az 2 karakter olmalıdır'),
   email: z.string().email('Geçerli bir email adresi giriniz'),
   phone: z.string().optional(),
-  password: z.string().min(6, 'Åifre en az 6 karakter olmalıdır'),
+  password: z.string().min(6, 'Şifre en az 6 karakter olmalıdır'),
   confirmPassword: z.string(),
 }).refine((data) => data.password === data.confirmPassword, {
-  message: 'Åifreler eşleşmiyor',
+  message: 'Şifreler eşleşmiyor',
   path: ['confirmPassword'],
 })
 
@@ -179,7 +179,7 @@ export function RegisterForm({
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="password">Åifre</Label>
+            <Label htmlFor="password">Şifre</Label>
             <div className="relative">
               <Input
                 id="password"
@@ -209,7 +209,7 @@ export function RegisterForm({
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="confirmPassword">Åifre Tekrar</Label>
+            <Label htmlFor="confirmPassword">Şifre Tekrar</Label>
             <div className="relative">
               <Input
                 id="confirmPassword"
