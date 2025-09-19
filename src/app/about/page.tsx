@@ -31,10 +31,10 @@ export default function AboutPage() {
 
           <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20 lg:py-32">
             <div className="text-center">
-              <h1 className="text-4xl md:text-6xl lg:text-7xl font-bold mb-6 bg-gradient-to-r from-rose-600 via-pink-600 to-purple-600 bg-clip-text text-transparent leading-tight">
+              <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold mb-6 bg-gradient-to-r from-rose-600 via-pink-600 to-purple-600 bg-clip-text text-transparent leading-tight">
                 Hakkımızda
               </h1>
-              <p className="text-lg md:text-xl mb-8 text-gray-700 max-w-3xl mx-auto leading-relaxed">
+              <p className="text-base sm:text-lg md:text-xl mb-8 text-gray-700 max-w-3xl mx-auto leading-relaxed">
                 Hayalinizdeki etkinlikleri gerçeğe dönüştüren, yaratıcılık ve kaliteyi bir araya getiren tasarım evi.
               </p>
             </div>
@@ -54,15 +54,15 @@ export default function AboutPage() {
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="grid lg:grid-cols-2 gap-12 items-center">
               <div>
-                <h2 className="text-3xl md:text-4xl font-bold mb-6 bg-gradient-to-r from-rose-600 to-purple-600 bg-clip-text text-transparent">
+                <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold mb-6 bg-gradient-to-r from-rose-600 to-purple-600 bg-clip-text text-transparent">
                   Hikayemiz
                 </h2>
-                <p className="text-lg text-gray-700 mb-6 leading-relaxed">
+                <p className="text-sm sm:text-base text-gray-700 mb-6 leading-relaxed">
                   Meri Design House, özel günlerinizi unutulmaz kılma tutkusuyla 2020 yılında kuruldu. 
                   Her etkinliğin kendine özgü bir hikayesi olduğuna inanıyor, bu hikayeleri en güzel 
                   şekilde anlatmanın yollarını arıyoruz.
                 </p>
-                <p className="text-lg text-gray-700 mb-8 leading-relaxed">
+                <p className="text-sm sm:text-base text-gray-700 mb-8 leading-relaxed">
                   Düğünlerden doğum günlerine, kurumsal etkinliklerden özel kutlamalara kadar 
                   geniş bir yelpazede hizmet veriyor, her projeye aynı özen ve yaratıcılıkla yaklaşıyoruz.
                 </p>
@@ -77,7 +77,7 @@ export default function AboutPage() {
                 <div className="bg-gradient-to-br from-rose-100 to-pink-100 rounded-3xl p-8 shadow-2xl">
                   <div className="text-center">
                     <div className="text-6xl mb-4">🎨</div>
-                    <h3 className="text-2xl font-semibold text-gray-800 mb-4">Yaratıcılık & Kalite</h3>
+                    <h3 className="text-xl sm:text-2xl font-semibold text-gray-800 mb-4">Yaratıcılık & Kalite</h3>
                     <p className="text-gray-600">
                       Her projede özgün tasarımlar ve yüksek kalite standartları
                     </p>
@@ -92,7 +92,7 @@ export default function AboutPage() {
         <section className="py-20 bg-gradient-to-b from-white to-rose-50">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="text-center mb-16">
-              <h2 className="text-3xl md:text-4xl font-bold mb-6 bg-gradient-to-r from-rose-600 to-purple-600 bg-clip-text text-transparent">
+              <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold mb-6 bg-gradient-to-r from-rose-600 to-purple-600 bg-clip-text text-transparent">
                 Misyon & Vizyon
               </h2>
             </div>
@@ -103,7 +103,7 @@ export default function AboutPage() {
                     <div className="w-16 h-16 bg-gradient-to-r from-rose-500 to-pink-500 rounded-full flex items-center justify-center mx-auto mb-6">
                       <Target className="h-8 w-8 text-white" />
                     </div>
-                    <h3 className="text-2xl font-bold mb-4 text-gray-800">Misyonumuz</h3>
+                    <h3 className="text-xl sm:text-2xl font-bold mb-4 text-gray-800">Misyonumuz</h3>
                     <p className="text-gray-600 leading-relaxed">
                       Her müşterimizin hayallerini gerçeğe dönüştürmek, özel günlerini 
                       unutulmaz kılacak özgün ve kaliteli tasarımlar sunmak. Yaratıcılığımızı 
@@ -118,7 +118,7 @@ export default function AboutPage() {
                     <div className="w-16 h-16 bg-gradient-to-r from-purple-500 to-pink-500 rounded-full flex items-center justify-center mx-auto mb-6">
                       <Star className="h-8 w-8 text-white" />
                     </div>
-                    <h3 className="text-2xl font-bold mb-4 text-gray-800">Vizyonumuz</h3>
+                    <h3 className="text-xl sm:text-2xl font-bold mb-4 text-gray-800">Vizyonumuz</h3>
                     <p className="text-gray-600 leading-relaxed">
                       Türkiye&apos;nin en güvenilir ve yaratıcı etkinlik tasarım markası olmak. 
                       İnovatif yaklaşımlarımız ve müşteri memnuniyeti odaklı hizmetimizle 
@@ -135,10 +135,10 @@ export default function AboutPage() {
         <section className="py-20 bg-white">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="text-center mb-16">
-              <h2 className="text-3xl md:text-4xl font-bold mb-6 bg-gradient-to-r from-rose-600 to-purple-600 bg-clip-text text-transparent">
+              <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold mb-6 bg-gradient-to-r from-rose-600 to-purple-600 bg-clip-text text-transparent">
                 Değerlerimiz
               </h2>
-              <p className="text-lg text-gray-600 max-w-2xl mx-auto">
+              <p className="text-sm sm:text-base text-gray-600 max-w-2xl mx-auto">
                 Çalışma prensiplerimiz ve müşterilerimize sunduğumuz değerler
               </p>
             </div>
@@ -147,7 +147,7 @@ export default function AboutPage() {
                 <div className="w-20 h-20 bg-gradient-to-r from-rose-500 to-pink-500 rounded-full flex items-center justify-center mx-auto mb-6 group-hover:scale-110 transition-transform duration-300">
                   <Palette className="h-10 w-10 text-white" />
                 </div>
-                <h3 className="text-xl font-semibold mb-4 text-gray-800">Yaratıcılık</h3>
+                <h3 className="text-lg sm:text-xl font-semibold mb-4 text-gray-800">Yaratıcılık</h3>
                 <p className="text-gray-600">
                   Her projede özgün ve yenilikçi tasarım anlayışı
                 </p>
@@ -156,7 +156,7 @@ export default function AboutPage() {
                 <div className="w-20 h-20 bg-gradient-to-r from-pink-500 to-purple-500 rounded-full flex items-center justify-center mx-auto mb-6 group-hover:scale-110 transition-transform duration-300">
                   <Award className="h-10 w-10 text-white" />
                 </div>
-                <h3 className="text-xl font-semibold mb-4 text-gray-800">Kalite</h3>
+                <h3 className="text-lg sm:text-xl font-semibold mb-4 text-gray-800">Kalite</h3>
                 <p className="text-gray-600">
                   En yüksek standartlarda malzeme ve işçilik
                 </p>
@@ -165,7 +165,7 @@ export default function AboutPage() {
                 <div className="w-20 h-20 bg-gradient-to-r from-purple-500 to-rose-500 rounded-full flex items-center justify-center mx-auto mb-6 group-hover:scale-110 transition-transform duration-300">
                   <Users className="h-10 w-10 text-white" />
                 </div>
-                <h3 className="text-xl font-semibold mb-4 text-gray-800">Müşteri Odaklılık</h3>
+                <h3 className="text-lg sm:text-xl font-semibold mb-4 text-gray-800">Müşteri Odaklılık</h3>
                 <p className="text-gray-600">
                   Her müşterinin ihtiyaçlarına özel çözümler
                 </p>
@@ -174,7 +174,7 @@ export default function AboutPage() {
                 <div className="w-20 h-20 bg-gradient-to-r from-rose-500 to-purple-500 rounded-full flex items-center justify-center mx-auto mb-6 group-hover:scale-110 transition-transform duration-300">
                   <Clock className="h-10 w-10 text-white" />
                 </div>
-                <h3 className="text-xl font-semibold mb-4 text-gray-800">Zamanında Teslimat</h3>
+                <h3 className="text-lg sm:text-xl font-semibold mb-4 text-gray-800">Zamanında Teslimat</h3>
                 <p className="text-gray-600">
                   Belirlenen sürelerde eksiksiz proje teslimi
                 </p>

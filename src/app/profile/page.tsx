@@ -20,10 +20,10 @@ export default async function ProfilePage() {
       <div className="min-h-screen bg-gradient-to-br from-rose-50 to-pink-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
           <div className="mb-8">
-            <h1 className="text-3xl font-bold text-gray-900 mb-2">
+            <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-2">
               👤 Profilim
             </h1>
-            <p className="text-gray-600">
+            <p className="text-sm sm:text-base text-gray-600">
               Kişisel bilgilerinizi yönetin ve hesap durumunuzu görüntüleyin
             </p>
           </div>

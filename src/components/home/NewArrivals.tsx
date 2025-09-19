@@ -8,9 +8,10 @@ import { HeartIcon, ShoppingCartIcon } from '@heroicons/react/24/outline'
 import { HeartIcon as HeartSolidIcon } from '@heroicons/react/24/solid'
 
 import { addToCart, addToFavorites, removeFromFavorites, isProductInFavorites } from '@/lib/api/cartClient'
-import { toast } from 'sonner'
+import { toast } from '@/hooks/use-toast'
 import { SimpleProduct } from '@/types/product'
 import { useDesktopAnimations } from '@/hooks/useDesktopAnimations'
+import { formatCurrency } from '@/lib/utils'
 
 interface NewArrivalsProps {
   products: SimpleProduct[]
@@ -70,25 +71,25 @@ export function NewArrivals({ products }: NewArrivalsProps) {
             newFavorites.delete(productId);
             return newFavorites;
           });
-          toast.success('Ürün favorilerden çıkarıldı');
+          toast({ intent: 'success', description: 'Ürün favorilerden çıkarıldı' });
           // Trigger favorite update event
           window.dispatchEvent(new Event('favoriteUpdated'));
         } else {
-          toast.error(result.error || 'Bir hata oluştu');
+          toast({ intent: 'error', description: result.error || 'Bir hata oluştu' });
         }
       } else {
         const result = await addToFavorites(productId);
         if (result.success) {
           setFavorites(prev => new Set([...prev, productId]));
-          toast.success('Ürün favorilere eklendi');
+          toast({ intent: 'success', description: 'Ürün favorilere eklendi' });
           // Trigger favorite update event
           window.dispatchEvent(new Event('favoriteUpdated'));
         } else {
-          toast.error(result.error || 'Bir hata oluştu');
+          toast({ intent: 'error', description: result.error || 'Bir hata oluştu' });
         }
       }
     } catch (_) {
-      toast.error('Bir hata oluştu');
+      toast({ intent: 'error', description: 'Bir hata oluştu' });
     } finally {
       setLoadingStates(prev => {
         const newFavorites = new Set(prev.favorites);
@@ -107,14 +108,14 @@ export function NewArrivals({ products }: NewArrivalsProps) {
     try {
       const result = await addToCart(productId, 1);
       if (result.success) {
-        toast.success('Ürün sepete eklendi');
+        toast({ intent: 'success', description: 'Ürün sepete eklendi' });
         // Trigger cart update event
         window.dispatchEvent(new Event('cartUpdated'));
       } else {
-        toast.error(result.error || 'Bir hata oluştu');
+        toast({ intent: 'error', description: result.error || 'Bir hata oluştu' });
       }
     } catch (_) {
-      toast.error('Bir hata oluştu');
+      toast({ intent: 'error', description: 'Bir hata oluştu' });
     } finally {
       setLoadingStates(prev => {
         const newCart = new Set(prev.cart);
@@ -240,12 +241,31 @@ export function NewArrivals({ products }: NewArrivalsProps) {
                 <h3 className="font-bold text-gray-900 mb-3 line-clamp-2 text-lg group-hover:text-rose-600 transition-colors duration-300">
                   {product.name}
                 </h3>
-                <div className="flex items-center justify-between">
-                  <div className="flex flex-col">
+                <div className="flex flex-col gap-4">
+                  <div className="flex items-center justify-between">
                     <span className="text-xl font-bold bg-gradient-to-r from-rose-600 to-purple-600 bg-clip-text text-transparent">
-                      ₺{product.price.toFixed(2)}
+                      {formatCurrency(product.price)}
                     </span>
                   </div>
+                  <button
+                    onClick={() => handleAddToCart(product.id)}
+                    disabled={loadingStates.cart.has(product.id)}
+                    className="w-full bg-gradient-to-r from-rose-500 to-pink-500 hover:from-rose-600 hover:to-pink-600 text-white px-4 py-3 rounded-xl font-medium transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed shadow-lg hover:shadow-xl flex items-center justify-center gap-2"
+                    aria-label={`Sepete ekle: ${product.name}`}
+                    type="button"
+                  >
+                    {loadingStates.cart.has(product.id) ? (
+                      <div className="flex items-center gap-2">
+                        <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                        <span>Ekleniyor...</span>
+                      </div>
+                    ) : (
+                      <div className="flex items-center gap-2">
+                        <ShoppingCartIcon className="h-4 w-4" />
+                        <span>Sepete Ekle</span>
+                      </div>
+                    )}
+                  </button>
                 </div>
               </div>
             </motion.div>

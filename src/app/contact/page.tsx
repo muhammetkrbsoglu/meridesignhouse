@@ -16,8 +16,8 @@ export default function ContactPage() {
       <div className="min-h-screen bg-gray-50 py-10">
         <div className="container mx-auto px-4">
           <div className="text-center mb-8">
-            <h1 className="text-4xl font-bold text-gray-900 mb-3">İletişim</h1>
-            <p className="text-lg text-gray-600 max-w-2xl mx-auto">
+            <h1 className="text-3xl sm:text-4xl font-bold text-gray-900 mb-3">İletişim</h1>
+            <p className="text-sm sm:text-base text-gray-600 max-w-2xl mx-auto">
               En hızlı yanıt için WhatsApp ve Instagram üzerinden bize ulaşabilirsiniz. Formu da doldurabilirsiniz.
             </p>
           </div>
@@ -26,10 +26,10 @@ export default function ContactPage() {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
             <Card>
               <CardHeader>
-                <CardTitle className="text-green-600 flex items-center gap-2">
+                <CardTitle className="text-green-600 flex items-center gap-2 text-base sm:text-lg">
                   <Phone className="h-5 w-5" /> WhatsApp ile Hızlı İletişim
                 </CardTitle>
-                <CardDescription>Anında destek için WhatsApp&apos;tan yazın</CardDescription>
+                <CardDescription className="text-xs sm:text-sm">Anında destek için WhatsApp&apos;tan yazın</CardDescription>
               </CardHeader>
               <CardContent>
                 <MicroFeedback
@@ -51,8 +51,8 @@ export default function ContactPage() {
 
             <Card>
               <CardHeader>
-                <CardTitle className="text-pink-600">Instagram DM</CardTitle>
-                <CardDescription>Yeni koleksiyon ve tasarımlar için DM&apos;den ulaşın</CardDescription>
+                <CardTitle className="text-pink-600 text-base sm:text-lg">Instagram DM</CardTitle>
+                <CardDescription className="text-xs sm:text-sm">Yeni koleksiyon ve tasarımlar için DM&apos;den ulaşın</CardDescription>
               </CardHeader>
               <CardContent>
                 <MicroFeedback
@@ -76,8 +76,8 @@ export default function ContactPage() {
           {/* Form (yakın mesafe) */}
           <Card>
             <CardHeader>
-              <CardTitle>Bize Mesaj Gönderin</CardTitle>
-              <CardDescription>Aşağıdaki formu doldurarak bize ulaşabilirsiniz.</CardDescription>
+              <CardTitle className="text-base sm:text-lg">Bize Mesaj Gönderin</CardTitle>
+              <CardDescription className="text-xs sm:text-sm">Aşağıdaki formu doldurarak bize ulaşabilirsiniz.</CardDescription>
             </CardHeader>
             <CardContent>
               <ContactForm />

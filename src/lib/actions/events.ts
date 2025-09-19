@@ -118,68 +118,93 @@ export async function fetchProductsForEventTheme(
   themeStyleId: string
 ): Promise<ProductEventTheme[]> {
   try {
-    const products = await prisma.productEventTheme.findMany({
-      where: {
+    const supabase = getSupabaseAdmin()
+
+    const { data, error } = await supabase
+      .from('product_event_themes')
+      .select(`
+        id,
+        productId,
         eventTypeId,
         themeStyleId,
-        product: {
-          isActive: true
-        }
-      },
-      include: {
-        product: {
-          select: {
-            id: true,
-            name: true,
-            slug: true,
-            price: true,
-            images: {
-              select: {
-                url: true,
-                alt: true
-              },
-              orderBy: {
-                sortOrder: 'asc'
-              },
-              take: 1
-            }
-          }
-        },
-        eventType: {
-          select: {
-            id: true,
-            name: true
-          }
-        },
-        themeStyle: {
-          select: {
-            id: true,
-            name: true,
-            description: true,
-            image: true,
-            isActive: true,
-            sortOrder: true,
-            createdAt: true,
-            updatedAt: true
-          }
-        }
-      }
-    })
-    // Convert Decimal to number in product.price
-    return products.map((p) => ({
-      ...p,
+        isActive,
+        createdAt,
+        product:products!inner(
+          id,
+          name,
+          slug,
+          price,
+          product_images(url, alt, sortOrder)
+        ),
+        eventType:event_types!inner(
+          id,
+          name
+        ),
+        themeStyle:theme_styles!inner(
+          id,
+          name,
+          description,
+          image,
+          isActive,
+          sortOrder,
+          createdAt,
+          updatedAt,
+          colors
+        )
+      `)
+      .eq('eventTypeId', eventTypeId)
+      .eq('themeStyleId', themeStyleId)
+      .eq('isActive', true)
+
+    if (error) {
+      console.error('Error fetching products for event theme:', error)
+      throw new Error('Failed to fetch products for event theme')
+    }
+
+    const rows = Array.isArray(data) ? data : []
+
+    return rows.map((row: any) => ({
+      id: row.id,
+      productId: row.productId,
+      eventTypeId: row.eventTypeId,
+      themeStyleId: row.themeStyleId,
+      createdAt: row.createdAt ? new Date(row.createdAt) : new Date(),
       product: {
-        ...p.product,
-        price: typeof (p.product as any).price === 'object' 
-          ? parseFloat((p.product as any).price.toString()) 
-          : (p.product as any).price
+        id: row.product?.id,
+        name: row.product?.name,
+        slug: row.product?.slug,
+        price: typeof row.product?.price === 'object'
+          ? parseFloat(row.product.price.toString())
+          : Number(row.product?.price ?? 0),
+        images: Array.isArray(row.product?.product_images)
+          ? row.product.product_images.map((img: any) => ({
+              url: img.url,
+              alt: img.alt ?? null
+            }))
+          : []
+      },
+      eventType: {
+        id: row.eventType?.id,
+        name: row.eventType?.name
+      },
+      themeStyle: {
+        id: row.themeStyle?.id,
+        name: row.themeStyle?.name,
+        description: row.themeStyle?.description,
+        image: row.themeStyle?.image,
+        isActive: Boolean(row.themeStyle?.isActive),
+        sortOrder: row.themeStyle?.sortOrder ?? 0,
+        createdAt: row.themeStyle?.createdAt ? new Date(row.themeStyle.createdAt) : new Date(),
+        updatedAt: row.themeStyle?.updatedAt ? new Date(row.themeStyle.updatedAt) : new Date(),
+        colors: Array.isArray(row.themeStyle?.colors) ? row.themeStyle.colors : []
       }
-    })) as unknown as ProductEventTheme[]
+    })) as ProductEventTheme[]
   } catch (error) {
     console.error('Error fetching products for event theme:', error)
     throw new Error('Failed to fetch products for event theme')
   }
 }
+
 
 // Create event type
 export async function createEventType(data: {

@@ -1,4 +1,3 @@
-
 'use client'
 
 import { useState, useEffect, useRef, type ReactNode, type KeyboardEvent } from 'react'
@@ -34,6 +33,7 @@ export function SearchAutocomplete({
   const [suggestions, setSuggestions] = useState<SearchSuggestion[]>([])
   const [popularSearches, setPopularSearches] = useState<string[]>([])
   const [isLoading, setIsLoading] = useState(false)
+  const [loadError, setLoadError] = useState<string | null>(null)
   const [recentSearches, setRecentSearches] = useState<string[]>([])
 
   const debouncedQuery = useDebounce(query, 300)
@@ -72,17 +72,29 @@ export function SearchAutocomplete({
     loadPopularSearches()
   }, [])
 
+
   // Fetch suggestions when query changes
   useEffect(() => {
     const fetchSuggestions = async () => {
       if (debouncedQuery.length >= 2) {
         setIsLoading(true)
-        const results = await getSearchSuggestions(debouncedQuery)
-        setSuggestions(results)
-        setIsLoading(false)
+        setLoadError(null)
+
+        try {
+          const result = await getSearchSuggestions(debouncedQuery)
+          setSuggestions(result.suggestions)
+          setLoadError(result.hadError ? 'Arama onerilerinin bir kismi yuklenemedi. Enter ile tam arama yapabilirsiniz.' : null)
+        } catch (error) {
+          console.error('Arama onerileri alinirken hata olustu:', error)
+          setSuggestions([])
+          setLoadError('Arama onerileri su anda yuklenemiyor. Enter ile aramayi tamamlayabilirsiniz.')
+        } finally {
+          setIsLoading(false)
+        }
       } else {
         setSuggestions([])
         setIsLoading(false)
+        setLoadError(null)
       }
     }
 
@@ -186,6 +198,7 @@ export function SearchAutocomplete({
               onClick={() => {
                 setQuery('')
                 setSuggestions([])
+                setLoadError(null)
                 inputRef.current?.focus()
               }}
               className="rounded-full p-1 transition-colors hover:bg-gray-100"
@@ -211,7 +224,7 @@ export function SearchAutocomplete({
           id={listboxId}
           role="listbox"
           aria-label="Arama onerileri"
-          className="absolute top-full left-0 right-0 z-[200] mt-1 max-h-[60vh] overflow-y-auto rounded-lg border border-gray-200 bg-white shadow-lg"
+          className="absolute top-full left-0 right-0 z-[200] md:z-[100000] mt-1 max-h-[60vh] overflow-y-auto rounded-lg border border-gray-200 bg-white shadow-lg"
         >
           {isLoading && (
             <div className="p-4 text-center text-gray-500" aria-live="polite">

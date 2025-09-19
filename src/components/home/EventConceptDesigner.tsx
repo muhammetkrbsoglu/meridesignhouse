@@ -323,17 +323,50 @@ export function EventConceptDesigner() {
                     <p className="text-gray-600 mb-6">
                       Sizin için {eventTypes.find(e => e.id === selectedEventType)?.name} × {themeStyles.find(t => t.id === selectedTheme)?.name} ürünlerini hazırladık.
                     </p>
-                    <div className="flex flex-col sm:flex-row gap-3 justify-center">
+                    {/* Embedded Preview (previously separate card) */}
+                    <div className="mt-6">
+                      <h4 className="text-xl font-semibold text-center mb-2 text-gray-800">Tasarım Önizlemeniz</h4>
+                      <div className="flex justify-center mb-4">
+                        <Sparkles className="h-5 w-5 text-rose-500" />
+                      </div>
+                      <div className="space-y-5 text-center">
+                        <div>
+                          <Badge className="mb-2 bg-rose-100 text-rose-700">Etkinlik Türü</Badge>
+                          <p className="font-semibold">
+                            {eventTypes.find(e => e.id === selectedEventType)?.name}
+                          </p>
+                        </div>
+                        <div>
+                          <Badge className="mb-2 bg-purple-100 text-purple-700">Tema Stili & Renk Paleti</Badge>
+                          <p className="font-semibold">
+                            {themeStyles.find(t => t.id === selectedTheme)?.name}
+                          </p>
+                          {(() => {
+                            const theme = themeStyles.find(t => t.id === selectedTheme)
+                            const colors = theme?.colors && theme.colors.length > 0 ? theme.colors.slice(0, 4) : []
+                            if (colors.length === 0) return null
+                            return (
+                              <div className="mt-3 flex items-center justify-center gap-2">
+                                {colors.map((c: string, idx: number) => (
+                                  <span key={idx} className="h-5 w-5 rounded-md ring-1 ring-black/5 shadow-sm" style={{ backgroundColor: c }} />
+                                ))}
+                              </div>
+                            )
+                          })()}
+                        </div>
+                      </div>
+                    </div>
+                    <div className="mt-6 flex flex-col sm:flex-row gap-3 justify-center">
                       <a
                         href={`/products?event=${selectedEventType}&theme=${selectedTheme}`}
-                        className="inline-flex items-center justify-center rounded-md bg-rose-600 px-6 py-3 text-white hover:bg-rose-700 transition-colors"
+                        className="inline-flex items-center justify-center rounded-md bg-rose-600 text-white hover:bg-rose-700 transition-colors w-full sm:w-48 h-12"
                       >
                         Ürünleri gör
                       </a>
                       <Button
                         variant="outline"
                         onClick={() => { setSelectedTheme(''); setSelectedEventType(''); setCurrentStep(1) }}
-                        className="px-6 py-3"
+                        className="w-full sm:w-48 h-12"
                       >
                         Tekrar dene
                       </Button>
@@ -360,33 +393,7 @@ export function EventConceptDesigner() {
           <div className="flex space-x-4" />
         </div>
 
-        {/* Preview Section */}
-        {selectedEventType && selectedTheme && (
-          <motion.div 
-            className="mt-16 p-8 bg-white rounded-3xl shadow-xl"
-            initial={{ opacity: 0, y: 30 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8 }}
-          >
-            <h3 className="text-2xl font-bold text-center mb-6 text-gray-800">
-              Tasarım Önizlemeniz
-            </h3>
-            <div className="grid md:grid-cols-2 gap-6 text-center">
-              <div>
-                <Badge className="mb-2 bg-rose-100 text-rose-700">Etkinlik Türü</Badge>
-                <p className="font-semibold">
-                  {eventTypes.find(e => e.id === selectedEventType)?.name}
-                </p>
-              </div>
-              <div>
-                <Badge className="mb-2 bg-purple-100 text-purple-700">Tema Stili & Renk Paleti</Badge>
-                <p className="font-semibold">
-                  {themeStyles.find(t => t.id === selectedTheme)?.name}
-                </p>
-              </div>
-            </div>
-          </motion.div>
-        )}
+        
       </div>
     </section>
   )

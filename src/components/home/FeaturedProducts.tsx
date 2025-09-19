@@ -204,26 +204,26 @@ export function FeaturedProducts({ products }: FeaturedProductsProps) {
 
               <div className="p-6">
                 <Link href={`/products/${product.slug}`} aria-label={`Ürünü incele: ${product.name}`}>
-                  <h3 className="text-lg font-bold text-gray-900 mb-2 hover:text-rose-600 transition-colors line-clamp-1">
+                  <h3 className="text-base sm:text-lg font-bold text-gray-900 mb-2 hover:text-rose-600 transition-colors line-clamp-1">
                     {product.name}
                   </h3>
                 </Link>
-                <p className="text-gray-600 text-sm mb-4 line-clamp-2 leading-relaxed">
+                <p className="text-gray-600 text-xs sm:text-sm mb-4 line-clamp-2 leading-relaxed">
                   {product.description}
                 </p>
                 <div className="flex items-center justify-between mb-4">
                   <div className="flex flex-col">
-                    <span className="text-2xl font-bold bg-gradient-to-r from-rose-600 to-purple-600 bg-clip-text text-transparent">
+                    <span className="text-xl sm:text-2xl font-bold bg-gradient-to-r from-rose-600 to-purple-600 bg-clip-text text-transparent">
                       {formatCurrency(product.price)}
                     </span>
                     {product.originalPrice && product.originalPrice > product.price && (
-                      <span className="text-sm text-gray-500 line-through">
+                      <span className="text-xs sm:text-sm text-gray-500 line-through">
                         {formatCurrency(product.originalPrice)}
                       </span>
                     )}
                   </div>
                   {product.originalPrice && product.originalPrice > product.price && (
-                    <div className="bg-gradient-to-r from-red-500 to-pink-500 text-white text-xs px-2 py-1 rounded-full font-medium">
+                    <div className="bg-gradient-to-r from-red-500 to-pink-500 text-white text-[11px] sm:text-xs px-2 py-1 rounded-full font-medium">
                       %{Math.round(((product.originalPrice - product.price) / product.originalPrice) * 100)} İndirim
                     </div>
                   )}

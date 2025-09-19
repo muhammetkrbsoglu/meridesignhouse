@@ -1,7 +1,7 @@
 
 "use client"
 
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useCallback, useMemo } from 'react'
 import Link from 'next/link'
 import Image from 'next/image'
 import { usePathname } from 'next/navigation'
@@ -23,7 +23,7 @@ import {
   MagnifyingGlassIcon as MagnifyingGlassIconSolid,
   UserIcon as UserIconSolid
 } from '@heroicons/react/24/solid'
-import { getOptimalGlassConfig } from '@/lib/glassmorphism'
+import { getOptimalGlassConfig, getGlassIntensity, type GlassIntensity } from '@/lib/glassmorphism'
 import { cn, formatPrice } from '@/lib/utils'
 import { getCartCount, getFavoriteCount } from '@/lib/api/cartClient'
 import { motion, useReducedMotion, AnimatePresence } from 'framer-motion'
@@ -98,6 +98,7 @@ export function BottomTabBar() {
   const [isSearchOpen, setIsSearchOpen] = useState(false)
   const [weeklyProduct, setWeeklyProduct] = useState<WeeklyProductHighlight | null>(null)
   const [isWeeklyProductLoading, setIsWeeklyProductLoading] = useState(false)
+  const [searchGlassIntensity, setSearchGlassIntensity] = useState<GlassIntensity>('medium')
   const { bottom: keyboardInset } = useKeyboardInsets()
 
   const handleOpenSearch = useCallback(() => {
@@ -109,6 +110,41 @@ export function BottomTabBar() {
   }, [])
 
   const keyboardPadding = Math.max(16, Math.round(keyboardInset)) + 16
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return
+
+    setSearchGlassIntensity(getGlassIntensity())
+  }, [])
+
+  const searchPanelGlass = useMemo(() => {
+    const palette: Record<GlassIntensity, string> = {
+      subtle: 'relative flex h-full flex-col gap-4 rounded-t-3xl border border-white/35 bg-white/94 p-4 shadow-lg supports-[backdrop-filter]:bg-white/80 supports-[backdrop-filter]:backdrop-blur-md supports-[backdrop-filter]:backdrop-saturate-125',
+      medium: 'relative flex h-full flex-col gap-4 rounded-t-3xl border border-white/30 bg-white/85 p-4 shadow-xl supports-[backdrop-filter]:bg-white/65 supports-[backdrop-filter]:backdrop-blur-lg supports-[backdrop-filter]:backdrop-saturate-150',
+      strong: 'relative flex h-full flex-col gap-4 rounded-t-3xl border border-white/24 bg-white/80 p-4 shadow-2xl supports-[backdrop-filter]:bg-white/55 supports-[backdrop-filter]:backdrop-blur-xl supports-[backdrop-filter]:backdrop-saturate-150'
+    }
+
+    return cn(
+      'overflow-hidden md:border-white/20 md:shadow-[0_24px_60px_-32px_rgba(15,23,42,0.45)]',
+      shouldReduceMotion ? 'transition-none' : 'transition-colors duration-300 ease-out',
+      palette[searchGlassIntensity]
+    )
+  }, [searchGlassIntensity, shouldReduceMotion])
+
+  const searchBackdropClass = useMemo(() => {
+    const tint = searchGlassIntensity === 'subtle' ? 'bg-slate-900/40' : 'bg-slate-900/55'
+    const blur = shouldReduceMotion
+      ? 'backdrop-blur-sm supports-[backdrop-filter]:backdrop-blur-sm'
+      : searchGlassIntensity === 'strong'
+        ? 'backdrop-blur-lg supports-[backdrop-filter]:backdrop-blur-2xl supports-[backdrop-filter]:backdrop-saturate-150'
+        : 'backdrop-blur-md supports-[backdrop-filter]:backdrop-blur-xl supports-[backdrop-filter]:backdrop-saturate-150'
+    return cn(
+      'absolute inset-0 transition-opacity duration-300',
+      shouldReduceMotion ? 'transition-none' : '',
+      tint,
+      blur
+    )
+  }, [searchGlassIntensity, shouldReduceMotion])
 
   // Scroll detection for navbar shrinking
   useEffect(() => {
@@ -370,7 +406,7 @@ export function BottomTabBar() {
             aria-label="Mobil arama"
           >
             <motion.div
-              className="absolute inset-0 bg-slate-900/45 backdrop-blur-md"
+              className={searchBackdropClass}
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
@@ -393,39 +429,46 @@ export function BottomTabBar() {
                 }}
               >
                 <div
-                  className={cn(
-                    'flex h-full flex-col gap-4 rounded-t-3xl border border-white/20 p-4 shadow-2xl',
-                    getOptimalGlassConfig('modal')
-                  )}
+                  className={searchPanelGlass}
                   onClick={(event) => event.stopPropagation()}
                 >
-                  <div className="flex items-center justify-between">
-                    <span className="text-sm font-medium uppercase tracking-wide text-gray-600">Arama</span>
-                    <button
-                      type="button"
-                      onClick={closeSearch}
-                      className="rounded-full bg-white/60 p-2 text-gray-600 transition hover:bg-white/90"
-                      aria-label="Kapat"
-                    >
-                      <XMarkIcon className="h-5 w-5" />
-                    </button>
-                  </div>
-
-                  <SearchAutocomplete
-                    placeholder="Urun, kategori veya set ara..."
-                    className="w-full"
-                    autoFocus
-                    maxSuggestions={4}
-                    onSearch={closeSearch}
-                    onNavigate={closeSearch}
-                    footerContent={
-                      <WeeklyProductFooter
-                        product={weeklyProduct}
-                        isLoading={isWeeklyProductLoading}
-                        onSelect={closeSearch}
-                      />
-                    }
+                  <div
+                    className="pointer-events-none absolute inset-0 rounded-t-3xl bg-gradient-to-b from-white/75 via-white/30 to-white/10 opacity-90 supports-[backdrop-filter]:from-white/25 supports-[backdrop-filter]:via-white/10 supports-[backdrop-filter]:to-white/5"
+                    aria-hidden="true"
                   />
+                  <div
+                    className="pointer-events-none absolute inset-0 mix-blend-soft-light opacity-70 bg-[radial-gradient(circle_at_top,_rgba(255,255,255,0.65),_transparent_70%)]"
+                    aria-hidden="true"
+                  />
+                  <div className="relative flex h-full flex-col gap-4">
+                    <div className="flex items-center justify-between">
+                      <span className="text-sm font-medium uppercase tracking-wide text-gray-600">Arama</span>
+                      <button
+                        type="button"
+                        onClick={closeSearch}
+                        className="rounded-full bg-white/70 p-2 text-gray-600 transition hover:bg-white/90"
+                        aria-label="Kapat"
+                      >
+                        <XMarkIcon className="h-5 w-5" />
+                      </button>
+                    </div>
+
+                    <SearchAutocomplete
+                      placeholder="Urun, kategori veya set ara..."
+                      className="w-full"
+                      autoFocus
+                      maxSuggestions={4}
+                      onSearch={closeSearch}
+                      onNavigate={closeSearch}
+                      footerContent={
+                        <WeeklyProductFooter
+                          product={weeklyProduct}
+                          isLoading={isWeeklyProductLoading}
+                          onSelect={closeSearch}
+                        />
+                      }
+                    />
+                  </div>
                 </div>
               </div>
             </motion.div>

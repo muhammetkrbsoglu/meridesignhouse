@@ -185,7 +185,7 @@ export default function OrdersPage() {
                 Soru Sor
               </Button>
               {openSupport && (
-                <div className="absolute right-0 top-full mt-2 w-56 bg-white border rounded-md shadow-lg z-10 p-1">
+                <div className="absolute right-0 top-full mt-2 w-56 bg-white border rounded-md shadow-lg z-10 p-1 text-[13px] sm:text-sm">
                   {['Kargo durumunu sormak istiyorum','Sipariş sürecinde değişiklik talebi','Fatura/Adres ile ilgili soru','Ürün hakkında soru','Diğer'].map((label) => (
                     <a
                       key={label}
@@ -249,22 +249,22 @@ export default function OrdersPage() {
             {/* Order Summary */}
             <div className="flex justify-between items-center">
               <div className="space-y-1">
-                <p className="text-sm text-gray-600">
+                <p className="text-xs sm:text-sm text-gray-600">
                   {order.items.length} ürün
                 </p>
                 {order.trackingNumber && (
-                  <p className="text-sm text-gray-600">
+                  <p className="text-xs sm:text-sm text-gray-600">
                     Kargo Takip: <span className="font-mono">{order.trackingNumber}</span>
                   </p>
                 )}
                 {order.estimatedDelivery && (
-                  <p className="text-sm text-gray-600">
+                  <p className="text-xs sm:text-sm text-gray-600">
                     Tahmini Teslimat: {format(new Date(order.estimatedDelivery), 'dd MMMM yyyy', { locale: tr })}
                   </p>
                 )}
               </div>
               <div className="text-right">
-                <p className="text-lg font-bold">
+                <p className="text-base sm:text-lg font-bold">
                   ₺{order.totalAmount?.toLocaleString('tr-TR') || '0'}
                 </p>
                 {order.status === 'PROCESSING' && (
@@ -310,14 +310,14 @@ export default function OrdersPage() {
         <div className="min-h-screen bg-gray-50 py-8">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">Siparişlerim</h1>
-          <p className="text-gray-600">Sipariş geçmişinizi görüntüleyin ve takip edin</p>
+          <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-2">Siparişlerim</h1>
+          <p className="text-sm sm:text-base text-gray-600">Sipariş geçmişinizi görüntüleyin ve takip edin</p>
         </div>
 
         {/* Order Search */}
         <Card className="mb-8">
           <CardHeader>
-            <CardTitle className="flex items-center">
+            <CardTitle className="flex items-center text-base sm:text-lg">
               <Search className="mr-2 h-5 w-5" />
               Sipariş Sorgula
             </CardTitle>
@@ -325,7 +325,7 @@ export default function OrdersPage() {
           <CardContent>
             <div className="flex space-x-2">
               <div className="flex-1">
-                <Label htmlFor="orderSearch">Sipariş Numarası</Label>
+                <Label htmlFor="orderSearch" className="text-xs sm:text-sm">Sipariş Numarası</Label>
                 <Input
                   id="orderSearch"
                   placeholder="ORD-20240101-123456"

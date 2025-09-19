@@ -276,7 +276,7 @@ export function ProductGrid({ products, loading = false, skeletonCount = 8, enab
 
             {/* Category Badge */}
             <div className="absolute top-3 left-3">
-              <span className="bg-gradient-to-r from-rose-500 to-pink-500 text-white text-xs px-3 py-1.5 rounded-full font-medium shadow-lg">
+              <span className="inline-block max-w-[70%] truncate bg-gradient-to-r from-rose-500 to-pink-500 text-white text-xs px-3 py-1.5 rounded-full font-medium shadow-lg">
                 {product.category.name}
               </span>
             </div>
@@ -286,14 +286,14 @@ export function ProductGrid({ products, loading = false, skeletonCount = 8, enab
           <div className="p-6">
             {/* Product Name */}
             <Link href={`/products/${product.slug}`} aria-label={`Ürünü incele: ${product.name}`}>
-              <h3 className="text-lg font-bold text-gray-900 mb-2 hover:text-rose-600 transition-colors line-clamp-1">
+              <h3 className="text-base sm:text-lg font-bold text-gray-900 mb-2 hover:text-rose-600 transition-colors line-clamp-1">
                 {product.name}
               </h3>
             </Link>
             
             {/* Description */}
             {product.description && (
-              <p className="text-gray-600 text-sm mb-4 line-clamp-2 leading-relaxed">
+              <p className="text-gray-600 text-xs sm:text-sm mb-4 line-clamp-2 leading-relaxed">
                 {product.description}
               </p>
             )}
@@ -301,11 +301,11 @@ export function ProductGrid({ products, loading = false, skeletonCount = 8, enab
             {/* Price and Actions */}
             <div className="flex items-center justify-between mb-4">
               <div className="flex flex-col">
-                <span className="text-2xl font-bold bg-gradient-to-r from-rose-600 to-purple-600 bg-clip-text text-transparent">
+                <span className="text-xl sm:text-2xl font-bold bg-gradient-to-r from-rose-600 to-purple-600 bg-clip-text text-transparent">
                   {formatCurrency(typeof product.price === 'number' ? product.price : product.price.toNumber())}
                 </span>
                 {product.originalPrice && product.originalPrice > product.price && (
-                  <span className="text-sm text-gray-500 line-through">
+                  <span className="text-xs sm:text-sm text-gray-500 line-through">
                     {formatCurrency(typeof product.originalPrice === 'number' ? product.originalPrice : product.originalPrice.toNumber())}
                   </span>
                 )}
@@ -335,7 +335,7 @@ export function ProductGrid({ products, loading = false, skeletonCount = 8, enab
 
             {/* Stock Status */}
             <div className="flex items-center justify-between text-xs">
-              <span className={`px-2 py-1 rounded-full font-medium ${
+              <span className={`px-2 py-1 rounded-full font-medium whitespace-nowrap ${
                 product.stock > 10 
                   ? 'bg-green-100 text-green-800' 
                   : product.stock > 0 
@@ -345,7 +345,7 @@ export function ProductGrid({ products, loading = false, skeletonCount = 8, enab
                 {product.stock > 10 ? 'Stokta' : product.stock > 0 ? 'Az Stokta' : 'Stokta Yok'}
               </span>
               {product.stock > 0 && (
-                <span className="text-gray-500">
+                <span className="text-gray-500 whitespace-nowrap">
                   {product.stock} adet
                 </span>
               )}

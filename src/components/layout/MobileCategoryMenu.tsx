@@ -188,7 +188,7 @@ export default function MobileCategoryMenu({ categories, onCategoryClick }: Mobi
                             className="w-8 h-8 object-cover rounded"
                           />
                           <div className="flex-1 min-w-0">
-                            <p className="text-xs text-gray-700 truncate">{product.name}</p>
+                            <p className="text-[11px] sm:text-xs text-gray-700 truncate">{product.name}</p>
                             <p className="text-xs font-semibold text-purple-600">₺{product.price}</p>
                           </div>
                         </Link>

@@ -202,7 +202,7 @@ export default async function CategoryPage({ params, searchParams }: CategoryPag
               {bundles.length > 0 && (
                 <div className="bg-white rounded-lg shadow-sm mb-6">
                   <div className="p-6 border-b">
-                    <h2 className="text-lg font-semibold text-gray-900">
+                    <h2 className="text-base sm:text-lg font-semibold text-gray-900">
                       Setler ({bundles.length})
                     </h2>
                   </div>
@@ -230,7 +230,7 @@ export default async function CategoryPage({ params, searchParams }: CategoryPag
                               if (typeof bundle.bundlePrice === 'number') {
                                 const adv = Math.max(0, Math.round(((sum - bundle.bundlePrice) / (sum || 1)) * 100))
                                 return adv > 0 ? (
-                                  <div className="absolute -top-2 -right-2 w-12 h-12 rounded-full bg-rose-600 text-white text-[9px] leading-tight flex items-center justify-center shadow-lg z-10">
+                                  <div className="absolute -top-2 -right-2 w-12 h-12 rounded-full bg-rose-600 text-white text-[10px] sm:text-xs leading-tight flex items-center justify-center shadow-lg z-10">
                                     <div className="text-center">
                                       <div className="font-bold">%{adv}</div>
                                       <div>İNDİRİM</div>
