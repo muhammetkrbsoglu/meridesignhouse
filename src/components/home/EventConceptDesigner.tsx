@@ -169,7 +169,7 @@ export function EventConceptDesigner() {
     // Kısa bir gecikme ile sonraki adıma geç
     setTimeout(() => {
       setCurrentStep(2)
-      // Mobil versiyonda progress steps ve tema seçimi bölümüne taşı
+      // Mobil versiyonda tema seçimi bölümünün başına taşı (ilk seçeneğe)
       if (window.innerWidth < 768) {
         if (themeStepRef.current) {
           themeStepRef.current.scrollIntoView({ 
@@ -187,7 +187,7 @@ export function EventConceptDesigner() {
     // Tema seçildikten kısa süre sonra sonuç ekranına geç
     setTimeout(() => {
       setCurrentStep(3)
-      // Mobil versiyonda sonuç bölümüne taşı
+      // Mobil versiyonda sonuç bölümünün başına taşı (ilk seçeneğe)
       if (window.innerWidth < 768) {
         if (resultStepRef.current) {
           resultStepRef.current.scrollIntoView({ 

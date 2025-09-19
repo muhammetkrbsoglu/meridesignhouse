@@ -200,7 +200,7 @@ export function SearchAutocomplete({
           aria-label="Site ici arama"
           aria-haspopup="listbox"
           aria-controls={showDropdown ? listboxId : undefined}
-          className="w-full rounded-full border border-white/40 bg-white/90 pl-5 pr-14 py-3 text-base shadow-[0_16px_40px_-30px_rgba(15,23,42,0.55)] transition-all duration-200 placeholder:text-gray-400 focus:border-transparent focus:outline-none focus:ring-2 focus:ring-rose-200"
+          className="w-full rounded-full border border-white/40 bg-white/50 pl-5 pr-14 py-3 text-base shadow-[0_16px_40px_-30px_rgba(15,23,42,0.55)] transition-all duration-200 placeholder:text-gray-400 focus:border-transparent focus:outline-none focus:ring-2 focus:ring-rose-200"
         />
 
         <div className="absolute right-3 top-1/2 -translate-y-1/2 transform flex items-center space-x-2">
@@ -235,7 +235,7 @@ export function SearchAutocomplete({
           id={listboxId}
           role="listbox"
           aria-label="Arama onerileri"
-          className="absolute top-full left-0 right-0 z-[200] md:z-[100000] mt-3 max-h-[60vh] overflow-y-auto rounded-2xl md:rounded-3xl border border-white/25 bg-white/95 shadow-[0_28px_70px_-44px_rgba(15,23,42,0.5)]"
+          className="absolute top-full left-0 right-0 z-[200] md:z-[100000] mt-3 max-h-[60vh] overflow-y-auto rounded-2xl md:rounded-3xl border border-white/25 bg-white/50 shadow-[0_28px_70px_-44px_rgba(15,23,42,0.5)]"
         >
           {isLoading && (
             <div className="p-4 text-center text-gray-500" aria-live="polite">
@@ -358,7 +358,7 @@ export function SearchAutocomplete({
           {/* Haftanın Seçimi - Sadece mobilde ve arama yapılmadığında göster */}
           {!isLoading && query.length < 2 && weeklyProduct && (
             <div className="border-t border-white/20">
-              <div className="px-4 py-3">
+              <div className="px-4 py-3 pb-4">
                 <div className="mb-3 text-xs font-semibold uppercase tracking-wide text-gray-500">
                   Haftanın Seçimi
                 </div>

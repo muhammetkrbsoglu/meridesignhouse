@@ -279,24 +279,6 @@ export function Navbar() {
             </Link>
           </motion.div>
 
-          {/* Mobile Logout Button - Only show when user is logged in */}
-          {user && (
-            <motion.button
-              className="md:hidden inline-flex h-10 w-10 items-center justify-center rounded-full bg-gradient-to-r from-red-500 to-rose-500 text-white shadow-lg hover:shadow-xl"
-              onClick={() => setShowLogoutConfirm(true)}
-              whileHover={{ scale: 1.1 }}
-              whileTap={{ scale: 0.95 }}
-              aria-label="Çıkış yap"
-              type="button"
-              initial={{ opacity: 0, scale: 0.8 }}
-              animate={{ opacity: 1, scale: 1 }}
-              transition={{ duration: 0.3, delay: 0.5 }}
-            >
-              <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
-              </svg>
-            </motion.button>
-          )}
 
           {/* Search Bar - Desktop */}
           <motion.div 
@@ -427,6 +409,25 @@ export function Navbar() {
                   </Button>
                 </Link>
               </div>
+            )}
+
+            {/* Mobile Logout Button - Only show when user is logged in */}
+            {user && (
+              <motion.button
+                className="md:hidden inline-flex h-10 w-10 items-center justify-center rounded-full bg-gradient-to-r from-red-500 to-rose-500 text-white shadow-lg hover:shadow-xl"
+                onClick={() => setShowLogoutConfirm(true)}
+                whileHover={{ scale: 1.1 }}
+                whileTap={{ scale: 0.95 }}
+                aria-label="Çıkış yap"
+                type="button"
+                initial={{ opacity: 0, scale: 0.8 }}
+                animate={{ opacity: 1, scale: 1 }}
+                transition={{ duration: 0.3, delay: 0.5 }}
+              >
+                <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+                </svg>
+              </motion.button>
             )}
 
             {/* Mobile Menu Button */}
@@ -659,7 +660,7 @@ export function Navbar() {
           <motion.button
             key="desktop-back-to-top"
             type="button"
-            className="hidden md:flex fixed bottom-8 right-8 h-12 w-12 items-center justify-center rounded-full bg-gradient-to-r from-rose-500 to-pink-500 text-white shadow-xl shadow-rose-500/30 ring-1 ring-white/40 transition-transform duration-200 hover:-translate-y-1 hover:shadow-2xl focus:outline-none focus:ring-2 focus:ring-rose-200"
+            className="hidden md:flex fixed bottom-8 right-8 z-[1001] h-12 w-12 items-center justify-center rounded-full bg-gradient-to-r from-rose-500 to-pink-500 text-white shadow-xl shadow-rose-500/30 ring-1 ring-white/40 transition-transform duration-200 hover:-translate-y-1 hover:shadow-2xl focus:outline-none focus:ring-2 focus:ring-rose-200"
             onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
             initial={{ opacity: 0, y: 24 }}
             animate={{ opacity: 1, y: 0 }}

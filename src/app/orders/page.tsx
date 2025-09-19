@@ -176,10 +176,10 @@ export default function OrdersPage() {
               </p>
             </div>
             <div className="flex items-center space-x-1 sm:space-x-2 relative">
-              <Badge className={`${status.color} text-xs px-2 py-1`}>
+              <Badge className={`${status.color} text-xs px-3 py-1.5 min-w-fit`}>
                 <StatusIcon className="mr-1 h-3 w-3" />
                 <span className="hidden sm:inline">{status.label}</span>
-                <span className="sm:hidden">{status.label.length > 8 ? status.label.substring(0, 8) + '...' : status.label}</span>
+                <span className="sm:hidden">{status.label.length > 10 ? status.label.substring(0, 10) + '...' : status.label}</span>
               </Badge>
               <Button variant="outline" size="sm" onClick={() => setOpenSupport((s) => !s)} className="text-xs px-2 py-1 h-8">
                 <MessageCircle className="mr-1 h-3 w-3" />

@@ -599,7 +599,7 @@ export default function ProfileContent({ userId }: ProfileContentProps) {
                 <div key={order.id} className="border rounded-lg p-4 bg-gray-50">
                   <div className="flex justify-between items-center mb-2">
                     <h3 className="font-semibold text-gray-800">Sipariş #{order.id.substring(0, 8)}</h3>
-                    <Badge className={getOrderStatusColor(order.status)}>{getOrderStatusText(order.status)}</Badge>
+                    <Badge className={`${getOrderStatusColor(order.status)} px-3 py-1.5 min-w-fit`}>{getOrderStatusText(order.status)}</Badge>
                   </div>
                   <p className="text-sm text-gray-700">Tarih: {new Date(order.created_at).toLocaleDateString()}</p>
                   <p className="text-sm text-gray-700">Toplam: {formatCurrency(order.total_amount)}</p>

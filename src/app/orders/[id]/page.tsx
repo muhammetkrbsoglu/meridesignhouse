@@ -577,7 +577,7 @@ export default function OrderDetailPage() {
                     <div className="bg-white rounded-xl p-4 border border-gray-100">
                       <Label className="text-sm font-semibold text-gray-700 mb-2 block">Ödeme Durumu</Label>
                       <div className="flex items-center gap-2">
-                        <Badge className={paymentStatus.color}>
+                        <Badge className={`${paymentStatus.color} px-3 py-1.5 min-w-fit`}>
                           {paymentStatus.label}
                         </Badge>
                         <span className="text-xs text-gray-500">
@@ -588,7 +588,7 @@ export default function OrderDetailPage() {
                     <div className="bg-white rounded-xl p-4 border border-gray-100">
                       <Label className="text-sm font-semibold text-gray-700 mb-2 block">Sipariş Durumu</Label>
                       <div className="flex items-center gap-2">
-                        <Badge className={status.color}>
+                        <Badge className={`${status.color} px-3 py-1.5 min-w-fit`}>
                           {status.label}
                         </Badge>
                         <span className="text-xs text-gray-500">
