@@ -169,16 +169,6 @@ export function EventConceptDesigner() {
     // Kısa bir gecikme ile sonraki adıma geç
     setTimeout(() => {
       setCurrentStep(2)
-      // Mobil versiyonda tema seçimi bölümünün başına taşı (ilk seçeneğe)
-      if (window.innerWidth < 768) {
-        if (themeStepRef.current) {
-          themeStepRef.current.scrollIntoView({ 
-            behavior: 'smooth', 
-            block: 'start',
-            inline: 'nearest'
-          })
-        }
-      }
     }, 300)
   }
 
@@ -187,9 +177,20 @@ export function EventConceptDesigner() {
     // Tema seçildikten kısa süre sonra sonuç ekranına geç
     setTimeout(() => {
       setCurrentStep(3)
-      // Mobil versiyonda sonuç bölümünün başına taşı (ilk seçeneğe)
-      if (window.innerWidth < 768) {
-        if (resultStepRef.current) {
+    }, 300)
+  }
+
+  // Scroll to appropriate section when step changes
+  useEffect(() => {
+    if (window.innerWidth < 768) {
+      const scrollToSection = () => {
+        if (currentStep === 2 && themeStepRef.current) {
+          themeStepRef.current.scrollIntoView({ 
+            behavior: 'smooth', 
+            block: 'start',
+            inline: 'nearest'
+          })
+        } else if (currentStep === 3 && resultStepRef.current) {
           resultStepRef.current.scrollIntoView({ 
             behavior: 'smooth', 
             block: 'start',
@@ -197,8 +198,12 @@ export function EventConceptDesigner() {
           })
         }
       }
-    }, 300)
-  }
+      
+      // Small delay to ensure DOM is updated
+      const timeoutId = setTimeout(scrollToSection, 100)
+      return () => clearTimeout(timeoutId)
+    }
+  }, [currentStep])
 
   return (
     <section className="py-16 sm:py-20 bg-gradient-to-b from-white to-rose-50">

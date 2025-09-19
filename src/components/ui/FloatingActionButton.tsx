@@ -142,7 +142,7 @@ export function FloatingActionButton({
             hapticMessage: label
           })}
           className={cn(
-            'fixed z-50 rounded-full shadow-lg transition-all duration-200',
+            'fixed z-40 rounded-full shadow-lg transition-all duration-200',
             'flex items-center justify-center',
             'focus:outline-none focus:ring-2 focus:ring-offset-2',
             'active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed',
@@ -167,19 +167,20 @@ export function FloatingActionButton({
 // Specialized FAB components
 export function CartFAB({ itemCount = 0, onClick }: { itemCount?: number; onClick: () => void }) {
   return (
-    <FloatingActionButton
-      icon={require('lucide-react').ShoppingCart}
-      label="Sepet"
-      onClick={onClick}
-      position="bottom-right"
-      size="md"
-      color="primary"
-      showOnScroll={true}
-      scrollThreshold={200}
-    >
+    <div className="relative">
+      <FloatingActionButton
+        icon={require('lucide-react').ShoppingCart}
+        label="Sepet"
+        onClick={onClick}
+        position="bottom-right"
+        size="md"
+        color="primary"
+        showOnScroll={true}
+        scrollThreshold={200}
+      />
       {itemCount > 0 && (
         <motion.div
-          className="absolute -top-2 -right-2 bg-red-500 text-white text-xs rounded-full w-6 h-6 flex items-center justify-center font-bold"
+          className="absolute -top-2 -right-2 bg-red-500 text-white text-xs rounded-full w-6 h-6 flex items-center justify-center font-bold z-50"
           initial={{ scale: 0 }}
           animate={{ scale: 1 }}
           transition={{ type: 'spring', damping: 15, stiffness: 300 }}
@@ -187,7 +188,7 @@ export function CartFAB({ itemCount = 0, onClick }: { itemCount?: number; onClic
           {itemCount > 99 ? '99+' : itemCount}
         </motion.div>
       )}
-    </FloatingActionButton>
+    </div>
   )
 }
 

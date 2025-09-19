@@ -135,7 +135,7 @@ export function BottomTabBar() {
   }, [searchGlassIntensity, shouldReduceMotion])
 
   const searchBackdropClass = useMemo(() => {
-    const tint = searchGlassIntensity === 'subtle' ? 'bg-slate-900/40' : 'bg-slate-900/55'
+    const tint = searchGlassIntensity === 'subtle' ? 'bg-slate-900/20' : 'bg-slate-900/25'
     const blur = shouldReduceMotion
       ? 'backdrop-blur-sm supports-[backdrop-filter]:backdrop-blur-sm'
       : searchGlassIntensity === 'strong'

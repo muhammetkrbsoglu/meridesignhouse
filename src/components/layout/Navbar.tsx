@@ -655,36 +655,6 @@ export function Navbar() {
         
       </nav>
 
-      <AnimatePresence>
-        {showDesktopBackToTop && (
-          <motion.button
-            key="desktop-back-to-top"
-            type="button"
-            className="hidden md:flex fixed bottom-8 right-8 z-[1001] h-12 w-12 items-center justify-center rounded-full bg-gradient-to-r from-rose-500 to-pink-500 text-white shadow-xl shadow-rose-500/30 ring-1 ring-white/40 transition-transform duration-200 hover:-translate-y-1 hover:shadow-2xl focus:outline-none focus:ring-2 focus:ring-rose-200"
-            onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
-            initial={{ opacity: 0, y: 24 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: 24 }}
-            aria-label="Yukarı dön"
-          >
-            <ChevronUpIcon className="h-6 w-6" />
-          </motion.button>
-        )}
-        {showMobileBackToTop && (
-          <motion.button
-            key="mobile-back-to-top"
-            type="button"
-            className="md:hidden fixed bottom-24 right-4 h-10 w-10 items-center justify-center rounded-full border border-white/70 bg-white/80 text-rose-600 shadow-lg shadow-rose-500/25 backdrop-blur-md transition-transform duration-200 hover:-translate-y-1 focus:outline-none focus:ring-2 focus:ring-rose-200/80"
-            onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
-            initial={{ opacity: 0, y: 16 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: 16 }}
-            aria-label="Yukarı dön"
-          >
-            <ChevronUpIcon className="h-5 w-5" />
-          </motion.button>
-        )}
-      </AnimatePresence>
 
       {/* Mobile Menu */}
       {isMobileMenuOpen && (
@@ -874,6 +844,38 @@ export function Navbar() {
               </div>
             </motion.div>
           </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Back to Top Buttons - Fixed position outside header */}
+      <AnimatePresence>
+        {showDesktopBackToTop && (
+          <motion.button
+            key="desktop-back-to-top"
+            type="button"
+            className="hidden md:flex fixed bottom-8 right-8 z-[9999] h-12 w-12 items-center justify-center rounded-full bg-gradient-to-r from-rose-500 to-pink-500 text-white shadow-xl shadow-rose-500/30 ring-1 ring-white/40 transition-transform duration-200 hover:-translate-y-1 hover:shadow-2xl focus:outline-none focus:ring-2 focus:ring-rose-200"
+            onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
+            initial={{ opacity: 0, y: 24 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: 24 }}
+            aria-label="Yukarı dön"
+          >
+            <ChevronUpIcon className="h-6 w-6" />
+          </motion.button>
+        )}
+        {showMobileBackToTop && (
+          <motion.button
+            key="mobile-back-to-top"
+            type="button"
+            className="md:hidden fixed bottom-24 right-4 z-[9999] h-10 w-10 items-center justify-center rounded-full border border-white/70 bg-white/80 text-rose-600 shadow-lg shadow-rose-500/25 backdrop-blur-md transition-transform duration-200 hover:-translate-y-1 focus:outline-none focus:ring-2 focus:ring-rose-200/80"
+            onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
+            initial={{ opacity: 0, y: 16 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: 16 }}
+            aria-label="Yukarı dön"
+          >
+            <ChevronUpIcon className="h-5 w-5" />
+          </motion.button>
         )}
       </AnimatePresence>
     </header>
