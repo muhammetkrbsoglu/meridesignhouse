@@ -5,6 +5,7 @@ import { Footer } from './Footer'
 // import { ToastProvider } from '@/contexts/ToastContext'
 
 const Navbar = dynamic(() => import('./Navbar').then(m => ({ default: m.Navbar })), { ssr: false })
+const BackToTopButtons = dynamic(() => import('./Navbar').then(m => ({ default: m.BackToTopButtons })), { ssr: false })
 const BottomTabBar = dynamic(() => import('./BottomTabBar').then(m => ({ default: m.BottomTabBar })), { ssr: false })
 
 interface CustomerLayoutProps {
@@ -21,6 +22,7 @@ export function CustomerLayout({ children, showMobileNav = true }: CustomerLayou
       </main>
       {showMobileNav && <BottomTabBar />}
       <Footer />
+      <BackToTopButtons />
       {/* <ToastContainer /> */}
     </div>
   )

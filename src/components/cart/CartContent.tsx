@@ -424,12 +424,12 @@ export function CartContent() {
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: index * 0.1 }}
               >
-                <Card className="overflow-hidden">
+                <Card className="overflow-hidden border border-rose-200/70 shadow-sm hover:shadow-md transition-shadow">
                   <CardContent className={`p-4 sm:p-6 ${isUpdating ? 'opacity-80' : ''}`}>
-                <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:gap-6">
+                <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:gap-6">
                   {/* Product Image */}
                   <div className="flex-shrink-0">
-                    <div className="flex h-20 w-20 items-center justify-center overflow-hidden rounded-xl bg-gray-100 sm:h-24 sm:w-24">
+                    <div className="flex h-24 w-24 items-center justify-center overflow-hidden rounded-xl bg-gray-100 sm:h-24 sm:w-24">
                       {item.product.product_images && item.product.product_images.length > 0 ? (
                         <Image
                           src={item.product.product_images[0].url}
@@ -467,17 +467,17 @@ export function CartContent() {
                   </div>
 
                   {/* Quantity Controls */}
-                  <div className="flex flex-col gap-3 sm:min-w-[210px] sm:flex-row sm:items-center sm:gap-3">
-                    <div className="flex items-center justify-between gap-3 rounded-2xl border border-gray-200 bg-white/70 px-3 py-2 shadow-sm sm:justify-start sm:gap-2 sm:border-transparent sm:bg-transparent sm:px-0 sm:py-0 sm:shadow-none">
+                  <div className="flex flex-col gap-4 sm:min-w-[210px] sm:flex-row sm:items-center sm:gap-3">
+                    <div className="flex items-center justify-between gap-4 rounded-2xl border border-rose-200 bg-white/80 px-4 py-3 shadow-md sm:justify-start sm:gap-2 sm:border-transparent sm:bg-transparent sm:px-0 sm:py-0 sm:shadow-none">
                       <Button
                         variant="outline"
                         size="icon"
-                        className="h-10 w-10 sm:h-9 sm:w-9"
+                        className="h-12 w-12 sm:h-9 sm:w-9"
                         onClick={() => handleUpdateQuantity(item.productId, item.quantity - 1)}
                         disabled={updatingItems.has(item.productId) || item.quantity <= 1}
                         type="button"
                       >
-                        <MinusIcon className="h-4 w-4" />
+                        <MinusIcon className="h-5 w-5" />
                       </Button>
 
                       <input
@@ -485,7 +485,7 @@ export function CartContent() {
                         type="text"
                         inputMode="numeric"
                         pattern="[0-9]*"
-                        className="w-16 rounded-md border border-gray-300 py-1.5 text-center text-base font-semibold focus:outline-none focus:ring-2 focus:ring-rose-500/40 sm:w-14 sm:text-sm"
+                        className="w-20 rounded-md border border-rose-300 py-2 text-center text-lg font-semibold focus:outline-none focus:ring-2 focus:ring-rose-500/40 sm:w-14 sm:text-sm sm:py-1.5"
                         value={draftQuantities[item.productId] ?? String(item.quantity)}
                         onFocus={(e) => e.currentTarget.select()}
                         onChange={(e) => {
@@ -506,12 +506,12 @@ export function CartContent() {
                       <Button
                         variant="outline"
                         size="icon"
-                        className="h-10 w-10 sm:h-9 sm:w-9"
+                        className="h-12 w-12 sm:h-9 sm:w-9"
                         onClick={() => handleUpdateQuantity(item.productId, item.quantity + 1)}
                         disabled={updatingItems.has(item.productId)}
                         type="button"
                       >
-                        <PlusIcon className="h-4 w-4" />
+                        <PlusIcon className="h-5 w-5" />
                       </Button>
 
                       {isUpdating && (
@@ -521,24 +521,27 @@ export function CartContent() {
                       )}
                     </div>
 
-                    {/* Remove Button - Hidden on mobile (swipe action) */}
+                    {/* Remove Button */}
                     <MicroFeedback
                       hapticType="warning"
                       hapticMessage="Ürün kaldırılıyor"
                       disabled={removingItems.has(item.id)}
                       onClick={() => handleRemoveItem(item.id)}
-                      className="hidden sm:flex"
+                      className="flex"
                     >
                       <Button
                         variant="ghost"
                         size="sm"
                         disabled={removingItems.has(item.id)}
-                        className="self-start text-red-600 hover:text-red-700 hover:bg-red-50 sm:self-auto"
+                        className="self-start text-red-600 hover:text-red-700 hover:bg-red-50 px-4 py-2 rounded-lg border border-red-200 sm:self-auto sm:px-2 sm:py-1 sm:border-0"
                       >
                         {removingItems.has(item.id) ? (
                           <LoadingSpinner size="sm" color="gray" />
                         ) : (
-                          <TrashIcon className="h-4 w-4" />
+                          <>
+                            <TrashIcon className="h-4 w-4 sm:h-4 sm:w-4" />
+                            <span className="ml-2 text-sm font-medium sm:hidden">Kaldır</span>
+                          </>
                         )}
                       </Button>
                     </MicroFeedback>
