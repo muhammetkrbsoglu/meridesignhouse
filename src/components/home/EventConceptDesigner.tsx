@@ -1,6 +1,6 @@
 ﻿'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
@@ -67,6 +67,24 @@ export function EventConceptDesigner() {
   const [themeStyles, setThemeStyles] = useState<ThemeStyle[]>([])
   const [loading, setLoading] = useState(true)
 
+  const [isMobileView, setIsMobileView] = useState(false)
+  const prefersReducedMotionRef = useRef(false)
+  const stepIndicatorRef = useRef<HTMLDivElement | null>(null)
+  const themeStepRef = useRef<HTMLDivElement | null>(null)
+  const resultStepRef = useRef<HTMLDivElement | null>(null)
+
+
+  const scrollToElement = (element: HTMLElement | null, offset: number) => {
+    if (!element || typeof window === 'undefined') return
+
+    const targetTop = Math.max(element.getBoundingClientRect().top + window.scrollY - offset, 0)
+
+    window.scrollTo({
+      top: targetTop,
+      behavior: prefersReducedMotionRef.current ? 'auto' : 'smooth',
+    })
+  }
+
   useEffect(() => {
     const loadData = async () => {
       try {
@@ -87,11 +105,57 @@ export function EventConceptDesigner() {
     loadData()
   }, []);
 
-  const handleNext = () => {
-    if (currentStep < 3) {
-      setCurrentStep(currentStep + 1)
+  useEffect(() => {
+    if (typeof window === 'undefined') return
+
+    const handleResize = () => {
+      setIsMobileView(window.innerWidth <= 768)
     }
-  }
+
+    const mediaQuery = window.matchMedia('(prefers-reduced-motion: reduce)')
+    const handleMotionChange = () => {
+      prefersReducedMotionRef.current = mediaQuery.matches
+    }
+
+    handleResize()
+    handleMotionChange()
+
+    window.addEventListener('resize', handleResize)
+    if (typeof mediaQuery.addEventListener === 'function') {
+      mediaQuery.addEventListener('change', handleMotionChange)
+    } else if (typeof mediaQuery.addListener === 'function') {
+      mediaQuery.addListener(handleMotionChange)
+    }
+
+    return () => {
+      window.removeEventListener('resize', handleResize)
+      if (typeof mediaQuery.removeEventListener === 'function') {
+        mediaQuery.removeEventListener('change', handleMotionChange)
+      } else if (typeof mediaQuery.removeListener === 'function') {
+        mediaQuery.removeListener(handleMotionChange)
+      }
+    }
+  }, [])
+
+  useEffect(() => {
+    if (!isMobileView) return
+
+    let frameId: number | null = null
+
+    if (currentStep === 2) {
+      const offset = (stepIndicatorRef.current?.offsetHeight ?? 0) + 24
+      frameId = requestAnimationFrame(() => scrollToElement(themeStepRef.current, offset))
+    } else if (currentStep === 3) {
+      const offset = (stepIndicatorRef.current?.offsetHeight ?? 0) + 32
+      frameId = requestAnimationFrame(() => scrollToElement(resultStepRef.current ?? themeStepRef.current, offset))
+    }
+
+    return () => {
+      if (frameId !== null) {
+        cancelAnimationFrame(frameId)
+      }
+    }
+  }, [currentStep, isMobileView])
 
   const handlePrevious = () => {
     if (currentStep > 1) {
@@ -116,19 +180,6 @@ export function EventConceptDesigner() {
     }, 300)
   }
 
-  const canProceed = () => {
-    switch (currentStep) {
-      case 1:
-        return selectedEventType !== ''
-      case 2:
-        return selectedTheme !== ''
-      case 3:
-        return true
-      default:
-        return false
-    }
-  }
-
   return (
     <section className="py-16 sm:py-20 bg-gradient-to-b from-white to-rose-50">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -149,7 +200,7 @@ export function EventConceptDesigner() {
         </motion.div>
 
         {/* Progress Steps */}
-        <div className="flex justify-center mb-8 sm:mb-12">
+        <div ref={stepIndicatorRef} className="flex justify-center mb-8 sm:mb-12">
           <div className="flex items-center space-x-2 sm:space-x-4">
             {[1, 2, 3].map((step) => (
               <div key={step} className="flex items-center">
@@ -239,7 +290,7 @@ export function EventConceptDesigner() {
 
             {/* Step 2: Theme Style Selection with Color Palettes */}
             {currentStep === 2 && (
-              <div>
+              <div ref={themeStepRef} className="scroll-mt-28">
                 <h3 className="text-2xl font-bold text-center mb-8 text-gray-800">
                   Tema Stilinizi ve Renk Paletinizi Seçin
                 </h3>
@@ -311,7 +362,7 @@ export function EventConceptDesigner() {
 
             {/* Step 3: Result Screen */}
             {currentStep === 3 && (
-              <div className="text-center">
+              <div ref={resultStepRef} className="text-center scroll-mt-36">
                 <motion.div
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}

@@ -1,4 +1,4 @@
-﻿'use client';
+'use client';
 
 import Link from 'next/link';
 import { motion } from 'framer-motion';
@@ -276,7 +276,7 @@ export function ProductGrid({ products, loading = false, skeletonCount = 8, enab
 
             {/* Category Badge */}
             <div className="absolute top-3 left-3">
-              <span className="inline-block max-w-[70%] truncate bg-gradient-to-r from-rose-500 to-pink-500 text-white text-xs px-3 py-1.5 rounded-full font-medium shadow-lg">
+              <span className="inline-flex max-w-[85%] flex-wrap items-center justify-center rounded-full bg-gradient-to-r from-rose-500 to-pink-500 px-3 py-1 text-[11px] font-semibold leading-tight text-white shadow-lg text-center md:max-w-[70%] md:text-xs">
                 {product.category.name}
               </span>
             </div>
@@ -391,4 +391,3 @@ export function ProductGrid({ products, loading = false, skeletonCount = 8, enab
     </div>
   );
 }
-

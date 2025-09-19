@@ -1,4 +1,4 @@
-﻿import { fetchBundlesByEventTheme, fetchAllActiveBundles } from '@/lib/actions/bundles'
+import { fetchBundlesByEventTheme, fetchAllActiveBundles } from '@/lib/actions/bundles'
 import { fetchProductsFiltered } from '@/lib/actions/products'
 import { fetchThemeStyles, fetchProductsForEventTheme } from '@/lib/actions/events'
 import { fetchCategories } from '@/lib/actions/products'
@@ -187,7 +187,7 @@ export default async function ProductsPage({ searchParams }: Props) {
       })()}
 
       <FilterToggleClient 
-        title={query ? `"${query}" için arama sonuçları` : 'Tüm Ürünler'}
+        title={query ? `"${query}" için arama sonuçları` : 'Tüm ürünler'}
         sortComponent={<SortDropdown current={sort} />}
       >
         <div className="bg-white rounded-xl border p-4 lg:p-6">
@@ -265,17 +265,17 @@ export default async function ProductsPage({ searchParams }: Props) {
                       {(c.children || []).map((s: any) => (
                         <details key={s.id} open={[s.id, ...(s.children||[]).map((g:any)=>g.id)].includes(categoryId || '')}>
                           <summary className="cursor-pointer px-2 py-1 hover:bg-gray-50 rounded flex items-center justify-between">
-                            <span>— {s.name}</span>
+                            <span>• {s.name}</span>
                             <span className="text-xs text-gray-500">{countsMap[s.id] || 0}</span>
                           </summary>
                           <div className="ml-3">
                             <a className={`px-2 py-1 rounded flex items-center justify-between ${categoryId===s.id ? 'bg-gray-100' : ''}`} href={buildParams({ category: s.id })}>
-                              <span>— {s.name}</span>
+                              <span>• {s.name}</span>
                               <span className="text-xs text-gray-500">{countsMap[s.id] || 0}</span>
                             </a>
                             {(s.children || []).map((g: any) => (
                               <a key={g.id} className={`px-2 py-1 rounded flex items-center justify-between ${categoryId===g.id ? 'bg-gray-100' : ''}`} href={buildParams({ category: g.id })}>
-                                <span>—— {g.name}</span>
+                                <span>•• {g.name}</span>
                                 <span className="text-xs text-gray-500">{countsMap[g.id] || 0}</span>
                               </a>
                             ))}
@@ -352,7 +352,7 @@ export default async function ProductsPage({ searchParams }: Props) {
                       </div>
                     </div>
                     
-                    <div className="bg-white rounded-2xl border-2 border-rose-500 p-6 hover:shadow-lg transition-all relative -mt-2 h-80">
+                    <div className="relative -mt-2 overflow-hidden rounded-2xl border-2 border-rose-500 bg-white p-5 shadow-sm transition-all hover:shadow-lg">
 
                     {/* Top right discount badge */}
                     {(() => {
@@ -375,23 +375,23 @@ export default async function ProductsPage({ searchParams }: Props) {
                       return null
                     })()}
 
-                    <div className="flex flex-col gap-4 h-full">
+                    <div className="flex h-full flex-col gap-6">
                       {/* Center equal product images with plus signs */}
                       <Link href={`/bundles/${b.slug}`} className="flex-1">
-                        <div className="flex items-center justify-center gap-6">
+                        <div className="flex flex-wrap items-center justify-center gap-4 md:flex-nowrap md:gap-6">
                           {(() => {
                             const items = (b.items || []).slice(0, 3)
                             return items.map((it, idx) => (
                               <div key={it.id} className="flex items-center gap-6">
                                 <div className="flex flex-col items-center gap-3">
-                                  <div className="w-40 h-40 rounded-lg overflow-hidden flex items-center justify-center">
+                                  <div className="flex aspect-[4/5] w-28 max-w-[132px] items-center justify-center overflow-hidden rounded-xl bg-white/40 shadow-sm sm:w-32 md:w-36">
                                     {it.product?.images?.[0]?.url ? (
                                       <Image src={it.product.images[0].url} alt={it.product?.name || ''} width={112} height={112} className="w-full h-full object-cover" placeholder="blur" blurDataURL={BLUR_DATA_URL} />
                                     ) : (
                                       <div className="w-full h-full bg-gray-100" />
                                     )}
                                   </div>
-                                  <div className="text-sm text-gray-600 text-center max-w-[120px]">
+                                  <div className="text-center text-xs font-medium text-gray-600 sm:text-sm max-w-[136px]">
                                     {it.product?.name || ''}
                                   </div>
                                 </div>
@@ -407,7 +407,7 @@ export default async function ProductsPage({ searchParams }: Props) {
                       </Link>
 
                       {/* Bottom section - Price and CTA */}
-                      <div className="flex items-center justify-center gap-6">
+                      <div className="flex flex-wrap items-center justify-center gap-4 md:flex-nowrap md:gap-6">
                         <div className="w-12"></div>
                         <div>
                           {/* Client button for toast and UI refresh */}
@@ -473,7 +473,7 @@ export async function generateMetadata({ searchParams }: Props): Promise<Metadat
       : base
 
   return {
-    title: sp?.query ? `"${sp.query}" için arama sonuçları | Meri Design House` : 'Tüm Ürünler | Meri Design House',
+    title: sp?.query ? `"${sp.query}" için arama sonuçları | Meri Design House` : 'Tüm ürünler | Meri Design House',
     description: 'Tüm ürünleri keşfedin. Renk, fiyat ve sıralama filtreleriyle aramanızı daraltın.',
     robots,
     alternates: { canonical },

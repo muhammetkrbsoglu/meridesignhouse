@@ -1,0 +1,85 @@
+*** Begin Patch
+*** Update File: src/components/layout/BottomTabBar.tsx
+@@
+-"use client"
+-
+-import { useState, useEffect, useCallback, useMemo } from 'react'
++"use client"
++
++import { useState, useEffect, useCallback, useMemo, useRef } from 'react'
+@@
+-  const [isScrolled, setIsScrolled] = useState(false)
++  const [isCompact, setIsCompact] = useState(false)
+   const shouldReduceMotion = useReducedMotion()
+   const [isSearchOpen, setIsSearchOpen] = useState(false)
+   const [weeklyProduct, setWeeklyProduct] = useState<WeeklyProductHighlight | null>(null)
+   const [isWeeklyProductLoading, setIsWeeklyProductLoading] = useState(false)
+   const [searchGlassIntensity, setSearchGlassIntensity] = useState<GlassIntensity>('medium')
+   const { bottom: keyboardInset } = useKeyboardInsets()
++  const lastScrollYRef = useRef(0)
++  const scrollRafRef = useRef<number | null>(null)
++  const compactStateRef = useRef(false)
+@@
+-  const keyboardPadding = Math.max(16, Math.round(keyboardInset)) + 16
++  const keyboardPadding = Math.max(16, Math.round(keyboardInset)) + 16
++
++  useEffect(() => {
++    compactStateRef.current = isCompact
++  }, [isCompact])
+ 
+   useEffect(() => {
+     if (typeof window === 'undefined') return
+ 
+     setSearchGlassIntensity(getGlassIntensity())
+   }, [])
+@@
+-  // Scroll detection for navbar shrinking
+-  useEffect(() => {
+-    const handleScroll = () => {
+-      const scrollY = window.scrollY
+-      setIsScrolled(scrollY > 50)
+-    }
+-
+-    window.addEventListener('scroll', handleScroll, { passive: true })
+-    return () => window.removeEventListener('scroll', handleScroll)
+-  }, [])
++  // Scroll detection for navbar shrinking
++  useEffect(() => {
++    if (typeof window === 'undefined') return
++
++    lastScrollYRef.current = window.scrollY
++
++    const handleScroll = () => {
++      const currentY = window.scrollY
++      if (scrollRafRef.current !== null) return
++
++      scrollRafRef.current = window.requestAnimationFrame(() => {
++        const previousY = lastScrollYRef.current
++        const delta = currentY - previousY
++        const magnitude = Math.abs(delta)
++        const threshold = magnitude > 28 ? 10 : 4
++
++        if (delta > threshold && currentY > 48) {
++          if (!compactStateRef.current) {
++            setIsCompact(true)
++          }
++        } else if (delta < -threshold || currentY <= 32) {
++          if (compactStateRef.current) {
++            setIsCompact(false)
++          }
++        }
++
++        lastScrollYRef.current = currentY
++        scrollRafRef.current = null
++      })
++    }
++
++    window.addEventListener('scroll', handleScroll, { passive: true })
++    return () => {
++      window.removeEventListener('scroll', handleScroll)
++      if (scrollRafRef.current !== null) {
++        cancelAnimationFrame(scrollRafRef.current)
++      }
++    }
++  }, [])
+*** End Patch

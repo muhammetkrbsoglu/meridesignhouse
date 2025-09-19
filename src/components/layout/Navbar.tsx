@@ -2,10 +2,11 @@
 
 import { useState, useEffect, useRef } from 'react'
 import Link from 'next/link'
+import { usePathname } from 'next/navigation'
 import { useAuth } from '@/contexts/AuthContext'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
-import { MagnifyingGlassIcon, UserIcon, Bars3Icon, XMarkIcon } from '@heroicons/react/24/outline'
+import { MagnifyingGlassIcon, UserIcon, Bars3Icon, XMarkIcon, ChevronUpIcon } from '@heroicons/react/24/outline'
 import { Sparkles, Heart, Star, ShoppingBag } from 'lucide-react'
 // Removed unused icons/components to satisfy ESLint unused rules
 import dynamic from 'next/dynamic'
@@ -14,7 +15,7 @@ const MobileCategoryMenu = dynamic(() => import('./MobileCategoryMenu'), { ssr: 
 import { SearchAutocomplete } from '@/components/ui/SearchAutocomplete'
 import { fetchAllMainCategoriesWithHierarchy } from '@/lib/api/categoriesClient'
 import { getCartCount, getFavoriteCount } from '@/lib/api/cartClient'
-import { motion, useReducedMotion } from 'framer-motion'
+import { motion, useReducedMotion, AnimatePresence } from 'framer-motion'
 import { getOptimalGlassConfig } from '@/lib/glassmorphism'
 import { cn } from '@/lib/utils'
 
@@ -22,6 +23,7 @@ import { Category } from '@/types/category'
 
 export function Navbar() {
   const { user, signOut } = useAuth()
+  const pathname = usePathname()
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
   const [isMegaMenuOpen, setIsMegaMenuOpen] = useState(false)
   const [isMegaMenuHovered, setIsMegaMenuHovered] = useState(false)
@@ -31,9 +33,28 @@ export function Navbar() {
   const [cartCount, setCartCount] = useState(0)
   const [favoriteCount, setFavoriteCount] = useState(0)
   const shouldReduceMotion = useReducedMotion()
-  const [isCompact, setIsCompact] = useState(false)
+  const [navStage, setNavStage] = useState(0)
+  const navStageRef = useRef(0)
   const lastScrollYRef = useRef(0)
-  const tickingRef = useRef(false)
+  const scrollRafRef = useRef<number | null>(null)
+  const [showDesktopBackToTop, setShowDesktopBackToTop] = useState(false)
+  const [showMobileBackToTop, setShowMobileBackToTop] = useState(false)
+
+  const computeNavStage = (scrollY: number) => {
+    if (scrollY > 320) return 3
+    if (scrollY > 200) return 2
+    if (scrollY > 96) return 1
+    return 0
+  }
+
+  const mobileNavPillBase = 'inline-flex shrink-0 items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-medium whitespace-nowrap transition-all duration-300 backdrop-blur-md border border-white/60 bg-white/70 text-rose-700 shadow-sm'
+  const mobileNavPillOutline = 'border-rose-200/70 hover:border-rose-300 hover:bg-rose-50/80'
+  const isCompact = navStage > 0
+  const hideCategoryLayer = navStage >= 2
+  const hideMainDesktopNav = navStage >= 3
+  const headerShadowClass = navStage >= 3 ? 'shadow-sm' : navStage >= 1 ? 'shadow-md' : 'shadow-lg'
+  const desktopNavVisibilityClass = hideMainDesktopNav ? 'h-0 opacity-0 pointer-events-none -translate-y-2 overflow-hidden' : 'h-12 opacity-100 translate-y-0'
+  const categoryNavVisibilityClass = hideCategoryLayer ? 'h-0 opacity-0 pointer-events-none -translate-y-2 overflow-hidden' : 'h-auto opacity-100 translate-y-0'
 
   useEffect(() => {
     const loadCategories = async () => {
@@ -95,36 +116,57 @@ export function Navbar() {
     }
   }, [user])
 
-  // Compact/expand davranışı: aşağı kayınca kompakt, yukarıda geniş
+
+  // Scroll detection for navbar shrinking
   useEffect(() => {
-    let lastTime = 0
-    const onScroll = () => {
-      if (tickingRef.current) return
-      tickingRef.current = true
-      requestAnimationFrame(() => {
-        const y = window.scrollY || 0
-        const last = lastScrollYRef.current
-        const now = Date.now()
-        const deltaTime = now - lastTime
-        lastTime = now
-        
-        // Dinamik threshold: yavaş scroll'da daha düşük threshold
-        const scrollDelta = Math.abs(y - last)
-        const scrollSpeed = scrollDelta / (deltaTime || 16) // pixels per ms
-        const dynamicThreshold = scrollSpeed < 0.5 ? 3 : 8 // Yavaş scroll'da 3px, hızlı scroll'da 8px
-        
-        if (y > last + dynamicThreshold && y > 60) {
-          setIsCompact(true)
-        } else if (y < last - dynamicThreshold) {
-          setIsCompact(false)
+    if (typeof window === 'undefined') return
+
+    const handleScroll = () => {
+      if (scrollRafRef.current !== null) return
+
+      scrollRafRef.current = window.requestAnimationFrame(() => {
+        const currentY = window.scrollY || 0
+        const nextStage = computeNavStage(currentY)
+
+        if (navStageRef.current !== nextStage) {
+          navStageRef.current = nextStage
+          setNavStage(nextStage)
         }
-        lastScrollYRef.current = y
-        tickingRef.current = false
+
+        const mobileThreshold = Math.max(window.innerHeight * 0.5, 280)
+        setShowDesktopBackToTop(nextStage >= 2 || currentY > 420)
+        setShowMobileBackToTop(currentY > mobileThreshold)
+
+        lastScrollYRef.current = currentY
+
+        if (scrollRafRef.current !== null) {
+          window.cancelAnimationFrame(scrollRafRef.current)
+          scrollRafRef.current = null
+        }
       })
     }
-    window.addEventListener('scroll', onScroll, { passive: true })
-    return () => window.removeEventListener('scroll', onScroll)
+
+    handleScroll()
+    window.addEventListener('scroll', handleScroll, { passive: true })
+    return () => {
+      window.removeEventListener('scroll', handleScroll)
+      if (scrollRafRef.current !== null) {
+        window.cancelAnimationFrame(scrollRafRef.current)
+        scrollRafRef.current = null
+      }
+    }
   }, [])
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return
+    const currentY = window.scrollY || 0
+    const nextStage = computeNavStage(currentY)
+    navStageRef.current = nextStage
+    setNavStage(nextStage)
+    const mobileThreshold = Math.max(window.innerHeight * 0.5, 280)
+    setShowDesktopBackToTop(nextStage >= 2 || currentY > 420)
+    setShowMobileBackToTop(currentY > mobileThreshold)
+  }, [pathname])
 
   // Lock body scroll when mobile menu is open
   useEffect(() => {
@@ -188,7 +230,7 @@ export function Navbar() {
     <header className={cn(
       'sticky top-0 z-[1000] safe-pt overflow-visible transition-[box-shadow,backdrop-filter] duration-150',
       getOptimalGlassConfig('navbar'),
-      isCompact ? 'shadow-md' : 'shadow-lg'
+      headerShadowClass
     )}>
       {/* Background Elements */}
       <div className="absolute inset-0 hidden md:block" aria-hidden="true">
@@ -215,47 +257,10 @@ export function Navbar() {
         </motion.div>
       </div>
 
-      {/* Top Bar - mobile gizli */}
-      <div className={`relative bg-gradient-to-r from-rose-100/50 to-pink-100/50 border-b border-rose-200/30 overflow-hidden transition-[height,opacity] duration-150 ${isCompact ? 'h-0 opacity-0' : 'h-10 opacity-100'} hidden md:block`}>
-        <div className={`max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 ${isCompact ? 'pointer-events-none' : ''}`}>
-          <div className="flex justify-between items-center h-10 text-sm">
-            <div className="flex items-center space-x-4">
-              <motion.span 
-                className="text-rose-700 font-medium"
-                initial={{ opacity: 0, x: -20 }}
-                animate={{ opacity: 1, x: 0 }}
-                transition={{ duration: 0.6 }}
-              >
-                ✨ Ücretsiz kargo 500₺ ve üzeri alışverişlerde
-              </motion.span>
-            </div>
-            <div className="flex items-center space-x-4">
-              <motion.div
-                initial={{ opacity: 0, x: 20 }}
-                animate={{ opacity: 1, x: 0 }}
-                transition={{ duration: 0.6, delay: 0.1 }}
-              >
-                <Link href="/contact" className="text-rose-600 hover:text-rose-800 font-medium transition-colors duration-300">
-                  İletişim
-                </Link>
-              </motion.div>
-              <motion.div
-                initial={{ opacity: 0, x: 20 }}
-                animate={{ opacity: 1, x: 0 }}
-                transition={{ duration: 0.6, delay: 0.2 }}
-              >
-                <Link href="/help" className="text-rose-600 hover:text-rose-800 font-medium transition-colors duration-300">
-                  Yardım
-                </Link>
-              </motion.div>
-            </div>
-          </div>
-        </div>
-      </div>
 
       {/* Main Header */}
       <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className={`flex justify-between items-center ${isCompact ? 'h-12' : 'h-16'} transition-[height] duration-150`} role="navigation" aria-label="Üst gezinme">
+        <div className={cn('flex justify-between items-center transition-[height] duration-150', navStage >= 3 ? 'h-11' : navStage >= 1 ? 'h-12' : 'h-16')} role="navigation" aria-label="Üst gezinme">
           {/* Logo */}
           <motion.div 
             className="flex-shrink-0"
@@ -288,12 +293,27 @@ export function Navbar() {
 
           {/* Right Side Icons */}
           <motion.div 
-            className="flex items-center space-x-4"
+            className="flex items-center space-x-3 md:space-x-4"
             initial={{ opacity: 0, x: 30 }}
             animate={{ opacity: 1, x: 0 }}
             transition={{ duration: 0.6, delay: 0.4 }}
           >
 
+            {!user && (
+              <motion.div
+                className="md:hidden"
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+              >
+                <Link
+                  href="/auth/login"
+                  className="inline-flex h-10 w-10 items-center justify-center rounded-full border border-white/60 bg-white/70 text-rose-600 shadow-sm backdrop-blur-md transition-all duration-300 hover:border-rose-200 hover:bg-rose-50/80"
+                  aria-label="Giriş yap"
+                >
+                  <UserIcon className="h-5 w-5" />
+                </Link>
+              </motion.div>
+            )}
 
             {/* User Menu */}
             {user ? (
@@ -336,8 +356,8 @@ export function Navbar() {
                   </Link>
                 </motion.div>
                 
-                {/* Profile - always visible */}
-                <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
+                {/* Profile - desktop shortcut */}
+                <motion.div className="hidden md:block" whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
                   <Link 
                     href="/profile" 
                     className="flex items-center space-x-2 px-4 py-2 rounded-full bg-gradient-to-r from-purple-500 to-rose-500 text-white shadow-lg hover:shadow-xl transition-all duration-300 hover:from-purple-600 hover:to-rose-600"
@@ -391,7 +411,7 @@ export function Navbar() {
 
             {/* Mobile Menu Button */}
             <motion.button
-              className="md:hidden p-3 rounded-full bg-gradient-to-r from-rose-500 to-pink-500 text-white shadow-lg hover:shadow-xl"
+              className="md:hidden inline-flex h-10 w-10 items-center justify-center rounded-full bg-gradient-to-r from-rose-500 to-pink-500 text-white shadow-lg hover:shadow-xl"
               onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
               whileHover={{ scale: 1.1 }}
               whileTap={{ scale: 0.95 }}
@@ -413,7 +433,7 @@ export function Navbar() {
       <nav className="relative bg-gradient-to-r from-rose-50/50 to-pink-50/50 border-t border-rose-200/30 transition-[height,opacity] duration-150">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           {/* Desktop Navigation */}
-          <div className="hidden md:flex justify-center items-center space-x-8 h-12">
+          <div className={cn('hidden md:flex justify-center items-center space-x-8 transition-all duration-200', desktopNavVisibilityClass)}>
             <motion.div
               initial={{ opacity: 0, y: -10 }}
               animate={{ opacity: 1, y: 0 }}
@@ -510,32 +530,41 @@ export function Navbar() {
           </div>
           
           {/* Mobile Navigation - Sticky Links */}
-          <div className="md:hidden flex justify-center items-center space-x-4 h-10 overflow-x-auto">
+          <div className="md:hidden flex w-full items-center gap-3 px-4 py-2 overflow-x-auto">
             <Link
               href="/sale"
-              className="flex items-center text-white bg-gradient-to-r from-red-500 to-pink-500 hover:from-red-600 hover:to-pink-600 font-medium transition-all duration-300 text-xs whitespace-nowrap px-3 py-1.5 rounded-lg shadow-md"
+              className={cn(
+                mobileNavPillBase,
+                'border border-transparent bg-gradient-to-r from-rose-500 to-pink-500 text-white shadow-lg shadow-rose-300/40'
+              )}
             >
-              ⭐ Haftanın Ürünü
+              <Star className="h-3.5 w-3.5" aria-hidden="true" />
+              <span>Haftanın Ürünü</span>
             </Link>
             <Link
               href="/design-studio"
-              className="flex items-center text-white bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 font-medium transition-all duration-300 text-xs whitespace-nowrap px-3 py-1.5 rounded-lg shadow-md"
+              className={cn(
+                mobileNavPillBase,
+                'border border-transparent bg-gradient-to-r from-purple-500 to-pink-500 text-white shadow-lg shadow-purple-300/40'
+              )}
             >
-              🎨 Tasarım Atölyesi
+              <Sparkles className="h-3.5 w-3.5" aria-hidden="true" />
+              <span>Tasarım Atölyesi</span>
             </Link>
             <Link
               href={user ? "/orders" : "/auth/login"}
-              className="flex items-center text-rose-700 hover:text-rose-800 font-medium transition-all duration-300 text-xs whitespace-nowrap px-2 py-1 rounded-lg hover:bg-rose-50"
-              title={user ? "Siparişlerinizi görüntüleyin" : "Siparişlerinizi görüntülemek için giriş yapınız"}
+              className={cn(mobileNavPillBase, mobileNavPillOutline)}
+              aria-label={user ? "Siparişlerim" : "Siparişlerim için giriş yap"}
             >
-              {user ? "Siparişlerim" : "Siparişlerim (Giriş Gerekli)"}
+              <ShoppingBag className="h-3.5 w-3.5" aria-hidden="true" />
+              <span>Siparişlerim</span>
             </Link>
           </div>
         </div>
       </nav>
 
       {/* Categories Navigation - mobile gizli */}
-      <nav className="relative bg-gradient-to-r from-rose-50/50 to-pink-50/50 border-t border-rose-200/30 z-[99998] overflow-visible hidden md:block">
+      <nav className={cn('relative bg-gradient-to-r from-rose-50/50 to-pink-50/50 border-t border-rose-200/30 z-[99998] overflow-visible hidden md:block transition-[height,opacity,transform] duration-200', categoryNavVisibilityClass)}>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-center items-center space-x-2 h-12 relative overflow-visible">
             {categories.map((category, index) => (
@@ -604,6 +633,37 @@ export function Navbar() {
         )}
         
       </nav>
+
+      <AnimatePresence>
+        {showDesktopBackToTop && (
+          <motion.button
+            key="desktop-back-to-top"
+            type="button"
+            className="hidden md:flex fixed bottom-8 right-8 h-12 w-12 items-center justify-center rounded-full bg-gradient-to-r from-rose-500 to-pink-500 text-white shadow-xl shadow-rose-500/30 ring-1 ring-white/40 transition-transform duration-200 hover:-translate-y-1 hover:shadow-2xl focus:outline-none focus:ring-2 focus:ring-rose-200"
+            onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
+            initial={{ opacity: 0, y: 24 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: 24 }}
+            aria-label="Yukarı dön"
+          >
+            <ChevronUpIcon className="h-6 w-6" />
+          </motion.button>
+        )}
+        {showMobileBackToTop && (
+          <motion.button
+            key="mobile-back-to-top"
+            type="button"
+            className="md:hidden fixed bottom-24 right-4 h-10 w-10 items-center justify-center rounded-full border border-white/70 bg-white/80 text-rose-600 shadow-lg shadow-rose-500/25 backdrop-blur-md transition-transform duration-200 hover:-translate-y-1 focus:outline-none focus:ring-2 focus:ring-rose-200/80"
+            onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
+            initial={{ opacity: 0, y: 16 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: 16 }}
+            aria-label="Yukarı dön"
+          >
+            <ChevronUpIcon className="h-5 w-5" />
+          </motion.button>
+        )}
+      </AnimatePresence>
 
       {/* Mobile Menu */}
       {isMobileMenuOpen && (
@@ -728,4 +788,5 @@ export function Navbar() {
     </header>
   )
 }
+
 

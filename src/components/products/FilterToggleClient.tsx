@@ -16,19 +16,19 @@ export function FilterToggleClient({ children, title = 'Tüm Ürünler', sortCom
   return (
     <>
       {/* Filter Toggle Button */}
-      <div className="mb-6 flex justify-between items-center">
-        <div className="flex items-center gap-4">
+      <div className="mb-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+        <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:gap-4">
           <h1 id="products-heading" className="text-2xl sm:text-3xl font-bold">
             {title}
           </h1>
           <motion.button
             onClick={() => setIsOpen(!isOpen)}
-            className="flex items-center gap-2 px-4 py-2 bg-white border border-gray-300 rounded-lg shadow-sm hover:shadow-md transition-all duration-200"
+            className="inline-flex w-full items-center justify-center gap-2 rounded-xl border border-rose-100 bg-white/80 px-3 py-2 text-sm font-medium text-rose-600 shadow-sm backdrop-blur transition-colors duration-200 hover:border-rose-200 hover:bg-rose-50 sm:w-auto"
             whileHover={{ scale: 1.02 }}
             whileTap={{ scale: 0.98 }}
           >
             <FunnelIcon className="h-5 w-5" />
-            <span className="text-sm font-medium">
+            <span>
               {isOpen ? 'Filtreleri Gizle' : 'Filtreleri Göster'}
             </span>
           </motion.button>
@@ -36,7 +36,7 @@ export function FilterToggleClient({ children, title = 'Tüm Ürünler', sortCom
         
         {/* Sort Component */}
         {sortComponent && (
-          <div className="flex items-center">
+          <div className="flex w-full sm:w-auto sm:justify-end">
             {sortComponent}
           </div>
         )}

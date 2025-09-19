@@ -3,7 +3,7 @@ import Link from 'next/link';
 import { CustomerLayout } from '@/components/layout/CustomerLayout';
 import { FavoriteItems } from '@/components/favorites/FavoriteItems';
 import { Breadcrumb } from '@/components/ui/Breadcrumb';
-import { getFavoriteItems } from '@/lib/api/cartClient';
+import { getFavoriteItems } from '@/lib/actions/cart';
 import type { FavoriteItem } from '@/types/cart';
 import { PageTransition } from '@/components/motion/PageTransition';
 import { EmptyFavorites } from '@/components/ui/EmptyState';
@@ -16,7 +16,8 @@ export const metadata: Metadata = {
 };
 
 export default async function FavoritesPage() {
-  const favoriteItems = await getFavoriteItems();
+  const favorites = await getFavoriteItems()
+  const favoriteItems: FavoriteItem[] = Array.isArray(favorites) ? favorites : []
 
   const breadcrumbItems = [
     { label: 'Favorilerim', href: '/favorites' },
@@ -39,9 +40,15 @@ export default async function FavoritesPage() {
             </h1>
 
             {favoriteItems.length === 0 ? (
-              <EmptyFavorites onBrowseProducts={() => window.location.href = '/products'} />
+              <EmptyFavorites
+                onBrowseProducts={() => {
+                  if (typeof window !== 'undefined') {
+                    window.location.href = '/products'
+                  }
+                }}
+              />
             ) : (
-              <FavoriteItems items={favoriteItems as FavoriteItem[]} />
+              <FavoriteItems items={favoriteItems} />
             )}
           </div>
         </div>

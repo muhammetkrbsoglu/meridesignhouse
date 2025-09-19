@@ -186,13 +186,12 @@ export function SearchAutocomplete({
           onKeyDown={handleKeyDown}
           placeholder={placeholder}
           aria-label="Site ici arama"
-          aria-expanded={showDropdown}
           aria-haspopup="listbox"
           aria-controls={showDropdown ? listboxId : undefined}
-          className="w-full rounded-lg border border-gray-300 pl-4 pr-10 py-2 transition-all duration-200 focus:border-transparent focus:ring-2 focus:ring-blue-500"
+          className="w-full rounded-full border border-white/40 bg-white/85 pl-5 pr-14 py-3 text-base shadow-[0_16px_40px_-30px_rgba(15,23,42,0.55)] transition-all duration-200 placeholder:text-gray-400 focus:border-transparent focus:outline-none focus:ring-2 focus:ring-rose-200 supports-[backdrop-filter]:bg-white/60 supports-[backdrop-filter]:backdrop-blur-sm"
         />
 
-        <div className="absolute right-2 top-1/2 -translate-y-1/2 transform flex items-center space-x-1">
+        <div className="absolute right-3 top-1/2 -translate-y-1/2 transform flex items-center space-x-2">
           {query && (
             <button
               onClick={() => {
@@ -201,7 +200,7 @@ export function SearchAutocomplete({
                 setLoadError(null)
                 inputRef.current?.focus()
               }}
-              className="rounded-full p-1 transition-colors hover:bg-gray-100"
+              className="rounded-full bg-white/70 p-2 text-gray-500 shadow-sm transition hover:bg-white/90 hover:text-gray-700"
               type="button"
               aria-label="Arama metnini temizle"
             >
@@ -224,7 +223,7 @@ export function SearchAutocomplete({
           id={listboxId}
           role="listbox"
           aria-label="Arama onerileri"
-          className="absolute top-full left-0 right-0 z-[200] md:z-[100000] mt-1 max-h-[60vh] overflow-y-auto rounded-lg border border-gray-200 bg-white shadow-lg"
+          className="absolute top-full left-0 right-0 z-[200] md:z-[100000] mt-3 max-h-[60vh] overflow-y-auto rounded-3xl border border-white/25 bg-white/90 shadow-[0_28px_70px_-44px_rgba(15,23,42,0.5)] supports-[backdrop-filter]:bg-white/65 supports-[backdrop-filter]:backdrop-blur-sm"
         >
           {isLoading && (
             <div className="p-4 text-center text-gray-500" aria-live="polite">
@@ -234,7 +233,7 @@ export function SearchAutocomplete({
           )}
 
           {!isLoading && limitedSuggestions.length > 0 && (
-            <div className="border-b border-gray-100">
+            <div className="border-b border-white/20">
               <div className="px-4 py-2 text-xs font-medium uppercase tracking-wide text-gray-500">
                 Oneriler
               </div>
@@ -242,7 +241,7 @@ export function SearchAutocomplete({
                 <button
                   key={`${suggestion.type}-${suggestion.id}`}
                   onClick={() => handleSuggestionClick(suggestion)}
-                  className="flex w-full items-center space-x-3 px-4 py-3 text-left transition-colors hover:bg-gray-50"
+                  className="flex w-full items-center space-x-3 px-4 py-3 text-left transition-colors hover:bg-white/70"
                   role="option"
                   aria-selected="false"
                   aria-label={`${suggestion.name} - ${suggestion.type === 'product' ? 'Urun' : suggestion.type === 'category' ? 'Kategori' : 'Set'}`}
@@ -286,8 +285,14 @@ export function SearchAutocomplete({
             </div>
           )}
 
+          {loadError && (
+            <div className="px-4 py-2 text-xs text-amber-700 bg-amber-50/80 border-b border-white/20">
+              {loadError}
+            </div>
+          )}
+
           {!isLoading && query.length < 2 && recentSearches.length > 0 && (
-            <div className="border-b border-gray-100">
+            <div className="border-b border-white/20">
               <div className="flex items-center justify-between px-4 py-2">
                 <span className="text-xs font-medium uppercase tracking-wide text-gray-500">
                   Son Aramalar
@@ -305,7 +310,7 @@ export function SearchAutocomplete({
                 <button
                   key={index}
                   onClick={() => handleRecentSearchClick(search)}
-                  className="flex w-full items-center space-x-3 px-4 py-2 text-left transition-colors hover:bg-gray-50"
+                  className="flex w-full items-center space-x-3 px-4 py-2 text-left transition-colors hover:bg-white/70"
                   role="option"
                   aria-selected="false"
                   aria-label={`Son arama: ${search}`}
@@ -318,7 +323,7 @@ export function SearchAutocomplete({
           )}
 
           {!isLoading && query.length < 2 && popularSearches.length > 0 && (
-            <div className="border-b border-gray-100">
+            <div className="border-b border-white/20">
               <div className="px-4 py-2 text-xs font-medium uppercase tracking-wide text-gray-500">
                 Populer Aramalar
               </div>
@@ -326,7 +331,7 @@ export function SearchAutocomplete({
                 <button
                   key={index}
                   onClick={() => handleRecentSearchClick(search)}
-                  className="flex w-full items-center space-x-3 px-4 py-2 text-left transition-colors hover:bg-gray-50"
+                  className="flex w-full items-center space-x-3 px-4 py-2 text-left transition-colors hover:bg-white/70"
                   role="option"
                   aria-selected="false"
                   aria-label={`Populer arama: ${search}`}
@@ -342,7 +347,7 @@ export function SearchAutocomplete({
             <div className="px-4 py-8 text-center text-gray-500" aria-live="polite">
               <MagnifyingGlassIcon className="mx-auto mb-2 h-8 w-8 text-gray-300" aria-hidden="true" />
               <p className="text-sm">
-                "<span className="font-medium">{query}</span>" icin sonuc bulunamadi
+                &ldquo;<span className="font-medium">{query}</span>&rdquo; icin sonuc bulunamadi
               </p>
               <p className="mt-1 text-xs">Farkli anahtar kelimeler deneyebilirsiniz</p>
             </div>

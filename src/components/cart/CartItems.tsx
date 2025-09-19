@@ -96,11 +96,11 @@ export function CartItems({ items }: CartItemsProps) {
             const firstImage = item.product.product_images && item.product.product_images.length > 0 ? item.product.product_images[0] : null;
             
             return (
-              <div key={item.id} className="flex items-start space-x-4 pb-6 border-b border-gray-200 last:border-b-0 last:pb-0">
+              <div key={item.id} className="flex flex-col gap-4 pb-6 border-b border-gray-200 last:border-b-0 last:pb-0 sm:flex-row sm:items-start sm:gap-6">
                 {/* Product Image */}
                 <div className="flex-shrink-0">
                   <Link href={`/products/${item.product.slug}`}>
-                    <div className="w-20 h-20 bg-gray-100 rounded-lg overflow-hidden hover:opacity-75 transition-opacity relative">
+                    <div className="w-20 h-20 sm:w-24 sm:h-24 bg-gray-100 rounded-lg overflow-hidden hover:opacity-75 transition-opacity relative">
                       {firstImage ? (
                         <Image
                           src={firstImage.url}
@@ -126,16 +126,16 @@ export function CartItems({ items }: CartItemsProps) {
                     <div className="flex-1">
                       <Link 
                         href={`/products/${item.product.slug}`}
-                        className="text-sm font-medium text-gray-900 hover:text-blue-600 transition-colors"
+                        className="text-base font-semibold text-gray-900 hover:text-blue-600 transition-colors sm:text-lg"
                       >
                         {item.product.name}
                       </Link>
                       {item.product.category && (
-                        <p className="text-sm text-gray-500 mt-1">
+                        <p className="text-xs text-gray-500 mt-1 sm:text-sm">
                           {item.product.category.name}
                         </p>
                       )}
-                      <p className="text-lg font-semibold text-gray-900 mt-2">
+                      <p className="text-base font-semibold text-rose-600 mt-2 sm:text-lg">
                         {formatCurrency(item.product.price)}
                       </p>
                     </div>
@@ -155,15 +155,15 @@ export function CartItems({ items }: CartItemsProps) {
                   </div>
 
                   {/* Quantity Controls */}
-                  <div className="flex items-center mt-4">
+                  <div className="flex flex-wrap items-center gap-3 mt-4 sm:flex-nowrap">
                     <label htmlFor={`quantity-${item.id}`} className="text-sm text-gray-700 mr-3">
                       Adet:
                     </label>
-                    <div className="flex items-center border border-gray-300 rounded-md">
+                    <div className="flex items-center border border-gray-200 rounded-xl bg-white/80 shadow-sm sm:bg-transparent sm:shadow-none">
                       <button
                         onClick={() => handleQuantityChange(item.id, item.quantity - 1)}
                         disabled={isLoading || item.quantity <= 1}
-                        className="px-3 py-1 text-gray-600 hover:text-gray-800 disabled:opacity-50 disabled:cursor-not-allowed"
+                        className="px-3 py-1.5 text-gray-600 hover:text-gray-800 disabled:opacity-50 disabled:cursor-not-allowed"
                         type="button"
                       >
                         -
@@ -189,14 +189,14 @@ export function CartItems({ items }: CartItemsProps) {
                           }
                         }}
                         disabled={isLoading}
-                        className="w-16 px-2 py-1 text-center border-0 focus:outline-none focus:ring-2 focus:ring-blue-500/40 disabled:opacity-50 cursor-text"
+                        className="w-16 px-2 py-1.5 text-center border-0 font-semibold focus:outline-none focus:ring-2 focus:ring-rose-500/40 disabled:opacity-50 cursor-text sm:py-1"
                         placeholder="1"
                         aria-label="Miktar"
                       />
                       <button
                         onClick={() => handleQuantityChange(item.id, item.quantity + 1)}
                         disabled={isLoading}
-                        className="px-3 py-1 text-gray-600 hover:text-gray-800 disabled:opacity-50 disabled:cursor-not-allowed"
+                        className="px-3 py-1.5 text-gray-600 hover:text-gray-800 disabled:opacity-50 disabled:cursor-not-allowed"
                         type="button"
                       >
                         +
@@ -206,7 +206,7 @@ export function CartItems({ items }: CartItemsProps) {
 
                   {/* Subtotal */}
                   <div className="mt-3">
-                    <p className="text-sm text-gray-600">
+                    <p className="text-xs text-gray-500 sm:text-sm">
                       Ara Toplam: <span className="font-semibold text-gray-900">
                         {formatCurrency(item.product.price * item.quantity)}
                       </span>
@@ -221,5 +221,6 @@ export function CartItems({ items }: CartItemsProps) {
     </div>
   );
 }
+
 
 

@@ -1,7 +1,7 @@
 
 "use client"
 
-import { useState, useEffect, useCallback, useMemo } from 'react'
+import { useState, useEffect, useCallback, useMemo, useRef } from 'react'
 import Link from 'next/link'
 import Image from 'next/image'
 import { usePathname } from 'next/navigation'
@@ -65,7 +65,7 @@ const items = [
   },
   {
     href: '/favorites',
-    label: 'Favori',
+    label: 'Favoriler',
     icon: HeartIcon,
     activeIcon: HeartIconSolid,
     showBadge: true,
@@ -93,13 +93,16 @@ export function BottomTabBar() {
   const { user } = useAuth()
   const [cartCount, setCartCount] = useState(0)
   const [favoriteCount, setFavoriteCount] = useState(0)
-  const [isScrolled, setIsScrolled] = useState(false)
+  const [isCompact, setIsCompact] = useState(false)
   const shouldReduceMotion = useReducedMotion()
   const [isSearchOpen, setIsSearchOpen] = useState(false)
   const [weeklyProduct, setWeeklyProduct] = useState<WeeklyProductHighlight | null>(null)
   const [isWeeklyProductLoading, setIsWeeklyProductLoading] = useState(false)
   const [searchGlassIntensity, setSearchGlassIntensity] = useState<GlassIntensity>('medium')
   const { bottom: keyboardInset } = useKeyboardInsets()
+  const lastScrollYRef = useRef(0)
+  const scrollRafRef = useRef<number | null>(null)
+  const compactStateRef = useRef(false)
 
   const handleOpenSearch = useCallback(() => {
     setIsSearchOpen(true)
@@ -146,15 +149,48 @@ export function BottomTabBar() {
     )
   }, [searchGlassIntensity, shouldReduceMotion])
 
+  useEffect(() => {
+    compactStateRef.current = isCompact
+  }, [isCompact])
+
   // Scroll detection for navbar shrinking
   useEffect(() => {
+    if (typeof window === 'undefined') return
+
+    lastScrollYRef.current = window.scrollY
+
     const handleScroll = () => {
-      const scrollY = window.scrollY
-      setIsScrolled(scrollY > 50)
+      const currentY = window.scrollY
+      if (scrollRafRef.current !== null) return
+
+      scrollRafRef.current = window.requestAnimationFrame(() => {
+        const previousY = lastScrollYRef.current
+        const delta = currentY - previousY
+        const magnitude = Math.abs(delta)
+        const threshold = magnitude > 28 ? 10 : 4
+
+        if (delta > threshold && currentY > 48) {
+          if (!compactStateRef.current) {
+            setIsCompact(true)
+          }
+        } else if (delta < -threshold || currentY <= 32) {
+          if (compactStateRef.current) {
+            setIsCompact(false)
+          }
+        }
+
+        lastScrollYRef.current = currentY
+        scrollRafRef.current = null
+      })
     }
 
     window.addEventListener('scroll', handleScroll, { passive: true })
-    return () => window.removeEventListener('scroll', handleScroll)
+    return () => {
+      window.removeEventListener('scroll', handleScroll)
+      if (scrollRafRef.current !== null) {
+        cancelAnimationFrame(scrollRafRef.current)
+      }
+    }
   }, [])
 
   // Load cart and favorite counts
@@ -297,24 +333,24 @@ export function BottomTabBar() {
       <motion.nav
         initial={{ y: 100, opacity: 0 }}
         animate={{
-          y: 0,
+          y: isSearchOpen ? 80 : 0,
           opacity: isSearchOpen ? 0 : 1,
-          height: isScrolled ? 60 : 80,
-          paddingTop: isScrolled ? 4 : 8,
-          paddingBottom: isScrolled ? 4 : 8
+          minHeight: isCompact ? 66 : 84,
+          paddingTop: isCompact ? 8 : 12,
+          paddingBottom: isCompact ? 8 : 14,
+          scale: isCompact ? 0.98 : 1
         }}
-        transition={{
-          type: 'spring',
-          stiffness: 300,
-          damping: 30,
-          delay: 0.1
-        }}
+        transition={
+          shouldReduceMotion
+            ? { duration: 0 }
+            : { type: 'spring', stiffness: 260, damping: 28, mass: 0.9 }
+        }
         className={cn(
           'fixed bottom-0 left-0 right-0 z-[900] safe-pb md:hidden',
           'border-t border-white/20',
           getOptimalGlassConfig('bottom-bar')
         )}
-        style={{ pointerEvents: isSearchOpen ? 'none' : 'auto' }}
+        style={{ pointerEvents: isSearchOpen ? 'none' : 'auto', originY: 1, willChange: 'transform, padding, min-height' }}
       >
         <div className="mx-auto max-w-7xl px-2 py-1">
           <ul className="grid grid-cols-6 gap-1">
@@ -349,9 +385,9 @@ export function BottomTabBar() {
                   >
                     <div className="relative">
                       {active ? (
-                        <ActiveIcon className={cn('transition-all duration-200', isScrolled ? 'h-5 w-5' : 'h-6 w-6')} />
+                        <ActiveIcon className={cn('transition-all duration-200', isCompact ? 'h-5 w-5' : 'h-6 w-6')} />
                       ) : (
-                        <Icon className={cn('transition-all duration-200', isScrolled ? 'h-5 w-5' : 'h-6 w-6')} />
+                        <Icon className={cn('transition-all duration-200', isCompact ? 'h-5 w-5' : 'h-6 w-6')} />
                       )}
                       {showBadgeNumber && (
                         <motion.span
@@ -370,7 +406,7 @@ export function BottomTabBar() {
                     <span
                       className={cn(
                         'mt-1 leading-3 font-medium transition-all duration-200',
-                        isScrolled ? 'text-[9px]' : 'text-[10px]',
+                        isCompact ? 'text-[9px]' : 'text-[10px]',
                         active ? 'text-rose-600' : 'text-gray-600'
                       )}
                     >

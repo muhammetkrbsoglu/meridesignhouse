@@ -220,7 +220,7 @@ export function CartContent() {
         {/* Cart Items */}
         <div className="lg:col-span-2">
           <div className="flex items-center justify-between mb-6">
-            <h2 className="text-xl font-semibold text-gray-900">
+            <h2 className="text-lg font-semibold text-gray-900 sm:text-xl">
               Sepetinizdeki Ürünler ({totalItems} ürün)
             </h2>
             {(cartItems.length > 0 || bundleLines.length > 0) && (
@@ -233,7 +233,7 @@ export function CartContent() {
                   variant="outline"
                   size="sm"
                   onClick={openConfirmClear}
-                  className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                  className="self-start text-red-600 hover:text-red-700 hover:bg-red-50 sm:self-auto"
                 >
                   <TrashIcon className="h-4 w-4 mr-2" />
                   Sepeti Temizle
@@ -302,9 +302,9 @@ export function CartContent() {
             }
 
             return (
-              <Card key={b.id} className="overflow-hidden border-rose-200">
-                <CardContent className={`p-6 ${isUpdating ? 'opacity-80' : ''}`}>
-                  <div className="flex items-start gap-4">
+              <Card key={b.id} className="overflow-hidden border border-rose-200/70 shadow-sm">
+                <CardContent className={`p-4 sm:p-6 ${isUpdating ? 'opacity-80' : ''}`}>
+                  <div className="flex flex-col gap-4 sm:flex-row sm:items-start">
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2">
                         <Badge variant="secondary" className="bg-rose-50 text-rose-700 border border-rose-200">Set</Badge>
@@ -315,10 +315,10 @@ export function CartContent() {
                           {b.bundle?.name || 'Set'}
                         </h3>
                       </Link>
-                      <div className="mt-3 flex flex-wrap gap-3">
+                      <div className="mt-3 grid grid-cols-1 gap-3 sm:flex sm:flex-wrap sm:gap-3">
                         {(b.items || []).slice(0,4).map((it) => (
                           <div key={it.id} className="flex items-center gap-3 border rounded-lg px-3 py-2">
-                            <div className="w-16 h-16 rounded-md bg-gray-100 overflow-hidden">
+                            <div className="h-14 w-14 rounded-md bg-gray-100 overflow-hidden sm:h-16 sm:w-16">
                               {it.product?.product_images?.[0]?.url && (
                                 <Image src={it.product.product_images[0].url} alt={it.product?.name || ''} width={64} height={64} className="w-full h-full object-cover" placeholder="blur" blurDataURL={BLUR_DATA_URL} />
                               )}
@@ -340,8 +340,8 @@ export function CartContent() {
                     </div>
                   </div>
 
-                  <div className="mt-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-                    <div className="flex items-center gap-2">
+                  <div className="mt-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between sm:gap-4">
+                    <div className="flex w-full items-center justify-between gap-2 sm:w-auto sm:justify-start">
                       <Button variant="outline" size="sm" onClick={() => changeQty(b.quantity - 1)} disabled={isUpdating || b.quantity <= 1} type="button">
                         <MinusIcon className="h-4 w-4" />
                       </Button>
@@ -350,7 +350,7 @@ export function CartContent() {
                         type="text"
                         inputMode="numeric"
                         pattern="[0-9]*"
-                        className="w-14 text-center font-medium border border-gray-300 rounded-md py-1 px-2 focus:outline-none focus:ring-2 focus:ring-blue-500/40 disabled:opacity-60"
+                        className="w-16 rounded-md border border-gray-300 px-2 py-1.5 text-center text-base font-semibold focus:outline-none focus:ring-2 focus:ring-rose-500/40 disabled:opacity-60 sm:w-14 sm:py-1 sm:text-sm"
                         value={draftBundleQuantities[b.id] ?? String(b.quantity)}
                         disabled={isUpdating}
                         onFocus={(e) => e.currentTarget.select()}
@@ -377,14 +377,14 @@ export function CartContent() {
                         </span>
                       )}
                     </div>
-                    <div className="text-right sm:text-left flex-1">
+                    <div className="flex-1 space-y-1 text-sm text-gray-600 sm:text-right">
                       <div className="text-sm text-gray-500">Toplam liste: <span className="line-through">{formatCurrency(totalListPrice)}</span></div>
                       <div className="text-sm font-semibold text-gray-900">Toplam set fiyatı: {formatCurrency(totalSetPrice)}</div>
                       {totalSavings > 0 && (
                         <div className="text-sm text-green-600">Toplam kazanç: {formatCurrency(totalSavings)}</div>
                       )}
                     </div>
-                    <Button variant="ghost" size="sm" onClick={removeBundle} disabled={isUpdating} className="text-red-600 hover:text-red-700 hover:bg-red-50">
+                    <Button variant="ghost" size="sm" onClick={removeBundle} disabled={isUpdating} className="self-start text-red-600 hover:text-red-700 hover:bg-red-50 sm:self-auto">
                       <TrashIcon className="h-4 w-4" />
                     </Button>
                   </div>
@@ -425,18 +425,18 @@ export function CartContent() {
                 transition={{ delay: index * 0.1 }}
               >
                 <Card className="overflow-hidden">
-                  <CardContent className={`p-6 ${isUpdating ? 'opacity-80' : ''}`}>
-                <div className="flex items-center space-x-4">
+                  <CardContent className={`p-4 sm:p-6 ${isUpdating ? 'opacity-80' : ''}`}>
+                <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:gap-6">
                   {/* Product Image */}
                   <div className="flex-shrink-0">
-                    <div className="w-20 h-20 bg-gray-100 rounded-lg flex items-center justify-center overflow-hidden">
+                    <div className="flex h-20 w-20 items-center justify-center overflow-hidden rounded-xl bg-gray-100 sm:h-24 sm:w-24">
                       {item.product.product_images && item.product.product_images.length > 0 ? (
                         <Image
                           src={item.product.product_images[0].url}
                           alt={item.product.product_images[0].alt || item.product.name}
-                          width={80}
-                          height={80}
-                          className="w-full h-full object-cover"
+                          width={96}
+                          height={96}
+                          className="h-full w-full object-cover"
                           placeholder="blur" blurDataURL={BLUR_DATA_URL}
                           onError={(e) => {
                             (e.currentTarget as HTMLImageElement).style.display = 'none';
@@ -449,95 +449,100 @@ export function CartContent() {
                   </div>
 
                   {/* Product Info */}
-                  <div className="flex-1 min-w-0">
-                    <Link 
+                  <div className="flex-1 min-w-0 space-y-2">
+                    <Link
                       href={`/products/${item.product.slug}`}
-                      className="block hover:opacity-80 transition-opacity"
+                      className="block transition-opacity hover:opacity-80"
                     >
-                      <h3 className="text-lg font-medium text-gray-900 truncate hover:text-blue-600 transition-colors">
+                      <h3 className="text-sm font-semibold text-gray-900 line-clamp-2 transition-colors hover:text-blue-600 sm:text-lg">
                         {item.product.name}
                       </h3>
                     </Link>
-                    <p className="text-sm text-gray-500">
+                    <p className="text-xs text-gray-500 sm:text-sm">
                       {item.product.category?.name}
                     </p>
-                    <p className="text-lg font-semibold text-rose-600 mt-1">
+                    <p className="text-base font-semibold text-rose-600 sm:text-lg">
                       {formatCurrency(item.product.price)}
                     </p>
                   </div>
 
                   {/* Quantity Controls */}
-                  <div className="flex items-center space-x-2">
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => handleUpdateQuantity(item.productId, item.quantity - 1)}
-                      disabled={updatingItems.has(item.productId) || item.quantity <= 1}
-                      type="button"
-                    >
-                      <MinusIcon className="h-4 w-4" />
-                    </Button>
-                    
-                    <input
-                      id={`qty-${item.productId}`}
-                      type="text"
-                      inputMode="numeric"
-                      pattern="[0-9]*"
-                      className="w-14 text-center font-medium border border-gray-300 rounded-md py-1 px-2 focus:outline-none focus:ring-2 focus:ring-blue-500/40"
-                      value={draftQuantities[item.productId] ?? String(item.quantity)}
-                      onFocus={(e) => e.currentTarget.select()}
-                      onChange={(e) => {
-                        const val = e.target.value.replace(/[^0-9]/g, '').slice(0, 3)
-                        setDraftQuantities(prev => ({ ...prev, [item.productId]: val }))
-                      }}
-                      onBlur={() => commitQuantity(item.productId, item.quantity)}
-                      onKeyDown={(e) => {
-                        if (e.key === 'Enter') {
-                          (e.currentTarget as HTMLInputElement).blur()
-                        } else if (e.key === 'Escape') {
-                          setDraftQuantities(prev => ({ ...prev, [item.productId]: String(item.quantity) }))
-                          ;(e.currentTarget as HTMLInputElement).blur()
-                        }
-                      }}
-                    />
-                    
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => handleUpdateQuantity(item.productId, item.quantity + 1)}
-                      disabled={updatingItems.has(item.productId)}
-                      type="button"
-                    >
-                      <PlusIcon className="h-4 w-4" />
-                    </Button>
-                    {isUpdating && (
-                      <span className="ml-1 inline-flex h-4 w-4 items-center justify-center">
-                        <span className="block h-4 w-4 rounded-full border-2 border-gray-300 border-t-transparent animate-spin" aria-label="Yükleniyor" />
-                      </span>
-                    )}
-                  </div>
+                  <div className="flex flex-col gap-3 sm:min-w-[210px] sm:flex-row sm:items-center sm:gap-3">
+                    <div className="flex items-center justify-between gap-3 rounded-2xl border border-gray-200 bg-white/70 px-3 py-2 shadow-sm sm:justify-start sm:gap-2 sm:border-transparent sm:bg-transparent sm:px-0 sm:py-0 sm:shadow-none">
+                      <Button
+                        variant="outline"
+                        size="icon"
+                        className="h-10 w-10 sm:h-9 sm:w-9"
+                        onClick={() => handleUpdateQuantity(item.productId, item.quantity - 1)}
+                        disabled={updatingItems.has(item.productId) || item.quantity <= 1}
+                        type="button"
+                      >
+                        <MinusIcon className="h-4 w-4" />
+                      </Button>
 
-                  {/* Remove Button - Hidden on mobile (swipe action) */}
-                  <MicroFeedback
-                    hapticType="warning"
-                    hapticMessage="Ürün kaldırılıyor"
-                    disabled={removingItems.has(item.id)}
-                    onClick={() => handleRemoveItem(item.id)}
-                    className="hidden md:flex"
-                  >
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      disabled={removingItems.has(item.id)}
-                      className="text-red-600 hover:text-red-700 hover:bg-red-50"
-                    >
-                      {removingItems.has(item.id) ? (
-                        <LoadingSpinner size="sm" color="gray" />
-                      ) : (
-                        <TrashIcon className="h-4 w-4" />
+                      <input
+                        id={`qty-${item.productId}`}
+                        type="text"
+                        inputMode="numeric"
+                        pattern="[0-9]*"
+                        className="w-16 rounded-md border border-gray-300 py-1.5 text-center text-base font-semibold focus:outline-none focus:ring-2 focus:ring-rose-500/40 sm:w-14 sm:text-sm"
+                        value={draftQuantities[item.productId] ?? String(item.quantity)}
+                        onFocus={(e) => e.currentTarget.select()}
+                        onChange={(e) => {
+                          const val = e.target.value.replace(/[^0-9]/g, '').slice(0, 3)
+                          setDraftQuantities(prev => ({ ...prev, [item.productId]: val }))
+                        }}
+                        onBlur={() => commitQuantity(item.productId, item.quantity)}
+                        onKeyDown={(e) => {
+                          if (e.key === 'Enter') {
+                            (e.currentTarget as HTMLInputElement).blur()
+                          } else if (e.key === 'Escape') {
+                            setDraftQuantities(prev => ({ ...prev, [item.productId]: String(item.quantity) }))
+                            ;(e.currentTarget as HTMLInputElement).blur()
+                          }
+                        }}
+                      />
+
+                      <Button
+                        variant="outline"
+                        size="icon"
+                        className="h-10 w-10 sm:h-9 sm:w-9"
+                        onClick={() => handleUpdateQuantity(item.productId, item.quantity + 1)}
+                        disabled={updatingItems.has(item.productId)}
+                        type="button"
+                      >
+                        <PlusIcon className="h-4 w-4" />
+                      </Button>
+
+                      {isUpdating && (
+                        <span className="inline-flex h-4 w-4 items-center justify-center sm:ml-1">
+                          <span className="block h-4 w-4 rounded-full border-2 border-gray-300 border-t-transparent animate-spin" aria-label="Yükleniyor" />
+                        </span>
                       )}
-                    </Button>
-                  </MicroFeedback>
+                    </div>
+
+                    {/* Remove Button - Hidden on mobile (swipe action) */}
+                    <MicroFeedback
+                      hapticType="warning"
+                      hapticMessage="Ürün kaldırılıyor"
+                      disabled={removingItems.has(item.id)}
+                      onClick={() => handleRemoveItem(item.id)}
+                      className="hidden sm:flex"
+                    >
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        disabled={removingItems.has(item.id)}
+                        className="self-start text-red-600 hover:text-red-700 hover:bg-red-50 sm:self-auto"
+                      >
+                        {removingItems.has(item.id) ? (
+                          <LoadingSpinner size="sm" color="gray" />
+                        ) : (
+                          <TrashIcon className="h-4 w-4" />
+                        )}
+                      </Button>
+                    </MicroFeedback>
+                  </div>
                 </div>
               </CardContent>
             </Card>
@@ -618,5 +623,10 @@ export function CartContent() {
     </>
   )
 }
+
+
+
+
+
 
 
