@@ -7,6 +7,8 @@ import { useDebounce } from '@/hooks/useDebounce'
 import { getSearchSuggestions, getPopularSearches, logSearch, SearchSuggestion } from '@/lib/actions/search'
 import { formatPrice } from '../../lib/utils'
 import Image from 'next/image'
+import Link from 'next/link'
+import { fetchFeaturedProducts } from '@/lib/actions/products'
 
 interface SearchAutocompleteProps {
   placeholder?: string
@@ -35,6 +37,8 @@ export function SearchAutocomplete({
   const [isLoading, setIsLoading] = useState(false)
   const [loadError, setLoadError] = useState<string | null>(null)
   const [recentSearches, setRecentSearches] = useState<string[]>([])
+  const [weeklyProduct, setWeeklyProduct] = useState<any>(null)
+  const [weeklyProductLoading, setWeeklyProductLoading] = useState(false)
 
   const debouncedQuery = useDebounce(query, 300)
   const searchRef = useRef<HTMLDivElement>(null)
@@ -63,13 +67,21 @@ export function SearchAutocomplete({
     }
   }, [])
 
-  // Load popular searches on mount
+  // Load popular searches and weekly product on mount
   useEffect(() => {
-    const loadPopularSearches = async () => {
-      const popular = await getPopularSearches()
-      setPopularSearches(popular)
+    const loadData = async () => {
+      try {
+        const [searches, featured] = await Promise.all([
+          getPopularSearches(),
+          fetchFeaturedProducts(1)
+        ])
+        setPopularSearches(searches)
+        setWeeklyProduct(featured[0] || null)
+      } catch (error) {
+        console.error('Failed to load data:', error)
+      }
     }
-    loadPopularSearches()
+    loadData()
   }, [])
 
 
@@ -223,7 +235,7 @@ export function SearchAutocomplete({
           id={listboxId}
           role="listbox"
           aria-label="Arama onerileri"
-          className="absolute top-full left-0 right-0 z-[200] md:z-[100000] mt-3 max-h-[60vh] overflow-y-auto rounded-3xl border border-white/25 bg-white/90 shadow-[0_28px_70px_-44px_rgba(15,23,42,0.5)] supports-[backdrop-filter]:bg-white/65 supports-[backdrop-filter]:backdrop-blur-sm"
+          className="absolute top-full left-0 right-0 z-[200] md:z-[100000] mt-3 max-h-[60vh] overflow-y-auto rounded-2xl md:rounded-3xl border border-white/25 bg-white/95 shadow-[0_28px_70px_-44px_rgba(15,23,42,0.5)] supports-[backdrop-filter]:bg-white/85 supports-[backdrop-filter]:backdrop-blur-sm"
         >
           {isLoading && (
             <div className="p-4 text-center text-gray-500" aria-live="polite">
@@ -340,6 +352,54 @@ export function SearchAutocomplete({
                   <span className="text-sm text-gray-700">{search}</span>
                 </button>
               ))}
+            </div>
+          )}
+
+          {/* Haftanın Ürünü - Sadece mobilde ve arama yapılmadığında göster */}
+          {!isLoading && query.length < 2 && weeklyProduct && (
+            <div className="border-t border-white/20">
+              <div className="px-4 py-3">
+                <div className="mb-3 text-xs font-semibold uppercase tracking-wide text-gray-500">
+                  Haftanın Seçimi
+                </div>
+                <Link
+                  href={`/products/${weeklyProduct.slug}`}
+                  className="group block bg-gradient-to-br from-rose-50 to-pink-50 rounded-xl border-2 border-rose-200 hover:border-rose-300 hover:shadow-md transition-all duration-300"
+                  onClick={() => setIsOpen(false)}
+                >
+                  <div className="flex gap-3 p-3">
+                    <div className="h-16 w-16 flex-shrink-0 overflow-hidden rounded-lg bg-gray-100">
+                      {weeklyProduct.images?.[0]?.url ? (
+                        <Image
+                          src={weeklyProduct.images[0].url}
+                          alt={weeklyProduct.name}
+                          width={64}
+                          height={64}
+                          className="h-full w-full object-cover"
+                        />
+                      ) : (
+                        <div className="h-full w-full bg-gray-200" />
+                      )}
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <h3 className="text-sm font-semibold text-gray-900 truncate group-hover:text-rose-600 transition-colors">
+                        {weeklyProduct.name}
+                      </h3>
+                      <p className="text-xs text-gray-600 mt-1 line-clamp-2">
+                        {weeklyProduct.description}
+                      </p>
+                      <div className="mt-2 flex items-center justify-between">
+                        <span className="text-lg font-bold text-rose-600">
+                          {formatPrice(weeklyProduct.price)}
+                        </span>
+                        <span className="text-xs bg-rose-100 text-rose-700 px-2 py-1 rounded-full font-medium">
+                          ⭐ Öne Çıkan
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                </Link>
+              </div>
             </div>
           )}
 

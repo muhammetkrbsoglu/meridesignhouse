@@ -375,29 +375,27 @@ export default async function ProductsPage({ searchParams }: Props) {
                       return null
                     })()}
 
-                    <div className="flex h-full flex-col gap-6">
-                      {/* Center equal product images with plus signs */}
+                    <div className="flex h-full flex-col gap-4">
+                      {/* Products side by side with plus sign */}
                       <Link href={`/bundles/${b.slug}`} className="flex-1">
-                        <div className="flex flex-wrap items-center justify-center gap-4 md:flex-nowrap md:gap-6">
+                        <div className="flex items-center justify-center gap-2 md:gap-4">
                           {(() => {
-                            const items = (b.items || []).slice(0, 3)
+                            const items = (b.items || []).slice(0, 2)
                             return items.map((it, idx) => (
-                              <div key={it.id} className="flex items-center gap-6">
-                                <div className="flex flex-col items-center gap-3">
-                                  <div className="flex aspect-[4/5] w-28 max-w-[132px] items-center justify-center overflow-hidden rounded-xl bg-white/40 shadow-sm sm:w-32 md:w-36">
-                                    {it.product?.images?.[0]?.url ? (
-                                      <Image src={it.product.images[0].url} alt={it.product?.name || ''} width={112} height={112} className="w-full h-full object-cover" placeholder="blur" blurDataURL={BLUR_DATA_URL} />
-                                    ) : (
-                                      <div className="w-full h-full bg-gray-100" />
-                                    )}
-                                  </div>
-                                  <div className="text-center text-xs font-medium text-gray-600 sm:text-sm max-w-[136px]">
-                                    {it.product?.name || ''}
-                                  </div>
+                              <div key={it.id} className="flex flex-col items-center gap-2 flex-1 max-w-[45%]">
+                                <div className="flex aspect-square w-full max-w-[120px] items-center justify-center overflow-hidden rounded-xl bg-white/40 shadow-sm">
+                                  {it.product?.images?.[0]?.url ? (
+                                    <Image src={it.product.images[0].url} alt={it.product?.name || ''} width={120} height={120} className="w-full h-full object-cover" placeholder="blur" blurDataURL={BLUR_DATA_URL} />
+                                  ) : (
+                                    <div className="w-full h-full bg-gray-100" />
+                                  )}
+                                </div>
+                                <div className="text-center text-xs font-medium text-gray-600 line-clamp-2 px-1">
+                                  {it.product?.name || ''}
                                 </div>
                                 {idx < items.length - 1 && (
-                                  <div className="flex items-center justify-center h-40">
-                                    <span className="text-rose-600 font-bold text-4xl">+</span>
+                                  <div className="absolute left-1/2 top-1/2 transform -translate-x-1/2 -translate-y-1/2 z-10">
+                                    <span className="text-rose-600 font-bold text-2xl md:text-3xl bg-white rounded-full w-8 h-8 flex items-center justify-center shadow-md">+</span>
                                   </div>
                                 )}
                               </div>
@@ -406,31 +404,28 @@ export default async function ProductsPage({ searchParams }: Props) {
                         </div>
                       </Link>
 
-                      {/* Bottom section - Price and CTA */}
-                      <div className="flex flex-wrap items-center justify-center gap-4 md:flex-nowrap md:gap-6">
-                        <div className="w-12"></div>
-                        <div>
-                          {/* Client button for toast and UI refresh */}
-                          { }
-                          <AddBundleButton bundleId={b.id} fullWidth={false} />
-                        </div>
-                        <div className="text-left">
-                          {(() => {
-                            const sum = (b.items || []).reduce((acc: number, it: any) => {
-                              const unit = typeof it.product?.price === 'number' ? it.product.price : 0
-                              const qty = it.quantity || 1
-                              return acc + unit * qty
-                            }, 0)
-                            return (
-                              <div className="space-y-1">
-                                <div className="text-gray-400 line-through text-base">₺{sum.toLocaleString('tr-TR')}</div>
-                                {typeof b.bundlePrice === 'number' && (
-                                  <div className="text-rose-700 font-semibold text-xl">₺{b.bundlePrice.toLocaleString('tr-TR')}</div>
-                                )}
-                              </div>
-                            )
-                          })()}
-                        </div>
+                      {/* Centered Add to Cart Button */}
+                      <div className="flex justify-center">
+                        <AddBundleButton bundleId={b.id} fullWidth={false} />
+                      </div>
+
+                      {/* Price section */}
+                      <div className="flex justify-center">
+                        {(() => {
+                          const sum = (b.items || []).reduce((acc: number, it: any) => {
+                            const unit = typeof it.product?.price === 'number' ? it.product.price : 0
+                            const qty = it.quantity || 1
+                            return acc + unit * qty
+                          }, 0)
+                          return (
+                            <div className="text-center space-y-1">
+                              <div className="text-gray-400 line-through text-sm">₺{sum.toLocaleString('tr-TR')}</div>
+                              {typeof b.bundlePrice === 'number' && (
+                                <div className="text-rose-700 font-semibold text-lg">₺{b.bundlePrice.toLocaleString('tr-TR')}</div>
+                              )}
+                            </div>
+                          )
+                        })()}
                       </div>
                     </div>
                     </div>

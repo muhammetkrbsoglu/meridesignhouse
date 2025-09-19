@@ -47,7 +47,7 @@ export function Navbar() {
     return 0
   }
 
-  const mobileNavPillBase = 'inline-flex shrink-0 items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-medium whitespace-nowrap transition-all duration-300 backdrop-blur-md border border-white/60 bg-white/70 text-rose-700 shadow-sm'
+  const mobileNavPillBase = 'inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-medium transition-all duration-300 backdrop-blur-md border border-white/60 bg-white/70 text-rose-700 shadow-sm'
   const mobileNavPillOutline = 'border-rose-200/70 hover:border-rose-300 hover:bg-rose-50/80'
   const isCompact = navStage > 0
   const hideCategoryLayer = navStage >= 2
@@ -530,34 +530,34 @@ export function Navbar() {
           </div>
           
           {/* Mobile Navigation - Sticky Links */}
-          <div className="md:hidden flex w-full items-center gap-3 px-4 py-2 overflow-x-auto">
+          <div className="md:hidden flex w-full items-center justify-center gap-2 px-2 py-2">
             <Link
               href="/sale"
               className={cn(
                 mobileNavPillBase,
-                'border border-transparent bg-gradient-to-r from-rose-500 to-pink-500 text-white shadow-lg shadow-rose-300/40'
+                'border border-transparent bg-gradient-to-r from-rose-500 to-pink-500 text-white shadow-lg shadow-rose-300/40 flex-1 justify-center min-w-0'
               )}
             >
-              <Star className="h-3.5 w-3.5" aria-hidden="true" />
-              <span>Haftanın Ürünü</span>
+              <Star className="h-3.5 w-3.5 flex-shrink-0" aria-hidden="true" />
+              <span className="truncate text-center">Haftanın Ürünü</span>
             </Link>
             <Link
               href="/design-studio"
               className={cn(
                 mobileNavPillBase,
-                'border border-transparent bg-gradient-to-r from-purple-500 to-pink-500 text-white shadow-lg shadow-purple-300/40'
+                'border border-transparent bg-gradient-to-r from-purple-500 to-pink-500 text-white shadow-lg shadow-purple-300/40 flex-1 justify-center min-w-0'
               )}
             >
-              <Sparkles className="h-3.5 w-3.5" aria-hidden="true" />
-              <span>Tasarım Atölyesi</span>
+              <Sparkles className="h-3.5 w-3.5 flex-shrink-0" aria-hidden="true" />
+              <span className="truncate text-center">Tasarım Atölyesi</span>
             </Link>
             <Link
               href={user ? "/orders" : "/auth/login"}
-              className={cn(mobileNavPillBase, mobileNavPillOutline)}
+              className={cn(mobileNavPillBase, mobileNavPillOutline, 'flex-1 justify-center min-w-0')}
               aria-label={user ? "Siparişlerim" : "Siparişlerim için giriş yap"}
             >
-              <ShoppingBag className="h-3.5 w-3.5" aria-hidden="true" />
-              <span>Siparişlerim</span>
+              <ShoppingBag className="h-3.5 w-3.5 flex-shrink-0" aria-hidden="true" />
+              <span className="truncate text-center">Siparişlerim</span>
             </Link>
           </div>
         </div>
