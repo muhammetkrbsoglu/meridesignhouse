@@ -394,7 +394,7 @@ export default async function ProductsPage({ searchParams }: Props) {
                                   {it.product?.name || ''}
                                 </div>
                                 {idx < items.length - 1 && (
-                                  <div className="absolute left-1/2 top-1/2 transform -translate-x-1/2 -translate-y-1/2 z-10">
+                                  <div className="absolute left-1/2 top-1/4 transform -translate-x-1/2 -translate-y-1/2 z-10">
                                     <span className="text-rose-600 font-bold text-xl md:text-3xl bg-white rounded-full w-8 h-8 flex items-center justify-center shadow-md">+</span>
                                   </div>
                                 )}

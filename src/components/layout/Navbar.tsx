@@ -39,6 +39,7 @@ export function Navbar() {
   const scrollRafRef = useRef<number | null>(null)
   const [showDesktopBackToTop, setShowDesktopBackToTop] = useState(false)
   const [showMobileBackToTop, setShowMobileBackToTop] = useState(false)
+  const [showLogoutConfirm, setShowLogoutConfirm] = useState(false)
 
   const computeNavStage = (scrollY: number) => {
     if (scrollY > 320) return 3
@@ -47,7 +48,7 @@ export function Navbar() {
     return 0
   }
 
-  const mobileNavPillBase = 'inline-flex items-center gap-1.5 rounded-full px-2 py-1 text-[10px] font-medium transition-all duration-300 backdrop-blur-md border border-white/60 bg-white/70 text-rose-700 shadow-sm'
+  const mobileNavPillBase = 'inline-flex items-center gap-1 rounded-full px-1.5 py-0.5 text-[9px] font-medium transition-all duration-300 backdrop-blur-md border border-white/60 bg-white/70 text-rose-700 shadow-sm'
   const mobileNavPillOutline = 'border-rose-200/70 hover:border-rose-300 hover:bg-rose-50/80'
   const isCompact = navStage > 0
   const hideCategoryLayer = navStage >= 2
@@ -277,6 +278,25 @@ export function Navbar() {
               </span>
             </Link>
           </motion.div>
+
+          {/* Mobile Logout Button - Only show when user is logged in */}
+          {user && (
+            <motion.button
+              className="md:hidden inline-flex h-10 w-10 items-center justify-center rounded-full bg-gradient-to-r from-red-500 to-rose-500 text-white shadow-lg hover:shadow-xl"
+              onClick={() => setShowLogoutConfirm(true)}
+              whileHover={{ scale: 1.1 }}
+              whileTap={{ scale: 0.95 }}
+              aria-label="Çıkış yap"
+              type="button"
+              initial={{ opacity: 0, scale: 0.8 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ duration: 0.3, delay: 0.5 }}
+            >
+              <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+              </svg>
+            </motion.button>
+          )}
 
           {/* Search Bar - Desktop */}
           <motion.div 
@@ -530,7 +550,7 @@ export function Navbar() {
           </div>
           
           {/* Mobile Navigation - Sticky Links */}
-          <div className="md:hidden flex w-full items-center justify-center gap-2 px-2 py-2">
+          <div className="md:hidden flex w-full items-center justify-center gap-2 px-2 py-3">
             <Link
               href="/sale"
               className={cn(
@@ -538,7 +558,7 @@ export function Navbar() {
                 'border border-transparent bg-gradient-to-r from-rose-500 to-pink-500 text-white shadow-lg shadow-rose-300/40 flex-1 justify-center min-w-0'
               )}
             >
-              <Star className="h-3 w-3 flex-shrink-0" aria-hidden="true" />
+              <Star className="h-2.5 w-2.5 flex-shrink-0" aria-hidden="true" />
               <span className="truncate text-center">Haftanın Ürünü</span>
             </Link>
             <Link
@@ -548,7 +568,7 @@ export function Navbar() {
                 'border border-transparent bg-gradient-to-r from-purple-500 to-pink-500 text-white shadow-lg shadow-purple-300/40 flex-1 justify-center min-w-0'
               )}
             >
-              <Sparkles className="h-3 w-3 flex-shrink-0" aria-hidden="true" />
+              <Sparkles className="h-2.5 w-2.5 flex-shrink-0" aria-hidden="true" />
               <span className="truncate text-center">Tasarım Atölyesi</span>
             </Link>
             <Link
@@ -556,7 +576,7 @@ export function Navbar() {
               className={cn(mobileNavPillBase, mobileNavPillOutline, 'flex-1 justify-center min-w-0')}
               aria-label={user ? "Siparişlerim" : "Siparişlerim için giriş yap"}
             >
-              <ShoppingBag className="h-3 w-3 flex-shrink-0" aria-hidden="true" />
+              <ShoppingBag className="h-2.5 w-2.5 flex-shrink-0" aria-hidden="true" />
               <span className="truncate text-center">Siparişlerim</span>
             </Link>
           </div>
@@ -785,6 +805,76 @@ export function Navbar() {
           </div>
         </motion.div>
       )}
+
+      {/* Logout Confirmation Dialog */}
+      <AnimatePresence>
+        {showLogoutConfirm && (
+          <motion.div
+            className="fixed inset-0 z-[9999] flex items-center justify-center p-4"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.2 }}
+          >
+            {/* Backdrop */}
+            <div 
+              className="absolute inset-0 bg-black/50 backdrop-blur-sm"
+              onClick={() => setShowLogoutConfirm(false)}
+            />
+            
+            {/* Dialog */}
+            <motion.div
+              className="relative bg-white rounded-2xl shadow-2xl max-w-sm w-full p-6"
+              initial={{ opacity: 0, scale: 0.9, y: 20 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.9, y: 20 }}
+              transition={{ duration: 0.3 }}
+            >
+              {/* Icon */}
+              <div className="flex justify-center mb-4">
+                <div className="w-16 h-16 rounded-full bg-gradient-to-r from-red-500 to-rose-500 flex items-center justify-center">
+                  <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+                  </svg>
+                </div>
+              </div>
+              
+              {/* Title */}
+              <h3 className="text-lg font-semibold text-gray-900 text-center mb-2">
+                Çıkış Yap
+              </h3>
+              
+              {/* Message */}
+              <p className="text-gray-600 text-center mb-6">
+                Çıkış yapmak istediğinizden emin misiniz?
+              </p>
+              
+              {/* Buttons */}
+              <div className="flex space-x-3">
+                <button
+                  onClick={() => setShowLogoutConfirm(false)}
+                  className="flex-1 px-4 py-2.5 text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-lg font-medium transition-colors duration-200"
+                >
+                  İptal
+                </button>
+                <button
+                  onClick={async () => {
+                    try {
+                      await signOut()
+                      setShowLogoutConfirm(false)
+                    } catch (error) {
+                      console.error('Çıkış yapılırken hata:', error)
+                    }
+                  }}
+                  className="flex-1 px-4 py-2.5 bg-gradient-to-r from-red-500 to-rose-500 hover:from-red-600 hover:to-rose-600 text-white rounded-lg font-medium transition-all duration-200 shadow-lg hover:shadow-xl"
+                >
+                  Çıkış Yap
+                </button>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </header>
   )
 }

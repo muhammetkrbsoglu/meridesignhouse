@@ -355,7 +355,7 @@ export function SearchAutocomplete({
             </div>
           )}
 
-          {/* Haftanın Ürünü - Sadece mobilde ve arama yapılmadığında göster */}
+          {/* Haftanın Seçimi - Sadece mobilde ve arama yapılmadığında göster */}
           {!isLoading && query.length < 2 && weeklyProduct && (
             <div className="border-t border-white/20">
               <div className="px-4 py-3">
@@ -369,9 +369,9 @@ export function SearchAutocomplete({
                 >
                   <div className="flex gap-3 p-3">
                     <div className="h-16 w-16 flex-shrink-0 overflow-hidden rounded-lg bg-gray-100">
-                      {weeklyProduct.product_images?.[0]?.url ? (
+                      {weeklyProduct.imageUrl ? (
                         <Image
-                          src={weeklyProduct.product_images[0].url}
+                          src={weeklyProduct.imageUrl}
                           alt={weeklyProduct.name}
                           width={64}
                           height={64}

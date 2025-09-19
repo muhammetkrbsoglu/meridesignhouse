@@ -169,9 +169,15 @@ export function EventConceptDesigner() {
     // Kısa bir gecikme ile sonraki adıma geç
     setTimeout(() => {
       setCurrentStep(2)
-      // Mobil versiyonda sayfa başına taşı
+      // Mobil versiyonda progress steps ve tema seçimi bölümüne taşı
       if (window.innerWidth < 768) {
-        window.scrollTo({ top: 0, behavior: 'smooth' })
+        if (themeStepRef.current) {
+          themeStepRef.current.scrollIntoView({ 
+            behavior: 'smooth', 
+            block: 'start',
+            inline: 'nearest'
+          })
+        }
       }
     }, 300)
   }
@@ -181,9 +187,15 @@ export function EventConceptDesigner() {
     // Tema seçildikten kısa süre sonra sonuç ekranına geç
     setTimeout(() => {
       setCurrentStep(3)
-      // Mobil versiyonda sayfa başına taşı
+      // Mobil versiyonda sonuç bölümüne taşı
       if (window.innerWidth < 768) {
-        window.scrollTo({ top: 0, behavior: 'smooth' })
+        if (resultStepRef.current) {
+          resultStepRef.current.scrollIntoView({ 
+            behavior: 'smooth', 
+            block: 'start',
+            inline: 'nearest'
+          })
+        }
       }
     }, 300)
   }

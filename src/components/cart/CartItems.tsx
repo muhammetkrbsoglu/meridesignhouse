@@ -117,23 +117,23 @@ export function CartItems({ items }: CartItemsProps) {
                   </button>
                 </div>
 
-                {/* Product Content */}
-                <div className="flex gap-4">
-                  {/* Product Image - Larger and Square */}
+                {/* Product Content - Set-style Layout */}
+                <div className="flex flex-col gap-4 sm:flex-row sm:items-start">
+                  {/* Left Side - Large Product Image */}
                   <div className="flex-shrink-0">
                     <Link href={`/products/${item.product.slug}`}>
-                      <div className="w-24 h-24 sm:w-28 sm:h-28 bg-gray-100 rounded-xl overflow-hidden hover:opacity-75 transition-opacity relative shadow-sm">
+                      <div className="w-32 h-32 sm:w-40 sm:h-40 bg-gray-100 rounded-xl overflow-hidden hover:opacity-75 transition-opacity relative shadow-sm">
                         {firstImage ? (
                           <Image
                             src={firstImage.url}
                             alt={firstImage.alt || item.product.name}
                             fill
                             className="object-cover"
-                            sizes="96px"
+                            sizes="(min-width: 640px) 160px, 128px"
                           />
                         ) : (
                           <div className="w-full h-full flex items-center justify-center">
-                            <svg className="w-8 h-8 text-gray-400" fill="currentColor" viewBox="0 0 20 20">
+                            <svg className="w-12 h-12 text-gray-400" fill="currentColor" viewBox="0 0 20 20">
                               <path fillRule="evenodd" d="M4 3a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V5a2 2 0 00-2-2H4zm12 12H4l4-8 3 6 2-4 3 6z" clipRule="evenodd" />
                             </svg>
                           </div>
@@ -142,77 +142,79 @@ export function CartItems({ items }: CartItemsProps) {
                     </Link>
                   </div>
 
-                  {/* Product Details */}
+                  {/* Right Side - Product Details */}
                   <div className="flex-1 min-w-0">
                     <Link 
                       href={`/products/${item.product.slug}`}
                       className="block group"
                     >
-                      <h3 className="text-sm sm:text-base font-semibold text-gray-900 group-hover:text-rose-600 transition-colors line-clamp-2 mb-1">
+                      <h3 className="text-lg sm:text-xl font-semibold text-gray-900 group-hover:text-rose-600 transition-colors line-clamp-2 mb-1">
                         {item.product.name}
                       </h3>
                       {item.product.category && (
-                        <p className="text-xs text-gray-500 mb-2">
+                        <p className="text-sm text-gray-500 mb-2">
                           {item.product.category.name}
                         </p>
                       )}
                     </Link>
                     
                     {/* Price */}
-                    <div className="text-base font-bold text-rose-600 mb-3">
+                    <div className="text-lg sm:text-xl font-bold text-rose-600 mb-4">
                       {formatCurrency(item.product.price)}
                     </div>
+                  </div>
+                </div>
 
-                    {/* Quantity Controls - Compact Design */}
-                    <div className="flex items-center justify-between">
-                      <span className="text-sm text-gray-600">Adet:</span>
-                      <div className="flex items-center border border-gray-300 rounded-lg bg-gray-50">
-                        <button
-                          onClick={() => handleQuantityChange(item.id, item.quantity - 1)}
-                          disabled={isLoading || item.quantity <= 1}
-                          className="w-6 h-6 sm:w-8 sm:h-8 flex items-center justify-center text-gray-600 hover:text-gray-800 hover:bg-gray-200 disabled:opacity-50 disabled:cursor-not-allowed rounded-l-lg transition-colors"
-                          type="button"
-                        >
-                          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 12H4" />
-                          </svg>
-                        </button>
-                        <input
-                          id={`quantity-${item.id}`}
-                          type="text"
-                          inputMode="numeric"
-                          pattern="[0-9]*"
-                          value={displayedQty}
-                          onFocus={(e: React.FocusEvent<HTMLInputElement>) => e.currentTarget.select()}
-                          onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
-                            const val = e.target.value.replace(/[^0-9]/g, '').slice(0, 3);
-                            setDraftQuantities(prev => ({ ...prev, [item.id]: val }));
-                          }}
-                          onBlur={() => commitQuantity(item.id, item.quantity)}
-                          onKeyDown={(e: React.KeyboardEvent<HTMLInputElement>) => {
-                            if (e.key === 'Enter') {
-                              (e.currentTarget as HTMLInputElement).blur();
-                            } else if (e.key === 'Escape') {
-                              setDraftQuantities(prev => ({ ...prev, [item.id]: String(item.quantity) }));
-                              (e.currentTarget as HTMLInputElement).blur();
-                            }
-                          }}
-                          disabled={isLoading}
-                          className="w-10 sm:w-12 px-2 py-1 text-center border-0 bg-transparent font-medium text-sm focus:outline-none disabled:opacity-50 cursor-text"
-                          placeholder="1"
-                          aria-label="Miktar"
-                        />
-                        <button
-                          onClick={() => handleQuantityChange(item.id, item.quantity + 1)}
-                          disabled={isLoading}
-                          className="w-6 h-6 sm:w-8 sm:h-8 flex items-center justify-center text-gray-600 hover:text-gray-800 hover:bg-gray-200 disabled:opacity-50 disabled:cursor-not-allowed rounded-r-lg transition-colors"
-                          type="button"
-                        >
-                          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
-                          </svg>
-                        </button>
-                      </div>
+                {/* Quantity Controls - Compact Design at Bottom */}
+                <div className="mt-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between sm:gap-4">
+                  <div className="flex w-full items-center justify-between gap-2 sm:w-auto sm:justify-start">
+                    <span className="text-sm text-gray-600">Adet:</span>
+                    <div className="flex items-center border border-gray-300 rounded-lg bg-gray-50">
+                      <button
+                        onClick={() => handleQuantityChange(item.id, item.quantity - 1)}
+                        disabled={isLoading || item.quantity <= 1}
+                        className="w-4 h-4 sm:w-5 sm:h-5 flex items-center justify-center text-gray-600 hover:text-gray-800 hover:bg-gray-200 disabled:opacity-50 disabled:cursor-not-allowed rounded-l-lg transition-colors"
+                        type="button"
+                      >
+                        <svg className="w-2.5 h-2.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 12H4" />
+                        </svg>
+                      </button>
+                      <input
+                        id={`quantity-${item.id}`}
+                        type="text"
+                        inputMode="numeric"
+                        pattern="[0-9]*"
+                        value={displayedQty}
+                        onFocus={(e: React.FocusEvent<HTMLInputElement>) => e.currentTarget.select()}
+                        onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
+                          const val = e.target.value.replace(/[^0-9]/g, '').slice(0, 3);
+                          setDraftQuantities(prev => ({ ...prev, [item.id]: val }));
+                        }}
+                        onBlur={() => commitQuantity(item.id, item.quantity)}
+                        onKeyDown={(e: React.KeyboardEvent<HTMLInputElement>) => {
+                          if (e.key === 'Enter') {
+                            (e.currentTarget as HTMLInputElement).blur();
+                          } else if (e.key === 'Escape') {
+                            setDraftQuantities(prev => ({ ...prev, [item.id]: String(item.quantity) }));
+                            (e.currentTarget as HTMLInputElement).blur();
+                          }
+                        }}
+                        disabled={isLoading}
+                        className="w-6 sm:w-8 px-1 py-0.5 text-center border-0 bg-transparent font-medium text-xs focus:outline-none disabled:opacity-50 cursor-text"
+                        placeholder="1"
+                        aria-label="Miktar"
+                      />
+                      <button
+                        onClick={() => handleQuantityChange(item.id, item.quantity + 1)}
+                        disabled={isLoading}
+                        className="w-4 h-4 sm:w-5 sm:h-5 flex items-center justify-center text-gray-600 hover:text-gray-800 hover:bg-gray-200 disabled:opacity-50 disabled:cursor-not-allowed rounded-r-lg transition-colors"
+                        type="button"
+                      >
+                        <svg className="w-2.5 h-2.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+                        </svg>
+                      </button>
                     </div>
                   </div>
                 </div>

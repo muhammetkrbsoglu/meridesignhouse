@@ -168,21 +168,23 @@ export default function OrdersPage() {
     return (
       <Card key={order.id} className="mb-6">
         <CardHeader>
-          <div className="flex items-center justify-between">
-            <div>
-              <CardTitle className="text-lg">Sipariş #{order.orderNumber}</CardTitle>
-              <p className="text-sm text-gray-600">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+            <div className="flex-1 min-w-0">
+              <CardTitle className="text-base sm:text-lg truncate">Sipariş #{order.orderNumber}</CardTitle>
+              <p className="text-xs sm:text-sm text-gray-600">
                 {format(new Date(order.createdAt), 'dd MMMM yyyy, HH:mm', { locale: tr })}
               </p>
             </div>
-            <div className="flex items-center space-x-2 relative">
-              <Badge className={status.color}>
+            <div className="flex items-center space-x-1 sm:space-x-2 relative">
+              <Badge className={`${status.color} text-xs px-2 py-1`}>
                 <StatusIcon className="mr-1 h-3 w-3" />
-                {status.label}
+                <span className="hidden sm:inline">{status.label}</span>
+                <span className="sm:hidden">{status.label.length > 8 ? status.label.substring(0, 8) + '...' : status.label}</span>
               </Badge>
-              <Button variant="outline" size="sm" onClick={() => setOpenSupport((s) => !s)}>
-                <MessageCircle className="mr-1 h-4 w-4" />
-                Soru Sor
+              <Button variant="outline" size="sm" onClick={() => setOpenSupport((s) => !s)} className="text-xs px-2 py-1 h-8">
+                <MessageCircle className="mr-1 h-3 w-3" />
+                <span className="hidden sm:inline">Soru Sor</span>
+                <span className="sm:hidden">Soru</span>
               </Button>
               {openSupport && (
                 <div className="absolute right-0 top-full mt-2 w-56 bg-white border rounded-md shadow-lg z-10 p-1 text-[13px] sm:text-sm">
@@ -201,9 +203,10 @@ export default function OrdersPage() {
                 </div>
               )}
               <Link href={`/orders/${order.id}`}>
-                <Button variant="outline" size="sm">
-                  <Eye className="mr-1 h-4 w-4" />
-                  Detay
+                <Button variant="outline" size="sm" className="text-xs px-2 py-1 h-8">
+                  <Eye className="mr-1 h-3 w-3" />
+                  <span className="hidden sm:inline">Detay</span>
+                  <span className="sm:hidden">Gör</span>
                 </Button>
               </Link>
             </div>
