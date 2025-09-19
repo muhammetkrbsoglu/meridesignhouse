@@ -122,7 +122,7 @@ export function CartItems({ items }: CartItemsProps) {
                   {/* Product Image - Larger and Square */}
                   <div className="flex-shrink-0">
                     <Link href={`/products/${item.product.slug}`}>
-                      <div className="w-24 h-24 bg-gray-100 rounded-xl overflow-hidden hover:opacity-75 transition-opacity relative shadow-sm">
+                      <div className="w-24 h-24 sm:w-28 sm:h-28 bg-gray-100 rounded-xl overflow-hidden hover:opacity-75 transition-opacity relative shadow-sm">
                         {firstImage ? (
                           <Image
                             src={firstImage.url}
@@ -148,7 +148,7 @@ export function CartItems({ items }: CartItemsProps) {
                       href={`/products/${item.product.slug}`}
                       className="block group"
                     >
-                      <h3 className="text-sm font-semibold text-gray-900 group-hover:text-rose-600 transition-colors line-clamp-2 mb-1">
+                      <h3 className="text-sm sm:text-base font-semibold text-gray-900 group-hover:text-rose-600 transition-colors line-clamp-2 mb-1">
                         {item.product.name}
                       </h3>
                       {item.product.category && (
@@ -170,7 +170,7 @@ export function CartItems({ items }: CartItemsProps) {
                         <button
                           onClick={() => handleQuantityChange(item.id, item.quantity - 1)}
                           disabled={isLoading || item.quantity <= 1}
-                          className="w-8 h-8 flex items-center justify-center text-gray-600 hover:text-gray-800 hover:bg-gray-200 disabled:opacity-50 disabled:cursor-not-allowed rounded-l-lg transition-colors"
+                          className="w-6 h-6 sm:w-8 sm:h-8 flex items-center justify-center text-gray-600 hover:text-gray-800 hover:bg-gray-200 disabled:opacity-50 disabled:cursor-not-allowed rounded-l-lg transition-colors"
                           type="button"
                         >
                           <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -198,14 +198,14 @@ export function CartItems({ items }: CartItemsProps) {
                             }
                           }}
                           disabled={isLoading}
-                          className="w-12 px-2 py-1 text-center border-0 bg-transparent font-medium text-sm focus:outline-none disabled:opacity-50 cursor-text"
+                          className="w-10 sm:w-12 px-2 py-1 text-center border-0 bg-transparent font-medium text-sm focus:outline-none disabled:opacity-50 cursor-text"
                           placeholder="1"
                           aria-label="Miktar"
                         />
                         <button
                           onClick={() => handleQuantityChange(item.id, item.quantity + 1)}
                           disabled={isLoading}
-                          className="w-8 h-8 flex items-center justify-center text-gray-600 hover:text-gray-800 hover:bg-gray-200 disabled:opacity-50 disabled:cursor-not-allowed rounded-r-lg transition-colors"
+                          className="w-6 h-6 sm:w-8 sm:h-8 flex items-center justify-center text-gray-600 hover:text-gray-800 hover:bg-gray-200 disabled:opacity-50 disabled:cursor-not-allowed rounded-r-lg transition-colors"
                           type="button"
                         >
                           <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
