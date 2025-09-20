@@ -196,10 +196,10 @@ export function WeeklyFeaturedProductsSlider({ categoryId }: WeeklyFeaturedProdu
           <div className="inline-block bg-gradient-to-r from-rose-500 to-pink-500 text-white px-4 py-2 rounded-full text-sm font-medium mb-4 shadow-lg">
             ⭐ Haftanın Seçimi
           </div>
-          <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold mb-4 bg-gradient-to-r from-rose-600 to-purple-600 bg-clip-text text-transparent">
+          <h2 className="text-xl sm:text-2xl md:text-5xl font-bold mb-4 bg-gradient-to-r from-rose-600 to-purple-600 bg-clip-text text-transparent">
             {categoryName} Kategorisinde Özenle Seçilmiş
           </h2>
-          <p className="text-lg sm:text-xl text-gray-600 max-w-3xl mx-auto mb-6">
+          <p className="hidden sm:block text-lg md:text-xl text-gray-600 max-w-3xl mx-auto mb-6">
             Her hafta farklı kategorilerden el yapımı hediyelerimizle tanışın
           </p>
           
@@ -222,11 +222,11 @@ export function WeeklyFeaturedProductsSlider({ categoryId }: WeeklyFeaturedProdu
                   repeatDelay: 3
                 }}
               >
-                <LightBulbIcon className="w-5 h-5 text-amber-500" />
+                <LightBulbIcon className="w-4 h-4 sm:w-5 sm:h-5 text-amber-500" />
               </motion.div>
               <p className="text-sm font-medium text-center leading-relaxed">
-                Her kategorinin kendine özel bir <span className="font-semibold text-amber-900">haftanın seçimi</span> var!
-                İlham almak için kategoriye tıklayın ve özenle seçilmiş el yapımı hediyemizi keşfedin.
+                Her kategoride <span className="font-semibold text-amber-900">haftanın seçimi</span> var!
+                Tıklayın ve özenle seçilmiş el yapımı hediyeleri keşfedin
               </p>
             </div>
           </motion.div>
@@ -242,7 +242,7 @@ export function WeeklyFeaturedProductsSlider({ categoryId }: WeeklyFeaturedProdu
           onTouchEnd={handleTouchEnd}
         >
           {/* Main Slider */}
-          <div className="relative overflow-hidden rounded-2xl bg-white shadow-xl border border-gray-100 max-h-[450px]">
+          <div className="relative overflow-hidden rounded-2xl bg-white shadow-xl border border-gray-100 max-h-[1350px] sm:max-h-[450px]">
             <AnimatePresence mode="wait">
               <motion.div
                 key={categoryId ? currentProduct.id : currentIndex}
