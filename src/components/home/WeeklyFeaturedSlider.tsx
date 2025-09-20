@@ -257,11 +257,11 @@ export function WeeklyFeaturedSlider() {
                   </div>
 
                     {/* Content Section */}
-                  <div className="flex flex-col justify-center p-0.5 sm:p-1 lg:p-2 bg-gradient-to-br from-white via-rose-50 to-pink-50 relative overflow-hidden">
+                  <div className="flex flex-col justify-center p-0 sm:p-0.25 lg:p-0.5 bg-gradient-to-br from-white via-rose-50 to-pink-50 relative overflow-hidden">
                     {/* Background decorative elements */}
-                    <div className="absolute top-2 right-2 w-4 h-4 bg-rose-200/30 rounded-full blur-sm animate-pulse"></div>
-                    <div className="absolute bottom-3 left-3 w-3 h-3 bg-pink-200/40 rounded-full blur-sm animate-pulse delay-1000"></div>
-                    <div className="absolute top-1/2 left-2 w-2 h-2 bg-purple-200/30 rounded-full blur-sm animate-pulse delay-500"></div>
+                    <div className="absolute top-1 right-1 w-3 h-3 bg-rose-200/30 rounded-full blur-sm animate-pulse"></div>
+                    <div className="absolute bottom-2 left-2 w-2 h-2 bg-pink-200/40 rounded-full blur-sm animate-pulse delay-1000"></div>
+                    <div className="absolute top-1/2 left-1 w-1 h-1 bg-purple-200/30 rounded-full blur-sm animate-pulse delay-500"></div>
 
                     <div className="relative z-10">
                       {/* Rating Stars */}
@@ -302,7 +302,7 @@ export function WeeklyFeaturedSlider() {
                       {/* Special campaign highlight - Inline with Price */}
                       <motion.div
                         className="flex items-center justify-between mb-1"
-                        initial={{ opacity: 0, y: 20 }}
+                    initial={{ opacity: 0, y: 20 }}
                         animate={{ opacity: 1, y: 0 }}
                         transition={{ delay: 0.6, duration: 0.5 }}
                       >
