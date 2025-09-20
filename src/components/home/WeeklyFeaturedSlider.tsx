@@ -159,34 +159,31 @@ export function WeeklyFeaturedSlider() {
           <h2 className="text-xl sm:text-2xl md:text-3xl lg:text-4xl font-bold mb-3 sm:mb-4 bg-gradient-to-r from-rose-600 to-purple-600 bg-clip-text text-transparent">
             {categoryName} Kategorisinde Özenle Seçilmiş
           </h2>
-          <p className="text-sm sm:text-base md:text-lg text-gray-600 max-w-3xl mx-auto mb-4 sm:mb-6">
-            Her hafta farklı kategorilerden el yapımı hediyelerimizle tanışın
-          </p>
           
           {/* İpucu Bandı */}
           <motion.div
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5, delay: 0.3 }}
-            className="inline-block bg-gradient-to-r from-amber-50 to-yellow-50 border border-amber-200/60 rounded-xl p-4 shadow-sm"
+            className="inline-block bg-gradient-to-r from-amber-50 to-yellow-50 border border-amber-200/60 rounded-lg sm:rounded-xl p-2 sm:p-3 shadow-sm"
           >
-            <div className="flex items-center justify-center gap-3 text-amber-800">
+            <div className="flex items-center justify-center gap-2 text-amber-800">
               <motion.div
-                animate={{ 
+                animate={{
                   rotate: [0, 10, -10, 0],
                   scale: [1, 1.1, 1]
                 }}
-                transition={{ 
+                transition={{
                   duration: 2,
                   repeat: Infinity,
                   repeatDelay: 3
                 }}
               >
-                <LightBulbIcon className="w-5 h-5 text-amber-500" />
+                <LightBulbIcon className="w-3 h-3 sm:w-4 sm:h-4 text-amber-500" />
               </motion.div>
-              <p className="text-sm font-medium text-center leading-relaxed">
-                Her kategorinin kendine özel bir <span className="font-semibold text-amber-900">haftanın seçimi</span> var! 
-                İlham almak için kategoriye tıklayın ve özenle seçilmiş el yapımı hediyemizi keşfedin.
+              <p className="text-xs sm:text-sm font-medium text-center leading-relaxed">
+                Her kategoride <span className="font-semibold text-amber-900">haftanın seçimi</span> var!
+                Tıklayın ve özenle seçilmiş el yapımı hediyeleri keşfedin.
               </p>
             </div>
           </motion.div>
@@ -210,7 +207,7 @@ export function WeeklyFeaturedSlider() {
                 animate={{ opacity: 1, x: 0 }}
                 exit={{ opacity: 0, x: -300 }}
                 transition={{ duration: 0.5, ease: "easeInOut" }}
-                className="aspect-[16/8] md:aspect-[16/7]"
+                className="aspect-[16/9] md:aspect-[16/8]"
               >
                 <div className="grid grid-cols-1 lg:grid-cols-2 h-full">
                   {/* Image Section */}
@@ -262,12 +259,12 @@ export function WeeklyFeaturedSlider() {
                       </div>
 
                       {/* Campaign badges */}
-                      <div className="flex flex-wrap gap-1 sm:gap-2 mb-3 sm:mb-4">
+                      <div className="flex flex-wrap gap-1 mb-2 sm:mb-3">
                         <motion.span
                           initial={{ opacity: 0, y: 20 }}
                           animate={{ opacity: 1, y: 0 }}
                           transition={{ delay: 0.2, duration: 0.4 }}
-                          className="bg-gradient-to-r from-orange-400 to-red-500 text-white px-2 py-1 sm:px-3 rounded-full text-xs font-bold shadow-lg text-center"
+                          className="bg-gradient-to-r from-orange-400 to-red-500 text-white px-1.5 py-0.5 sm:px-2 sm:py-1 rounded-full text-xs font-bold shadow-lg text-center"
                         >
                           🎉 Popüler
                         </motion.span>
@@ -275,7 +272,7 @@ export function WeeklyFeaturedSlider() {
                           initial={{ opacity: 0, y: 20 }}
                           animate={{ opacity: 1, y: 0 }}
                           transition={{ delay: 0.4, duration: 0.4 }}
-                          className="bg-gradient-to-r from-purple-500 to-pink-500 text-white px-2 py-1 sm:px-3 rounded-full text-xs font-bold shadow-lg text-center"
+                          className="bg-gradient-to-r from-purple-500 to-pink-500 text-white px-1.5 py-0.5 sm:px-2 sm:py-1 rounded-full text-xs font-bold shadow-lg text-center"
                         >
                           ✨ Seçildi
                         </motion.span>
@@ -283,7 +280,7 @@ export function WeeklyFeaturedSlider() {
                           initial={{ opacity: 0, y: 20 }}
                           animate={{ opacity: 1, y: 0 }}
                           transition={{ delay: 0.6, duration: 0.4 }}
-                          className="bg-gradient-to-r from-green-500 to-emerald-600 text-white px-2 py-1 sm:px-3 rounded-full text-xs font-bold shadow-lg animate-pulse text-center"
+                          className="bg-gradient-to-r from-green-500 to-emerald-600 text-white px-1.5 py-0.5 sm:px-2 sm:py-1 rounded-full text-xs font-bold shadow-lg animate-pulse text-center"
                         >
                           🔥 Stok
                         </motion.span>
@@ -311,13 +308,13 @@ export function WeeklyFeaturedSlider() {
 
                       {/* Special campaign highlight */}
                       <motion.div
-                        className="bg-gradient-to-r from-rose-100 to-pink-100 border-2 border-rose-300 rounded-lg sm:rounded-xl p-2 sm:p-3 mb-3 sm:mb-4"
+                        className="bg-gradient-to-r from-rose-100 to-pink-100 border-2 border-rose-300 rounded-md sm:rounded-lg p-1.5 sm:p-2 mb-2 sm:mb-3"
                         initial={{ opacity: 0, scale: 0.9 }}
                         animate={{ opacity: 1, scale: 1 }}
                         transition={{ delay: 0.7, duration: 0.4 }}
                       >
-                        <div className="flex items-center gap-1 sm:gap-2 text-rose-700 font-semibold text-xs sm:text-sm">
-                          <span className="text-sm sm:text-lg">💝</span>
+                        <div className="flex items-center gap-1 text-rose-700 font-semibold text-xs">
+                          <span className="text-xs sm:text-sm">💝</span>
                           <span className="text-center sm:text-left">Özel El Yapımı Tasarım</span>
                         </div>
                       </motion.div>
@@ -334,21 +331,21 @@ export function WeeklyFeaturedSlider() {
 
                       {/* Action Buttons */}
                       <motion.div
-                        className="flex flex-col sm:flex-row gap-2 sm:gap-3"
+                        className="flex flex-col sm:flex-row gap-1.5 sm:gap-2"
                         initial={{ opacity: 0, y: 20 }}
                         animate={{ opacity: 1, y: 0 }}
                         transition={{ delay: 0.8, duration: 0.5 }}
                       >
                         <Link
                           href={`/products/${currentProduct.slug}`}
-                          className="flex-1 min-w-[120px] sm:min-w-[140px] bg-gradient-to-r from-rose-500 to-pink-500 hover:from-rose-600 hover:to-pink-600 text-white px-3 sm:px-4 py-2 sm:py-3 rounded-lg sm:rounded-xl font-semibold text-center text-sm sm:text-base transition-all duration-300 transform hover:scale-105 shadow-lg hover:shadow-xl relative overflow-hidden group flex items-center justify-center"
+                          className="flex-1 min-w-[100px] sm:min-w-[120px] bg-gradient-to-r from-rose-500 to-pink-500 hover:from-rose-600 hover:to-pink-600 text-white px-2 sm:px-3 py-1.5 sm:py-2 rounded-md sm:rounded-lg font-semibold text-center text-xs sm:text-sm transition-all duration-300 transform hover:scale-105 shadow-lg hover:shadow-xl relative overflow-hidden group flex items-center justify-center"
                         >
                           <span className="relative z-10">Ürünü İncele</span>
                           <div className="absolute inset-0 bg-gradient-to-r from-pink-600 to-purple-600 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
                         </Link>
                         <Link
                           href={`/categories/${currentProduct.categories[0]?.slug}`}
-                          className="flex-1 min-w-[120px] sm:min-w-[140px] bg-white border-2 border-rose-500 text-rose-600 hover:bg-rose-50 px-3 sm:px-4 py-2 sm:py-3 rounded-lg sm:rounded-xl font-semibold text-center text-sm sm:text-base transition-all duration-300 relative overflow-hidden group flex items-center justify-center"
+                          className="flex-1 min-w-[100px] sm:min-w-[120px] bg-white border-2 border-rose-500 text-rose-600 hover:bg-rose-50 px-2 sm:px-3 py-1.5 sm:py-2 rounded-md sm:rounded-lg font-semibold text-center text-xs sm:text-sm transition-all duration-300 relative overflow-hidden group flex items-center justify-center"
                         >
                           <span className="relative z-10">Kategoriyi Keşfet</span>
                           <div className="absolute inset-0 bg-rose-50 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
