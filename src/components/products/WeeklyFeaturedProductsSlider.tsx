@@ -321,8 +321,8 @@ export function WeeklyFeaturedProductsSlider({ categoryId }: WeeklyFeaturedProdu
                         <span className="text-xs text-gray-600 ml-2 font-medium">4.9/5</span>
                       </div>
 
-                      {/* Campaign badges */}
-                      <div className="flex flex-wrap gap-2 mb-4">
+                      {/* Campaign badges - Desktop */}
+                      <div className="hidden md:flex flex-wrap gap-2 mb-4">
                         <motion.span
                           initial={{ opacity: 0, y: 20 }}
                           animate={{ opacity: 1, y: 0 }}
@@ -349,9 +349,22 @@ export function WeeklyFeaturedProductsSlider({ categoryId }: WeeklyFeaturedProdu
                         </motion.span>
                       </div>
 
+                      {/* Campaign badges - Mobile (on image) */}
+                      <div className="md:hidden absolute top-4 left-4 flex flex-col gap-1">
+                        <span className="bg-gradient-to-r from-orange-400 to-red-500 text-white px-2 py-0.5 rounded-full text-xs font-bold shadow-lg">
+                          🎉 En Popüler
+                        </span>
+                        <span className="bg-gradient-to-r from-purple-500 to-pink-500 text-white px-2 py-0.5 rounded-full text-xs font-bold shadow-lg">
+                          ✨ Özenle Seçildi
+                        </span>
+                        <span className="bg-gradient-to-r from-green-500 to-emerald-600 text-white px-2 py-0.5 rounded-full text-xs font-bold shadow-lg animate-pulse">
+                          🔥 Sınırlı Stok
+                        </span>
+                      </div>
+
                       {/* Product Name */}
                       <motion.h3
-                        className="text-lg lg:text-xl font-bold text-gray-900 mb-2 leading-tight"
+                        className="text-base md:text-lg lg:text-xl font-bold text-gray-900 mb-2 leading-tight"
                         initial={{ opacity: 0, x: -20 }}
                         animate={{ opacity: 1, x: 0 }}
                         transition={{ delay: 0.3, duration: 0.5 }}
@@ -361,7 +374,7 @@ export function WeeklyFeaturedProductsSlider({ categoryId }: WeeklyFeaturedProdu
 
                       {/* Product Description */}
                       <motion.p
-                        className="text-gray-600 text-sm mb-4 leading-relaxed"
+                        className="text-gray-600 text-xs md:text-sm mb-2 md:mb-4 leading-relaxed"
                         initial={{ opacity: 0, x: -20 }}
                         animate={{ opacity: 1, x: 0 }}
                         transition={{ delay: 0.5, duration: 0.5 }}
@@ -371,20 +384,46 @@ export function WeeklyFeaturedProductsSlider({ categoryId }: WeeklyFeaturedProdu
 
                       {/* Special campaign highlight */}
                       <motion.div
-                        className="bg-gradient-to-r from-rose-100 to-pink-100 border-2 border-rose-300 rounded-xl p-3 mb-4"
+                        className="bg-gradient-to-r from-rose-100 to-pink-100 border-2 border-rose-300 rounded-xl p-2 md:p-3 mb-2 md:mb-4"
                         initial={{ opacity: 0, scale: 0.9 }}
                         animate={{ opacity: 1, scale: 1 }}
                         transition={{ delay: 0.7, duration: 0.4 }}
                       >
-                        <div className="flex items-center gap-2 text-rose-700 font-semibold text-sm">
+                        <div className="flex items-center gap-2 text-rose-700 font-semibold text-xs md:text-sm">
                           <span className="text-lg">💝</span>
                           <span>Özel El Yapımı Tasarım</span>
                         </div>
                       </motion.div>
 
-                      {/* Price */}
+                      {/* Price and Action Buttons Row - Mobile */}
                       <motion.div
-                        className="text-xl lg:text-2xl font-bold bg-gradient-to-r from-rose-600 to-purple-600 bg-clip-text text-transparent mb-3"
+                        className="md:hidden space-y-2"
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ delay: 0.6, duration: 0.5 }}
+                      >
+                        <div className="flex items-center justify-between gap-4">
+                          <div className="text-base md:text-lg lg:text-xl font-bold bg-gradient-to-r from-rose-600 to-purple-600 bg-clip-text text-transparent">
+                            {formatCurrency(currentProduct.price)}
+                          </div>
+                          <Link
+                            href={`/products/${currentProduct.slug}`}
+                            className="bg-gradient-to-r from-rose-500 to-pink-500 hover:from-rose-600 hover:to-pink-600 text-white px-3 py-2 rounded-lg font-semibold text-center transition-all duration-300 transform hover:scale-105 shadow-lg hover:shadow-xl flex items-center justify-center"
+                          >
+                            <span className="text-xs">Ürünü İncele</span>
+                          </Link>
+                        </div>
+                        <Link
+                          href={`/categories/${currentProduct.categories[0]?.slug}`}
+                          className="block bg-white border-2 border-rose-500 text-rose-600 hover:bg-rose-50 px-3 py-2 rounded-lg font-semibold text-center transition-all duration-300"
+                        >
+                          <span className="text-xs">Kategoriyi Keşfet</span>
+                        </Link>
+                      </motion.div>
+
+                      {/* Price - Desktop */}
+                      <motion.div
+                        className="hidden md:block text-xl lg:text-2xl font-bold bg-gradient-to-r from-rose-600 to-purple-600 bg-clip-text text-transparent mb-3"
                         initial={{ opacity: 0, y: 20 }}
                         animate={{ opacity: 1, y: 0 }}
                         transition={{ delay: 0.6, duration: 0.5 }}
@@ -392,9 +431,9 @@ export function WeeklyFeaturedProductsSlider({ categoryId }: WeeklyFeaturedProdu
                         {formatCurrency(currentProduct.price)}
                       </motion.div>
 
-                      {/* Action Buttons */}
+                      {/* Action Buttons - Desktop */}
                       <motion.div
-                        className="flex flex-col sm:flex-row gap-2"
+                        className="hidden md:flex flex-col sm:flex-row gap-2"
                         initial={{ opacity: 0, y: 20 }}
                         animate={{ opacity: 1, y: 0 }}
                         transition={{ delay: 0.8, duration: 0.5 }}
