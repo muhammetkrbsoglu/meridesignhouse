@@ -259,7 +259,7 @@ export function WeeklyFeaturedSlider() {
                   </div>
 
                   {/* Content Section */}
-                  <div className="flex flex-col justify-center p-4 lg:p-8 bg-gradient-to-br from-white via-rose-50 to-pink-50 relative overflow-hidden">
+                  <div className="flex flex-col justify-center p-2 lg:p-8 bg-gradient-to-br from-white via-rose-50 to-pink-50 relative overflow-hidden">
                     {/* Background decorative elements */}
                     <div className="absolute top-4 right-4 w-8 h-8 bg-rose-200/30 rounded-full blur-sm animate-pulse"></div>
                     <div className="absolute bottom-8 left-8 w-6 h-6 bg-pink-200/40 rounded-full blur-sm animate-pulse delay-1000"></div>
@@ -324,7 +324,7 @@ export function WeeklyFeaturedSlider() {
 
                       {/* Product Name */}
                       <motion.h3
-                        className="text-sm md:text-lg lg:text-2xl font-bold text-gray-900 mb-0.5 md:mb-1 lg:mb-3 leading-tight"
+                        className="text-sm md:text-lg lg:text-2xl font-bold text-gray-900 mb-0.5 leading-tight"
                         initial={{ opacity: 0, x: -20 }}
                         animate={{ opacity: 1, x: 0 }}
                         transition={{ delay: 0.3, duration: 0.5 }}
@@ -334,7 +334,7 @@ export function WeeklyFeaturedSlider() {
 
                       {/* Product Description */}
                       <motion.p
-                        className="text-gray-600 text-xs mb-0.5 md:mb-1 lg:mb-4 leading-relaxed"
+                        className="text-gray-600 text-xs mb-0.5 leading-relaxed"
                         initial={{ opacity: 0, x: -20 }}
                         animate={{ opacity: 1, x: 0 }}
                         transition={{ delay: 0.5, duration: 0.5 }}
@@ -344,7 +344,7 @@ export function WeeklyFeaturedSlider() {
 
                       {/* Special campaign highlight with price */}
                       <motion.div
-                        className="bg-gradient-to-r from-rose-100 to-pink-100 border-2 border-rose-300 rounded-xl p-2 mb-0.5 md:mb-1 lg:mb-4"
+                        className="bg-gradient-to-r from-rose-100 to-pink-100 border-2 border-rose-300 rounded-xl p-2 mb-0.5"
                         initial={{ opacity: 0, scale: 0.9 }}
                         animate={{ opacity: 1, scale: 1 }}
                         transition={{ delay: 0.7, duration: 0.4 }}

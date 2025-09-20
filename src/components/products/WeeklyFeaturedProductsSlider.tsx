@@ -299,7 +299,7 @@ export function WeeklyFeaturedProductsSlider({ categoryId }: WeeklyFeaturedProdu
                   </div>
 
                   {/* Content Section */}
-                  <div className="flex flex-col justify-center p-2 lg:p-6 bg-gradient-to-br from-white via-rose-50 to-pink-50 relative overflow-hidden">
+                  <div className="flex flex-col justify-center p-1 lg:p-6 bg-gradient-to-br from-white via-rose-50 to-pink-50 relative overflow-hidden">
                     {/* Background decorative elements */}
                     <div className="absolute top-3 right-3 w-6 h-6 bg-rose-200/30 rounded-full blur-sm animate-pulse"></div>
                     <div className="absolute bottom-6 left-6 w-5 h-5 bg-pink-200/40 rounded-full blur-sm animate-pulse delay-1000"></div>
@@ -364,7 +364,7 @@ export function WeeklyFeaturedProductsSlider({ categoryId }: WeeklyFeaturedProdu
 
                       {/* Product Name */}
                       <motion.h3
-                        className="text-sm md:text-base lg:text-xl font-bold text-gray-900 mb-0.5 md:mb-1 lg:mb-2 leading-tight"
+                        className="text-sm md:text-base lg:text-xl font-bold text-gray-900 mb-0.5 leading-tight"
                         initial={{ opacity: 0, x: -20 }}
                         animate={{ opacity: 1, x: 0 }}
                         transition={{ delay: 0.3, duration: 0.5 }}
@@ -374,7 +374,7 @@ export function WeeklyFeaturedProductsSlider({ categoryId }: WeeklyFeaturedProdu
 
                       {/* Product Description */}
                       <motion.p
-                        className="text-gray-600 text-xs mb-0.5 md:mb-1 lg:mb-2 leading-relaxed"
+                        className="text-gray-600 text-xs mb-0.5 leading-relaxed"
                         initial={{ opacity: 0, x: -20 }}
                         animate={{ opacity: 1, x: 0 }}
                         transition={{ delay: 0.5, duration: 0.5 }}
@@ -384,7 +384,7 @@ export function WeeklyFeaturedProductsSlider({ categoryId }: WeeklyFeaturedProdu
 
                       {/* Special campaign highlight with price */}
                       <motion.div
-                        className="bg-gradient-to-r from-rose-100 to-pink-100 border-2 border-rose-300 rounded-xl p-2 mb-0.5 md:mb-1 lg:mb-2"
+                        className="bg-gradient-to-r from-rose-100 to-pink-100 border-2 border-rose-300 rounded-xl p-2 mb-0.5"
                         initial={{ opacity: 0, scale: 0.9 }}
                         animate={{ opacity: 1, scale: 1 }}
                         transition={{ delay: 0.7, duration: 0.4 }}
