@@ -227,24 +227,45 @@ export function WeeklyFeaturedSlider() {
                       </span>
                     </div>
 
-                    {/* "Bu Hafta Özel" Badge */}
-                    <div className="absolute top-6 right-6">
-                      <span className="bg-gradient-to-r from-rose-500 to-pink-500 text-white px-4 py-2 rounded-full text-sm font-bold shadow-lg">
-                        Bu Hafta Özel
-                      </span>
+                    {/* Campaign Badges - Overlay on Image */}
+                    <div className="absolute top-3 right-3 flex flex-col gap-1">
+                      <motion.span
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ delay: 0.2, duration: 0.4 }}
+                        className="bg-gradient-to-r from-orange-400 to-red-500 text-white px-1 py-0.25 sm:px-1.5 sm:py-0.5 rounded-full text-xs font-bold shadow-lg"
+                      >
+                        🎉 Popüler
+                      </motion.span>
+                      <motion.span
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ delay: 0.4, duration: 0.4 }}
+                        className="bg-gradient-to-r from-purple-500 to-pink-500 text-white px-1 py-0.25 sm:px-1.5 sm:py-0.5 rounded-full text-xs font-bold shadow-lg"
+                      >
+                        ✨ Özenle Seçildi
+                      </motion.span>
+                      <motion.span
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ delay: 0.6, duration: 0.4 }}
+                        className="bg-gradient-to-r from-green-500 to-emerald-600 text-white px-1 py-0.25 sm:px-1.5 sm:py-0.5 rounded-full text-xs font-bold shadow-lg animate-pulse"
+                      >
+                        🔥 Stoklarla Sınırlı
+                      </motion.span>
                     </div>
                   </div>
 
-                  {/* Content Section */}
-                  <div className="flex flex-col justify-center p-6 lg:p-8 bg-gradient-to-br from-white via-rose-50 to-pink-50 relative overflow-hidden">
+                    {/* Content Section */}
+                  <div className="flex flex-col justify-center p-4 sm:p-6 lg:p-8 bg-gradient-to-br from-white via-rose-50 to-pink-50 relative overflow-hidden">
                     {/* Background decorative elements */}
-                    <div className="absolute top-4 right-4 w-8 h-8 bg-rose-200/30 rounded-full blur-sm animate-pulse"></div>
-                    <div className="absolute bottom-8 left-8 w-6 h-6 bg-pink-200/40 rounded-full blur-sm animate-pulse delay-1000"></div>
-                    <div className="absolute top-1/2 left-4 w-4 h-4 bg-purple-200/30 rounded-full blur-sm animate-pulse delay-500"></div>
+                    <div className="absolute top-3 right-3 w-6 h-6 bg-rose-200/30 rounded-full blur-sm animate-pulse"></div>
+                    <div className="absolute bottom-6 left-6 w-4 h-4 bg-pink-200/40 rounded-full blur-sm animate-pulse delay-1000"></div>
+                    <div className="absolute top-1/2 left-3 w-3 h-3 bg-purple-200/30 rounded-full blur-sm animate-pulse delay-500"></div>
 
                     <div className="relative z-10">
                       {/* Rating Stars */}
-                      <div className="flex items-center gap-1 mb-3">
+                      <div className="flex items-center gap-1 mb-2">
                         {[...Array(5)].map((_, i) => (
                           <motion.div
                             key={i}
@@ -252,38 +273,10 @@ export function WeeklyFeaturedSlider() {
                             animate={{ opacity: 1, scale: 1 }}
                             transition={{ delay: i * 0.1, duration: 0.3 }}
                           >
-                            <Star className="w-4 h-4 text-yellow-400 fill-current" />
+                            <Star className="w-3 h-3 text-yellow-400 fill-current" />
                           </motion.div>
                         ))}
-                        <span className="text-sm text-gray-600 ml-2 font-medium">4.9/5</span>
-                      </div>
-
-                      {/* Campaign badges */}
-                      <div className="flex flex-wrap gap-1 mb-2 sm:mb-3">
-                        <motion.span
-                          initial={{ opacity: 0, y: 20 }}
-                          animate={{ opacity: 1, y: 0 }}
-                          transition={{ delay: 0.2, duration: 0.4 }}
-                          className="bg-gradient-to-r from-orange-400 to-red-500 text-white px-1.5 py-0.5 sm:px-2 sm:py-1 rounded-full text-xs font-bold shadow-lg text-center"
-                        >
-                          🎉 Popüler
-                        </motion.span>
-                        <motion.span
-                          initial={{ opacity: 0, y: 20 }}
-                          animate={{ opacity: 1, y: 0 }}
-                          transition={{ delay: 0.4, duration: 0.4 }}
-                          className="bg-gradient-to-r from-purple-500 to-pink-500 text-white px-1.5 py-0.5 sm:px-2 sm:py-1 rounded-full text-xs font-bold shadow-lg text-center"
-                        >
-                          ✨ Seçildi
-                        </motion.span>
-                        <motion.span
-                          initial={{ opacity: 0, y: 20 }}
-                          animate={{ opacity: 1, y: 0 }}
-                          transition={{ delay: 0.6, duration: 0.4 }}
-                          className="bg-gradient-to-r from-green-500 to-emerald-600 text-white px-1.5 py-0.5 sm:px-2 sm:py-1 rounded-full text-xs font-bold shadow-lg animate-pulse text-center"
-                        >
-                          🔥 Stok
-                        </motion.span>
+                        <span className="text-xs text-gray-600 ml-1 font-medium">4.9/5</span>
                       </div>
 
                       {/* Product Name */}
@@ -306,27 +299,20 @@ export function WeeklyFeaturedSlider() {
                         El yapımı özel tasarım. Her detay özenle işlendi. Kalite ve zarafet bir arada.
                       </motion.p>
 
-                      {/* Special campaign highlight */}
+                      {/* Special campaign highlight - Inline with Price */}
                       <motion.div
-                        className="bg-gradient-to-r from-rose-100 to-pink-100 border-2 border-rose-300 rounded-md sm:rounded-lg p-1.5 sm:p-2 mb-2 sm:mb-3"
-                        initial={{ opacity: 0, scale: 0.9 }}
-                        animate={{ opacity: 1, scale: 1 }}
-                        transition={{ delay: 0.7, duration: 0.4 }}
-                      >
-                        <div className="flex items-center gap-1 text-rose-700 font-semibold text-xs">
-                          <span className="text-xs sm:text-sm">💝</span>
-                          <span className="text-center sm:text-left">Özel El Yapımı Tasarım</span>
-                        </div>
-                      </motion.div>
-
-                      {/* Price */}
-                      <motion.div
-                        className="text-lg sm:text-xl md:text-2xl lg:text-3xl font-bold bg-gradient-to-r from-rose-600 to-purple-600 bg-clip-text text-transparent mb-3 sm:mb-4"
+                        className="flex items-center justify-between mb-2"
                         initial={{ opacity: 0, y: 20 }}
                         animate={{ opacity: 1, y: 0 }}
                         transition={{ delay: 0.6, duration: 0.5 }}
                       >
-                        {formatCurrency(currentProduct.price)}
+                        <div className="flex items-center gap-1 text-rose-700 font-semibold text-xs">
+                          <span className="text-xs">💝</span>
+                          <span>Özel El Yapımı Tasarım</span>
+                        </div>
+                        <div className="text-base sm:text-lg md:text-xl lg:text-2xl font-bold bg-gradient-to-r from-rose-600 to-purple-600 bg-clip-text text-transparent">
+                          {formatCurrency(currentProduct.price)}
+                        </div>
                       </motion.div>
 
                       {/* Action Buttons */}
@@ -334,7 +320,7 @@ export function WeeklyFeaturedSlider() {
                         className="flex flex-col sm:flex-row gap-1.5 sm:gap-2"
                         initial={{ opacity: 0, y: 20 }}
                         animate={{ opacity: 1, y: 0 }}
-                        transition={{ delay: 0.8, duration: 0.5 }}
+                        transition={{ delay: 0.7, duration: 0.5 }}
                       >
                         <Link
                           href={`/products/${currentProduct.slug}`}
