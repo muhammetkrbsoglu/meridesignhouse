@@ -128,7 +128,7 @@ export function WeeklyFeaturedSlider() {
             </div>
           </div>
           <div className="animate-pulse">
-            <div className="aspect-[16/18] bg-gray-200 rounded-2xl"></div>
+            <div className="aspect-[16/36] bg-gray-200 rounded-2xl"></div>
           </div>
         </div>
       </section>
@@ -207,7 +207,7 @@ export function WeeklyFeaturedSlider() {
                 animate={{ opacity: 1, x: 0 }}
                 exit={{ opacity: 0, x: -300 }}
                 transition={{ duration: 0.5, ease: "easeInOut" }}
-                className="aspect-[16/18] md:aspect-[16/16]"
+                className="aspect-[16/36] md:aspect-[16/32]"
               >
                 <div className="grid grid-cols-1 lg:grid-cols-2 h-full">
                   {/* Image Section */}
@@ -257,7 +257,7 @@ export function WeeklyFeaturedSlider() {
                   </div>
 
                     {/* Content Section */}
-                  <div className="flex flex-col justify-center p-4 sm:p-6 lg:p-8 bg-gradient-to-br from-white via-rose-50 to-pink-50 relative overflow-hidden">
+                  <div className="flex flex-col justify-center p-1 sm:p-2 lg:p-4 bg-gradient-to-br from-white via-rose-50 to-pink-50 relative overflow-hidden">
                     {/* Background decorative elements */}
                     <div className="absolute top-3 right-3 w-6 h-6 bg-rose-200/30 rounded-full blur-sm animate-pulse"></div>
                     <div className="absolute bottom-6 left-6 w-4 h-4 bg-pink-200/40 rounded-full blur-sm animate-pulse delay-1000"></div>
@@ -265,7 +265,7 @@ export function WeeklyFeaturedSlider() {
 
                     <div className="relative z-10">
                       {/* Rating Stars */}
-                      <div className="flex items-center gap-1 mb-2">
+                      <div className="flex items-center gap-1 mb-1">
                         {[...Array(5)].map((_, i) => (
                           <motion.div
                             key={i}
@@ -301,7 +301,7 @@ export function WeeklyFeaturedSlider() {
 
                       {/* Special campaign highlight - Inline with Price */}
                       <motion.div
-                        className="flex items-center justify-between mb-2"
+                        className="flex items-center justify-between mb-1"
                         initial={{ opacity: 0, y: 20 }}
                         animate={{ opacity: 1, y: 0 }}
                         transition={{ delay: 0.6, duration: 0.5 }}
