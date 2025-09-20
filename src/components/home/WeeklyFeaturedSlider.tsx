@@ -257,7 +257,7 @@ export function WeeklyFeaturedSlider() {
                   </div>
 
                     {/* Content Section */}
-                  <div className="flex flex-col justify-center p-4 sm:p-6 lg:p-8 bg-gradient-to-br from-white via-rose-50 to-pink-50 relative overflow-hidden">
+                  <div className="flex flex-col justify-center p-1 sm:p-6 lg:p-8 bg-gradient-to-br from-white via-rose-50 to-pink-50 relative overflow-hidden">
                     {/* Background decorative elements */}
                     <div className="absolute top-3 right-3 w-6 h-6 bg-rose-200/30 rounded-full blur-sm animate-pulse"></div>
                     <div className="absolute bottom-6 left-6 w-4 h-4 bg-pink-200/40 rounded-full blur-sm animate-pulse delay-1000"></div>
