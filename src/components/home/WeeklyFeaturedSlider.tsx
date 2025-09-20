@@ -324,7 +324,7 @@ export function WeeklyFeaturedSlider() {
 
                       {/* Product Name */}
                       <motion.h3
-                        className="text-lg md:text-xl lg:text-2xl font-bold text-gray-900 mb-2 md:mb-3 leading-tight"
+                        className="text-lg md:text-xl lg:text-2xl font-bold text-gray-900 mb-1 md:mb-3 leading-tight"
                         initial={{ opacity: 0, x: -20 }}
                         animate={{ opacity: 1, x: 0 }}
                         transition={{ delay: 0.3, duration: 0.5 }}
@@ -334,7 +334,7 @@ export function WeeklyFeaturedSlider() {
 
                       {/* Product Description */}
                       <motion.p
-                        className="text-gray-600 text-xs md:text-sm mb-2 md:mb-4 leading-relaxed"
+                        className="text-gray-600 text-xs md:text-sm mb-1 md:mb-4 leading-relaxed"
                         initial={{ opacity: 0, x: -20 }}
                         animate={{ opacity: 1, x: 0 }}
                         transition={{ delay: 0.5, duration: 0.5 }}
@@ -342,54 +342,39 @@ export function WeeklyFeaturedSlider() {
                         El yapımı özel tasarım. Her detay özenle işlendi. Kalite ve zarafet bir arada.
                       </motion.p>
 
-                      {/* Special campaign highlight */}
+                      {/* Special campaign highlight with price */}
                       <motion.div
-                        className="bg-gradient-to-r from-rose-100 to-pink-100 border-2 border-rose-300 rounded-xl p-2 md:p-3 mb-2 md:mb-4"
+                        className="bg-gradient-to-r from-rose-100 to-pink-100 border-2 border-rose-300 rounded-xl p-2 md:p-3 mb-1 md:mb-4"
                         initial={{ opacity: 0, scale: 0.9 }}
                         animate={{ opacity: 1, scale: 1 }}
                         transition={{ delay: 0.7, duration: 0.4 }}
                       >
-                        <div className="flex items-center gap-2 text-rose-700 font-semibold text-xs md:text-sm">
-                          <span className="text-lg">💝</span>
-                          <span>Özel El Yapımı Tasarım</span>
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center gap-2 text-rose-700 font-semibold text-xs md:text-sm">
+                            <span className="text-lg">💝</span>
+                            <span>Özel El Yapımı Tasarım</span>
+                          </div>
+                          <div className="text-lg md:text-2xl lg:text-3xl font-bold bg-gradient-to-r from-rose-600 to-purple-600 bg-clip-text text-transparent">
+                            {formatCurrency(currentProduct.price)}
+                          </div>
                         </div>
                       </motion.div>
 
-                      {/* Price and Action Buttons Row - Mobile */}
+                      {/* Action Button - Mobile */}
                       <motion.div
-                        className="md:hidden space-y-2"
+                        className="md:hidden"
                         initial={{ opacity: 0, y: 20 }}
                         animate={{ opacity: 1, y: 0 }}
                         transition={{ delay: 0.6, duration: 0.5 }}
                       >
-                        <div className="flex items-center justify-between gap-4">
-                          <div className="text-lg font-bold bg-gradient-to-r from-rose-600 to-purple-600 bg-clip-text text-transparent">
-                            {formatCurrency(currentProduct.price)}
-                          </div>
-                          <Link
-                            href={`/products/${currentProduct.slug}`}
-                            className="bg-gradient-to-r from-rose-500 to-pink-500 hover:from-rose-600 hover:to-pink-600 text-white px-3 py-2 rounded-lg font-semibold text-center transition-all duration-300 transform hover:scale-105 shadow-lg hover:shadow-xl flex items-center justify-center"
-                          >
-                            <span className="text-xs">Ürünü İncele</span>
-                          </Link>
-                        </div>
                         <Link
-                          href={`/categories/${currentProduct.categories[0]?.slug}`}
-                          className="block bg-white border-2 border-rose-500 text-rose-600 hover:bg-rose-50 px-3 py-2 rounded-lg font-semibold text-center transition-all duration-300"
+                          href={`/products/${currentProduct.slug}`}
+                          className="block bg-gradient-to-r from-rose-500 to-pink-500 hover:from-rose-600 hover:to-pink-600 text-white px-3 py-2 rounded-lg font-semibold text-center transition-all duration-300 transform hover:scale-105 shadow-lg hover:shadow-xl"
                         >
-                          <span className="text-xs">{categoryName} Kategorisini Keşfet</span>
+                          <span className="text-xs">Ürünü İncele</span>
                         </Link>
                       </motion.div>
 
-                      {/* Price - Desktop */}
-                      <motion.div
-                        className="hidden md:block text-2xl lg:text-3xl font-bold bg-gradient-to-r from-rose-600 to-purple-600 bg-clip-text text-transparent mb-4"
-                        initial={{ opacity: 0, y: 20 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        transition={{ delay: 0.6, duration: 0.5 }}
-                      >
-                        {formatCurrency(currentProduct.price)}
-                      </motion.div>
 
                       {/* Action Buttons - Desktop */}
                       <motion.div
@@ -407,7 +392,7 @@ export function WeeklyFeaturedSlider() {
                         </Link>
                         <Link
                           href={`/categories/${currentProduct.categories[0]?.slug}`}
-                          className="flex-1 min-w-[140px] bg-white border-2 border-rose-500 text-rose-600 hover:bg-rose-50 px-4 py-3 rounded-xl font-semibold text-center transition-all duration-300 relative overflow-hidden group flex items-center justify-center"
+                          className="flex-1 min-w-[140px] bg-white border-2 border-rose-500 text-rose-600 hover:bg-rose-50 px-2 py-1.5 rounded-xl font-semibold text-center transition-all duration-300 relative overflow-hidden group flex items-center justify-center"
                         >
                           <span className="relative z-10">{categoryName} Kategorisini Keşfet</span>
                           <div className="absolute inset-0 bg-rose-50 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
