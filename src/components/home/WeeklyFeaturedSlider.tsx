@@ -20,8 +20,8 @@ export function WeeklyFeaturedSlider() {
   const touchStartRef = useRef<number | null>(null)
   const touchEndRef = useRef<number | null>(null)
 
-  // Auto-slide interval (4 seconds for both desktop and mobile)
-  const AUTO_SLIDE_DELAY = 4000
+  // Auto-slide interval (5.5 seconds for both desktop and mobile)
+  const AUTO_SLIDE_DELAY = 5500
 
   // Load products
   useEffect(() => {
@@ -194,7 +194,7 @@ export function WeeklyFeaturedSlider() {
 
         {/* Slider Container */}
         <div
-          className="relative"
+          className="relative group"
           onMouseEnter={handleMouseEnter}
           onMouseLeave={handleMouseLeave}
           onTouchStart={handleTouchStart}
@@ -202,7 +202,7 @@ export function WeeklyFeaturedSlider() {
           onTouchEnd={handleTouchEnd}
         >
           {/* Main Slider */}
-          <div className="relative overflow-hidden rounded-2xl bg-white shadow-2xl">
+          <div className="relative overflow-hidden rounded-2xl bg-white shadow-2xl max-h-[500px]">
             <AnimatePresence mode="wait">
               <motion.div
                 key={currentIndex}
@@ -235,6 +235,26 @@ export function WeeklyFeaturedSlider() {
                       <span className="bg-gradient-to-r from-rose-500 to-pink-500 text-white px-4 py-2 rounded-full text-sm font-bold shadow-lg">
                         Bu Hafta Özel
                       </span>
+                    </div>
+
+                    {/* Navigation Arrows - Desktop (only for image area) */}
+                    <div className="hidden md:block absolute inset-0 opacity-0 group-hover:opacity-100 transition-all duration-500 ease-out pointer-events-none">
+                      <div className="absolute inset-0 flex items-center justify-between px-3 pointer-events-auto">
+                        <button
+                          onClick={goToPrevious}
+                          className="w-10 h-10 bg-white/90 backdrop-blur-sm rounded-full shadow-lg hover:shadow-xl transition-all duration-300 flex items-center justify-center text-rose-600 hover:text-rose-700 hover:scale-110 transform translate-y-2 group-hover:translate-y-0"
+                          aria-label="Önceki ürün"
+                        >
+                          <ChevronLeftIcon className="w-5 h-5" />
+                        </button>
+                        <button
+                          onClick={goToNext}
+                          className="w-10 h-10 bg-white/90 backdrop-blur-sm rounded-full shadow-lg hover:shadow-xl transition-all duration-300 flex items-center justify-center text-rose-600 hover:text-rose-700 hover:scale-110 transform translate-y-2 group-hover:translate-y-0"
+                          aria-label="Sonraki ürün"
+                        >
+                          <ChevronRightIcon className="w-5 h-5" />
+                        </button>
+                      </div>
                     </div>
                   </div>
 
@@ -361,23 +381,6 @@ export function WeeklyFeaturedSlider() {
             </AnimatePresence>
           </div>
 
-          {/* Navigation Arrows - Desktop */}
-          <div className="hidden md:block">
-            <button
-              onClick={goToPrevious}
-              className="absolute left-4 top-1/2 -translate-y-1/2 w-12 h-12 bg-white/90 backdrop-blur-sm rounded-full shadow-lg hover:shadow-xl transition-all duration-300 flex items-center justify-center text-rose-600 hover:text-rose-700 hover:scale-110 z-10"
-              aria-label="Önceki ürün"
-            >
-              <ChevronLeftIcon className="w-6 h-6" />
-            </button>
-            <button
-              onClick={goToNext}
-              className="absolute right-4 top-1/2 -translate-y-1/2 w-12 h-12 bg-white/90 backdrop-blur-sm rounded-full shadow-lg hover:shadow-xl transition-all duration-300 flex items-center justify-center text-rose-600 hover:text-rose-700 hover:scale-110 z-10"
-              aria-label="Sonraki ürün"
-            >
-              <ChevronRightIcon className="w-6 h-6" />
-            </button>
-          </div>
 
 
           {/* Dots Indicator */}
