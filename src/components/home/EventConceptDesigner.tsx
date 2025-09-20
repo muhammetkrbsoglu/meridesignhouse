@@ -68,6 +68,13 @@ export function EventConceptDesigner() {
   const [loading, setLoading] = useState(true)
 
   const [isMobileView, setIsMobileView] = useState(false)
+
+  // Set initial mobile view state
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      setIsMobileView(window.innerWidth <= 768)
+    }
+  }, [])
   const prefersReducedMotionRef = useRef(false)
   const stepIndicatorRef = useRef<HTMLDivElement | null>(null)
   const themeStepRef = useRef<HTMLDivElement | null>(null)
@@ -157,6 +164,35 @@ export function EventConceptDesigner() {
     }
   }, [currentStep, isMobileView])
 
+  // Alternative scroll implementation for better mobile compatibility
+  useEffect(() => {
+    if (!isMobileView) return
+
+    const scrollToSection = () => {
+      if (currentStep === 2 && themeStepRef.current) {
+        const offset = (stepIndicatorRef.current?.offsetHeight ?? 0) + 24
+        const element = themeStepRef.current
+        const targetTop = Math.max(element.getBoundingClientRect().top + window.scrollY - offset, 0)
+        window.scrollTo({
+          top: targetTop,
+          behavior: prefersReducedMotionRef.current ? 'auto' : 'smooth',
+        })
+      } else if (currentStep === 3 && resultStepRef.current) {
+        const offset = (stepIndicatorRef.current?.offsetHeight ?? 0) + 32
+        const element = resultStepRef.current
+        const targetTop = Math.max(element.getBoundingClientRect().top + window.scrollY - offset, 0)
+        window.scrollTo({
+          top: targetTop,
+          behavior: prefersReducedMotionRef.current ? 'auto' : 'smooth',
+        })
+      }
+    }
+
+    // Longer delay to ensure DOM is fully updated
+    const timeoutId = setTimeout(scrollToSection, 200)
+    return () => clearTimeout(timeoutId)
+  }, [currentStep, isMobileView])
+
   const handlePrevious = () => {
     if (currentStep > 1) {
       setCurrentStep(currentStep - 1)
@@ -180,30 +216,6 @@ export function EventConceptDesigner() {
     }, 300)
   }
 
-  // Scroll to appropriate section when step changes
-  useEffect(() => {
-    if (window.innerWidth < 768) {
-      const scrollToSection = () => {
-        if (currentStep === 2 && themeStepRef.current) {
-          themeStepRef.current.scrollIntoView({ 
-            behavior: 'smooth', 
-            block: 'start',
-            inline: 'nearest'
-          })
-        } else if (currentStep === 3 && resultStepRef.current) {
-          resultStepRef.current.scrollIntoView({ 
-            behavior: 'smooth', 
-            block: 'start',
-            inline: 'nearest'
-          })
-        }
-      }
-      
-      // Small delay to ensure DOM is updated
-      const timeoutId = setTimeout(scrollToSection, 100)
-      return () => clearTimeout(timeoutId)
-    }
-  }, [currentStep])
 
   return (
     <section className="py-16 sm:py-20 bg-gradient-to-b from-white to-rose-50">

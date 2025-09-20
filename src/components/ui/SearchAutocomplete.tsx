@@ -41,6 +41,17 @@ export function SearchAutocomplete({
       setIsOpen(externalIsOpen)
     }
   }, [externalIsOpen])
+
+  // Prevent background scroll when search is open on mobile
+  useEffect(() => {
+    if (isOpen && window.innerWidth < 768) {
+      const originalOverflow = document.body.style.overflow
+      document.body.style.overflow = 'hidden'
+      return () => {
+        document.body.style.overflow = originalOverflow
+      }
+    }
+  }, [isOpen])
   const [suggestions, setSuggestions] = useState<SearchSuggestion[]>([])
   const [popularSearches, setPopularSearches] = useState<string[]>([])
   const [isLoading, setIsLoading] = useState(false)
@@ -368,7 +379,7 @@ export function SearchAutocomplete({
           {/* Haftanın Seçimi - Sadece mobilde ve arama yapılmadığında göster */}
           {!isLoading && query.length < 2 && weeklyProduct && (
             <div className="border-t border-white/20">
-              <div className="px-4 py-3 pb-4">
+              <div className="px-4 py-3 pb-0">
                 <div className="mb-3 text-xs font-semibold uppercase tracking-wide text-gray-500">
                   Haftanın Seçimi
                 </div>

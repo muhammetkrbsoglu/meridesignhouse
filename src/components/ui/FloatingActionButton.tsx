@@ -27,11 +27,21 @@ interface FloatingActionButtonProps {
   disabled?: boolean
 }
 
-const positionClasses = {
-  'bottom-right': 'bottom-4 right-4',
-  'bottom-left': 'bottom-4 left-4',
-  'top-right': 'top-4 right-4',
-  'top-left': 'top-4 left-4'
+const getPositionClasses = (position: string, bottomTabBarHeight: number) => {
+  const baseClasses = {
+    'bottom-right': 'right-4 md:right-4',
+    'bottom-left': 'left-4 md:left-4',
+    'top-right': 'top-4 right-4 md:top-4 md:right-4',
+    'top-left': 'top-4 left-4 md:top-4 md:left-4'
+  }
+
+  if (position === 'bottom-right' || position === 'bottom-left') {
+    const bottomPadding = bottomTabBarHeight > 0 ? `bottom-[${bottomTabBarHeight + 16}px]` : 'bottom-4'
+    const baseClass = baseClasses[position as keyof typeof baseClasses]
+    return `${bottomPadding} ${baseClass}`
+  }
+
+  return baseClasses[position as keyof typeof baseClasses]
 }
 
 const sizeClasses = {
@@ -72,6 +82,7 @@ export function FloatingActionButton({
   const [isVisible, setIsVisible] = useState(false)
   const [hasMounted, setHasMounted] = useState(false)
   const [isMobile, setIsMobile] = useState(false)
+  const [bottomTabBarHeight, setBottomTabBarHeight] = useState(0)
   const { createButtonAnimation } = useMicroAnimations()
   const shouldReduceMotion = useReducedMotion()
 
@@ -93,9 +104,33 @@ export function FloatingActionButton({
       }
     }
 
+    const updateBottomTabBarHeight = () => {
+      if (typeof window !== 'undefined') {
+        const bottomTabBar = document.querySelector('[data-bottom-tab-bar]') as HTMLElement
+        if (bottomTabBar) {
+          const height = bottomTabBar.offsetHeight
+          setBottomTabBarHeight(height)
+        }
+      }
+    }
+
     evaluateViewport()
     window.addEventListener('resize', evaluateViewport, { passive: true })
-    return () => window.removeEventListener('resize', evaluateViewport)
+
+    // Initial check for bottom tab bar height
+    updateBottomTabBarHeight()
+
+    // Listen for bottom tab bar height changes
+    const observer = new ResizeObserver(updateBottomTabBarHeight)
+    const bottomTabBar = document.querySelector('[data-bottom-tab-bar]')
+    if (bottomTabBar) {
+      observer.observe(bottomTabBar)
+    }
+
+    return () => {
+      window.removeEventListener('resize', evaluateViewport)
+      observer.disconnect()
+    }
   }, [showOnScroll])
 
   useEffect(() => {
@@ -146,11 +181,11 @@ export function FloatingActionButton({
             'flex items-center justify-center',
             'focus:outline-none focus:ring-2 focus:ring-offset-2',
             'active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed',
-            positionClasses[position],
+            getPositionClasses(position, bottomTabBarHeight),
             sizeClasses[size],
             colorClasses[color],
             glassEffect && getOptimalGlassConfig('floating'),
-            'safe-pb', // Safe area padding for mobile
+            isMobile && 'safe-pb', // Safe area padding for mobile only
             className
           )}
           onClick={handleClick}
@@ -246,7 +281,10 @@ export function BackToTopFAB() {
       size="sm"
       color="secondary"
       showOnScroll={false}
-      className={isVisible ? 'block' : 'hidden'}
+      className={cn(
+        isVisible ? 'block' : 'hidden',
+        'z-[950]' // Higher z-index to appear above bottom tab bar
+      )}
     />
   )
 }

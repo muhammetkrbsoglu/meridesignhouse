@@ -135,19 +135,15 @@ export function BottomTabBar() {
   }, [searchGlassIntensity, shouldReduceMotion])
 
   const searchBackdropClass = useMemo(() => {
-    const tint = searchGlassIntensity === 'subtle' ? 'bg-slate-900/20' : 'bg-slate-900/25'
-    const blur = shouldReduceMotion
-      ? 'backdrop-blur-sm supports-[backdrop-filter]:backdrop-blur-sm'
-      : searchGlassIntensity === 'strong'
-        ? 'backdrop-blur-lg supports-[backdrop-filter]:backdrop-blur-2xl supports-[backdrop-filter]:backdrop-saturate-150'
-        : 'backdrop-blur-md supports-[backdrop-filter]:backdrop-blur-xl supports-[backdrop-filter]:backdrop-saturate-150'
+    const tint = 'bg-transparent'
+    const blur = 'backdrop-blur-none'
     return cn(
       'absolute inset-0 transition-opacity duration-300',
       shouldReduceMotion ? 'transition-none' : '',
       tint,
       blur
     )
-  }, [searchGlassIntensity, shouldReduceMotion])
+  }, [shouldReduceMotion])
 
   useEffect(() => {
     compactStateRef.current = isCompact
@@ -350,6 +346,7 @@ export function BottomTabBar() {
           'border-t border-white/20',
           getOptimalGlassConfig('bottom-bar')
         )}
+        data-bottom-tab-bar
         style={{ pointerEvents: isSearchOpen ? 'none' : 'auto', originY: 1, willChange: 'transform, padding, min-height' }}
       >
         <div className="mx-auto max-w-7xl px-2 py-1">
@@ -468,14 +465,6 @@ export function BottomTabBar() {
                   className={searchPanelGlass}
                   onClick={(event) => event.stopPropagation()}
                 >
-                  <div
-                    className="pointer-events-none absolute inset-0 rounded-t-3xl bg-gradient-to-b from-white/40 via-white/15 to-white/5 opacity-50 supports-[backdrop-filter]:from-white/15 supports-[backdrop-filter]:via-white/5 supports-[backdrop-filter]:to-white/2"
-                    aria-hidden="true"
-                  />
-                  <div
-                    className="pointer-events-none absolute inset-0 mix-blend-soft-light opacity-30 bg-[radial-gradient(circle_at_top,_rgba(255,255,255,0.4),_transparent_70%)]"
-                    aria-hidden="true"
-                  />
                   <div className="relative flex h-full flex-col gap-4">
                     <div className="flex items-center justify-between">
                       <span className="text-sm font-medium uppercase tracking-wide text-gray-600">Arama</span>
@@ -497,13 +486,6 @@ export function BottomTabBar() {
                       onSearch={closeSearch}
                       onNavigate={closeSearch}
                       isOpen={isSearchOpen}
-                      footerContent={
-                        <WeeklyProductFooter
-                          product={weeklyProduct}
-                          isLoading={isWeeklyProductLoading}
-                          onSelect={closeSearch}
-                        />
-                      }
                     />
                   </div>
                 </div>
@@ -516,76 +498,3 @@ export function BottomTabBar() {
   )
 }
 
-function WeeklyProductFooter({
-  product,
-  isLoading,
-  onSelect
-}: {
-  product: WeeklyProductHighlight | null
-  isLoading: boolean
-  onSelect: () => void
-}) {
-  if (isLoading) {
-    return (
-      <div className="px-4 py-6">
-        <div className="h-16 w-full animate-pulse rounded-2xl bg-gray-100" />
-      </div>
-    )
-  }
-
-  if (!product) {
-    return (
-      <div className="px-4 py-6 text-xs text-gray-500">
-        Bu hafta one cikan bir urun bulunamadi.
-      </div>
-    )
-  }
-
-  const priceValue = typeof product.price === 'number'
-    ? product.price
-    : product.price
-      ? Number(product.price)
-      : null
-
-  const formattedPrice = typeof priceValue === 'number' && !Number.isNaN(priceValue)
-    ? formatPrice(priceValue)
-    : null
-
-  return (
-    <div className="px-4 py-4">
-      <div className="mb-3 text-xs font-semibold uppercase tracking-wide text-gray-500">
-        Haftanin Urunu
-      </div>
-      <Link
-        href={`/products/${product.slug}`}
-        onClick={onSelect}
-        className="flex items-center gap-3 rounded-2xl border border-white/30 bg-white/70 p-3 text-left shadow-sm transition hover:bg-white/80"
-      >
-        {product.image ? (
-          <div className="relative h-16 w-16 overflow-hidden rounded-xl">
-            <Image
-              src={product.image}
-              alt={product.name}
-              fill
-              className="object-cover"
-              sizes="64px"
-            />
-          </div>
-        ) : (
-          <div className="flex h-16 w-16 items-center justify-center rounded-xl bg-rose-100 text-rose-500">
-            <MagnifyingGlassIcon className="h-6 w-6" />
-          </div>
-        )}
-        <div className="flex flex-1 flex-col overflow-hidden">
-          <span className="truncate text-sm font-semibold text-gray-900">{product.name}</span>
-          {formattedPrice && (
-            <span className="text-sm font-semibold text-rose-600">{formattedPrice}</span>
-          )}
-        </div>
-        <span className="text-xs font-semibold uppercase tracking-wide text-rose-500">
-          Detay
-        </span>
-      </Link>
-    </div>
-  )
-}
