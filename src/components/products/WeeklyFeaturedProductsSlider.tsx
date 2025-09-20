@@ -166,7 +166,7 @@ export function WeeklyFeaturedProductsSlider({ categoryId }: WeeklyFeaturedProdu
             </div>
           </div>
           <div className="animate-pulse">
-            <div className="aspect-[16/24] bg-gray-200 rounded-2xl"></div>
+            <div className="aspect-[16/18] bg-gray-200 rounded-2xl"></div>
           </div>
         </div>
       </section>
@@ -247,11 +247,11 @@ export function WeeklyFeaturedProductsSlider({ categoryId }: WeeklyFeaturedProdu
                 animate={{ opacity: 1, x: 0 }}
                 exit={{ opacity: 0, x: -300 }}
                 transition={{ duration: 0.5, ease: "easeInOut" }}
-                className="aspect-[16/24] md:aspect-[16/20]"
+                className="aspect-[16/18] md:aspect-[16/15]"
               >
-                <div className="grid grid-cols-1 lg:grid-cols-2 h-full">
+                <div className="flex flex-col lg:grid lg:grid-cols-2 h-full">
                   {/* Image Section */}
-                  <div className="relative overflow-hidden">
+                  <div className="relative overflow-hidden lg:aspect-[16/9] aspect-[16/10]">
                     <Image
                       src={currentProduct.images[0] || '/placeholder-product.svg'}
                       alt={currentProduct.name}
@@ -297,7 +297,7 @@ export function WeeklyFeaturedProductsSlider({ categoryId }: WeeklyFeaturedProdu
                   </div>
 
                   {/* Content Section */}
-                  <div className="flex flex-col justify-center p-0 sm:p-0.25 lg:p-0.5 bg-gradient-to-br from-white via-rose-50 to-pink-50 relative overflow-hidden">
+                  <div className="flex flex-col justify-center p-0 sm:p-0.25 lg:p-2 bg-gradient-to-br from-white via-rose-50 to-pink-50 relative overflow-hidden lg:col-span-1">
                     {/* Background decorative elements */}
                     <div className="absolute top-1 right-1 w-3 h-3 bg-rose-200/30 rounded-full blur-sm animate-pulse"></div>
                     <div className="absolute bottom-2 left-2 w-2 h-2 bg-pink-200/40 rounded-full blur-sm animate-pulse delay-1000"></div>
