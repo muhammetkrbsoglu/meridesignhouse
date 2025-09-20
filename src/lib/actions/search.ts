@@ -189,9 +189,6 @@ export async function getPopularSearches(): Promise<string[]> {
   return [
     'dugun susleri',
     'dogum gunu',
-    'balon',
-    'parti malzemeleri',
-    'masa susu',
     'cicek aranjmani'
   ]
 }

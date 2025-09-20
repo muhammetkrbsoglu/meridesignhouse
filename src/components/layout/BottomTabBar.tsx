@@ -469,11 +469,11 @@ export function BottomTabBar() {
                   onClick={(event) => event.stopPropagation()}
                 >
                   <div
-                    className="pointer-events-none absolute inset-0 rounded-t-3xl bg-gradient-to-b from-white/75 via-white/30 to-white/10 opacity-90 supports-[backdrop-filter]:from-white/25 supports-[backdrop-filter]:via-white/10 supports-[backdrop-filter]:to-white/5"
+                    className="pointer-events-none absolute inset-0 rounded-t-3xl bg-gradient-to-b from-white/40 via-white/15 to-white/5 opacity-50 supports-[backdrop-filter]:from-white/15 supports-[backdrop-filter]:via-white/5 supports-[backdrop-filter]:to-white/2"
                     aria-hidden="true"
                   />
                   <div
-                    className="pointer-events-none absolute inset-0 mix-blend-soft-light opacity-70 bg-[radial-gradient(circle_at_top,_rgba(255,255,255,0.65),_transparent_70%)]"
+                    className="pointer-events-none absolute inset-0 mix-blend-soft-light opacity-30 bg-[radial-gradient(circle_at_top,_rgba(255,255,255,0.4),_transparent_70%)]"
                     aria-hidden="true"
                   />
                   <div className="relative flex h-full flex-col gap-4">
@@ -496,6 +496,7 @@ export function BottomTabBar() {
                       maxSuggestions={4}
                       onSearch={closeSearch}
                       onNavigate={closeSearch}
+                      isOpen={isSearchOpen}
                       footerContent={
                         <WeeklyProductFooter
                           product={weeklyProduct}

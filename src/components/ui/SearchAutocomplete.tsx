@@ -18,6 +18,7 @@ interface SearchAutocompleteProps {
   maxSuggestions?: number
   footerContent?: ReactNode
   onNavigate?: () => void
+  isOpen?: boolean
 }
 
 export function SearchAutocomplete({
@@ -27,11 +28,19 @@ export function SearchAutocomplete({
   autoFocus = false,
   maxSuggestions,
   footerContent,
-  onNavigate
+  onNavigate,
+  isOpen: externalIsOpen
 }: SearchAutocompleteProps) {
   const router = useRouter()
   const [query, setQuery] = useState('')
   const [isOpen, setIsOpen] = useState(false)
+
+  // Sync internal isOpen with external isOpen prop
+  useEffect(() => {
+    if (externalIsOpen !== undefined) {
+      setIsOpen(externalIsOpen)
+    }
+  }, [externalIsOpen])
   const [suggestions, setSuggestions] = useState<SearchSuggestion[]>([])
   const [popularSearches, setPopularSearches] = useState<string[]>([])
   const [isLoading, setIsLoading] = useState(false)
@@ -45,16 +54,6 @@ export function SearchAutocomplete({
   const inputRef = useRef<HTMLInputElement>(null)
   const listboxId = 'search-suggestions'
 
-  // Lock body scroll when search is open on mobile
-  useEffect(() => {
-    if (isOpen && window.innerWidth < 768) {
-      const originalOverflow = document.body.style.overflow
-      document.body.style.overflow = 'hidden'
-      return () => {
-        document.body.style.overflow = originalOverflow
-      }
-    }
-  }, [isOpen])
 
   const limitedSuggestions = typeof maxSuggestions === 'number' && maxSuggestions >= 0
     ? suggestions.slice(0, maxSuggestions)
@@ -211,7 +210,7 @@ export function SearchAutocomplete({
           aria-label="Site ici arama"
           aria-haspopup="listbox"
           aria-controls={showDropdown ? listboxId : undefined}
-          className="w-full rounded-full border border-white/40 bg-white/30 pl-5 pr-14 py-3 text-base shadow-[0_16px_40px_-30px_rgba(15,23,42,0.55)] transition-all duration-200 placeholder:text-gray-400 focus:border-transparent focus:outline-none focus:ring-2 focus:ring-rose-200"
+          className="w-full rounded-full border border-white/40 bg-white/20 pl-5 pr-14 py-3 text-base shadow-[0_16px_40px_-30px_rgba(15,23,42,0.55)] transition-all duration-200 placeholder:text-gray-400 focus:border-transparent focus:outline-none focus:ring-2 focus:ring-rose-200"
         />
 
         <div className="absolute right-3 top-1/2 -translate-y-1/2 transform flex items-center space-x-2">
@@ -246,7 +245,7 @@ export function SearchAutocomplete({
           id={listboxId}
           role="listbox"
           aria-label="Arama onerileri"
-          className="absolute top-full left-0 right-0 z-[200] md:z-[100000] mt-3 max-h-fit overflow-y-auto rounded-2xl rounded-b-2xl md:rounded-3xl border border-white/25 bg-white/30 shadow-[0_28px_70px_-44px_rgba(15,23,42,0.5)]"
+          className="absolute top-full left-0 right-0 z-[200] md:z-[100000] mt-3 max-h-fit overflow-y-auto rounded-2xl rounded-b-2xl md:rounded-3xl border border-white/25 bg-white/20 shadow-[0_28px_70px_-44px_rgba(15,23,42,0.5)]"
         >
           {isLoading && (
             <div className="p-4 text-center text-gray-500" aria-live="polite">
@@ -375,7 +374,7 @@ export function SearchAutocomplete({
                 </div>
                 <Link
                   href={`/products/${weeklyProduct.slug}`}
-                  className="group block bg-gradient-to-br from-rose-50 to-pink-50 rounded-xl border-2 border-rose-200 hover:border-rose-300 hover:shadow-md transition-all duration-300"
+                  className="group block bg-gradient-to-br from-rose-50/70 to-pink-50/70 rounded-xl border-2 border-rose-200/60 hover:border-rose-300/80 hover:shadow-md transition-all duration-300"
                   onClick={() => setIsOpen(false)}
                 >
                   <div className="flex gap-3 p-3">

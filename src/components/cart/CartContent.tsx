@@ -405,8 +405,7 @@ export function CartContent() {
                   label: 'Kaldır',
                   icon: removingItems.has(item.id) ? <LoadingSpinner size="sm" color="white" /> : <TrashIcon className="w-4 h-4" />,
                   color: 'red',
-                  action: () => handleRemoveItem(item.id),
-                  disabled: removingItems.has(item.id)
+                  action: () => handleRemoveItem(item.id)
                 }
               ]}
               rightActions={[
@@ -414,7 +413,7 @@ export function CartContent() {
                   id: 'favorite',
                   label: 'Favori',
                   icon: <HeartIcon className="w-4 h-4" />,
-                  color: 'pink',
+                  color: 'red',
                   action: () => handleAddToFavorites(item.productId, item.product.name)
                 }
               ]}
@@ -425,126 +424,116 @@ export function CartContent() {
                 transition={{ delay: index * 0.1 }}
               >
                 <Card className="overflow-hidden border border-rose-200/70 shadow-sm hover:shadow-md transition-shadow">
-                  <CardContent className={`p-4 sm:p-6 ${isUpdating ? 'opacity-80' : ''}`}>
-                <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:gap-6">
-                  {/* Product Image */}
-                  <div className="flex-shrink-0">
-                    <div className="flex h-24 w-24 items-center justify-center overflow-hidden rounded-xl bg-gray-100 sm:h-24 sm:w-24">
-                      {item.product.product_images && item.product.product_images.length > 0 ? (
-                        <Image
-                          src={item.product.product_images[0].url}
-                          alt={item.product.product_images[0].alt || item.product.name}
-                          width={96}
-                          height={96}
-                          className="h-full w-full object-cover"
-                          placeholder="blur" blurDataURL={BLUR_DATA_URL}
-                          onError={(e) => {
-                            (e.currentTarget as HTMLImageElement).style.display = 'none';
-                          }}
-                        />
-                      ) : (
-                        <span className="text-2xl">🛍️</span>
-                      )}
+                  <CardContent className={`p-3 sm:p-4 ${isUpdating ? 'opacity-80' : ''}`}>
+                <div className="flex flex-col gap-4">
+                  {/* Product Image and Info - Side by Side */}
+                  <div className="flex gap-4 items-start">
+                    {/* Product Image */}
+                    <div className="flex-shrink-0">
+                      <Link href={`/products/${item.product.slug}`}>
+                        <div className="w-24 h-24 sm:w-32 sm:h-32 bg-gray-100 rounded-xl overflow-hidden hover:opacity-75 transition-opacity relative shadow-sm">
+                          {item.product.product_images && item.product.product_images.length > 0 ? (
+                            <Image
+                              src={item.product.product_images[0].url}
+                              alt={item.product.product_images[0].alt || item.product.name}
+                              fill
+                              className="object-cover"
+                              sizes="(min-width: 640px) 128px, 96px"
+                              placeholder="blur"
+                              blurDataURL={BLUR_DATA_URL}
+                            />
+                          ) : (
+                            <div className="w-full h-full flex items-center justify-center">
+                              <svg className="w-8 h-8 text-gray-400" fill="currentColor" viewBox="0 0 20 20">
+                                <path fillRule="evenodd" d="M4 3a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V5a2 2 0 00-2-2H4zm12 12H4l4-8 3 6 2-4 3 6z" clipRule="evenodd" />
+                              </svg>
+                            </div>
+                          )}
+                        </div>
+                      </Link>
+                    </div>
+
+                    {/* Product Info */}
+                    <div className="flex-1 min-w-0">
+                      <Link
+                        href={`/products/${item.product.slug}`}
+                        className="block group"
+                      >
+                        <h3 className="text-base sm:text-lg font-semibold text-gray-900 group-hover:text-rose-600 transition-colors line-clamp-2 mb-2">
+                          {item.product.name}
+                        </h3>
+                        {item.product.category && (
+                          <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-rose-100 text-rose-800 mb-2">
+                            {item.product.category.name}
+                          </span>
+                        )}
+                      </Link>
                     </div>
                   </div>
 
-                  {/* Product Info */}
-                  <div className="flex-1 min-w-0 space-y-2">
-                    <Link
-                      href={`/products/${item.product.slug}`}
-                      className="block transition-opacity hover:opacity-80"
-                    >
-                      <h3 className="text-sm font-semibold text-gray-900 line-clamp-2 transition-colors hover:text-blue-600 sm:text-lg">
-                        {item.product.name}
-                      </h3>
-                    </Link>
-                    <p className="text-xs text-gray-500 sm:text-sm">
-                      {item.product.category?.name}
-                    </p>
-                    <p className="text-base font-semibold text-rose-600 sm:text-lg">
+                  {/* Price and Quantity Controls - Same Row */}
+                  <div className="flex items-center justify-between gap-4">
+                    {/* Price */}
+                    <div className="text-lg font-bold text-rose-600">
                       {formatCurrency(item.product.price)}
-                    </p>
-                  </div>
+                    </div>
 
-                  {/* Quantity Controls */}
-                  <div className="flex flex-col gap-4 sm:min-w-[210px] sm:flex-row sm:items-center sm:gap-3">
-                    <div className="flex items-center justify-between gap-4 rounded-2xl border border-rose-200 bg-white/80 px-4 py-3 shadow-md sm:justify-start sm:gap-2 sm:border-transparent sm:bg-transparent sm:px-0 sm:py-0 sm:shadow-none">
-                      <Button
-                        variant="outline"
-                        size="icon"
-                        className="h-12 w-12 sm:h-9 sm:w-9"
-                        onClick={() => handleUpdateQuantity(item.productId, item.quantity - 1)}
-                        disabled={updatingItems.has(item.productId) || item.quantity <= 1}
-                        type="button"
-                      >
-                        <MinusIcon className="h-5 w-5" />
-                      </Button>
-
-                      <input
-                        id={`qty-${item.productId}`}
-                        type="text"
-                        inputMode="numeric"
-                        pattern="[0-9]*"
-                        className="w-20 rounded-md border border-rose-300 py-2 text-center text-lg font-semibold focus:outline-none focus:ring-2 focus:ring-rose-500/40 sm:w-14 sm:text-sm sm:py-1.5"
-                        value={draftQuantities[item.productId] ?? String(item.quantity)}
-                        onFocus={(e) => e.currentTarget.select()}
-                        onChange={(e) => {
-                          const val = e.target.value.replace(/[^0-9]/g, '').slice(0, 3)
-                          setDraftQuantities(prev => ({ ...prev, [item.productId]: val }))
-                        }}
-                        onBlur={() => commitQuantity(item.productId, item.quantity)}
-                        onKeyDown={(e) => {
-                          if (e.key === 'Enter') {
-                            (e.currentTarget as HTMLInputElement).blur()
-                          } else if (e.key === 'Escape') {
-                            setDraftQuantities(prev => ({ ...prev, [item.productId]: String(item.quantity) }))
-                            ;(e.currentTarget as HTMLInputElement).blur()
-                          }
-                        }}
-                      />
-
-                      <Button
-                        variant="outline"
-                        size="icon"
-                        className="h-12 w-12 sm:h-9 sm:w-9"
-                        onClick={() => handleUpdateQuantity(item.productId, item.quantity + 1)}
-                        disabled={updatingItems.has(item.productId)}
-                        type="button"
-                      >
-                        <PlusIcon className="h-5 w-5" />
-                      </Button>
-
+                    {/* Quantity Controls */}
+                    <div className="flex items-center gap-2">
+                      <span className="text-sm text-gray-600">Adet:</span>
+                      <div className="flex items-center border border-gray-300 rounded-lg bg-gray-50">
+                        <button
+                          onClick={() => handleUpdateQuantity(item.productId, item.quantity - 1)}
+                          disabled={isUpdating || item.quantity <= 1}
+                          className="w-6 h-6 flex items-center justify-center text-gray-600 hover:text-gray-800 hover:bg-gray-200 disabled:opacity-50 disabled:cursor-not-allowed rounded-l-lg transition-colors"
+                          type="button"
+                        >
+                          <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 12H4" />
+                          </svg>
+                        </button>
+                        <input
+                          id={`quantity-${item.id}`}
+                          type="text"
+                          inputMode="numeric"
+                          pattern="[0-9]*"
+                          value={draftQuantities[item.productId] ?? String(item.quantity)}
+                          onFocus={(e: React.FocusEvent<HTMLInputElement>) => e.currentTarget.select()}
+                          onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
+                            const val = e.target.value.replace(/[^0-9]/g, '').slice(0, 3);
+                            setDraftQuantities(prev => ({ ...prev, [item.productId]: val }));
+                          }}
+                          onBlur={() => commitQuantity(item.productId, item.quantity)}
+                          onKeyDown={(e: React.KeyboardEvent<HTMLInputElement>) => {
+                            if (e.key === 'Enter') {
+                              (e.currentTarget as HTMLInputElement).blur();
+                            } else if (e.key === 'Escape') {
+                              setDraftQuantities(prev => ({ ...prev, [item.productId]: String(item.quantity) }));
+                              (e.currentTarget as HTMLInputElement).blur();
+                            }
+                          }}
+                          disabled={isUpdating}
+                          className="w-8 px-1 py-0.5 text-center border-0 bg-transparent font-medium text-sm focus:outline-none disabled:opacity-50 cursor-text"
+                          placeholder="1"
+                          aria-label="Miktar"
+                        />
+                        <button
+                          onClick={() => handleUpdateQuantity(item.productId, item.quantity + 1)}
+                          disabled={isUpdating}
+                          className="w-6 h-6 flex items-center justify-center text-gray-600 hover:text-gray-800 hover:bg-gray-200 disabled:opacity-50 disabled:cursor-not-allowed rounded-r-lg transition-colors"
+                          type="button"
+                        >
+                          <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+                          </svg>
+                        </button>
+                      </div>
                       {isUpdating && (
-                        <span className="inline-flex h-4 w-4 items-center justify-center sm:ml-1">
+                        <span className="inline-flex h-4 w-4 items-center justify-center ml-1">
                           <span className="block h-4 w-4 rounded-full border-2 border-gray-300 border-t-transparent animate-spin" aria-label="Yükleniyor" />
                         </span>
                       )}
                     </div>
-
-                    {/* Remove Button */}
-                    <MicroFeedback
-                      hapticType="warning"
-                      hapticMessage="Ürün kaldırılıyor"
-                      disabled={removingItems.has(item.id)}
-                      onClick={() => handleRemoveItem(item.id)}
-                      className="flex"
-                    >
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        disabled={removingItems.has(item.id)}
-                        className="self-start text-red-600 hover:text-red-700 hover:bg-red-50 px-4 py-2 rounded-lg border border-red-200 sm:self-auto sm:px-2 sm:py-1 sm:border-0"
-                      >
-                        {removingItems.has(item.id) ? (
-                          <LoadingSpinner size="sm" color="gray" />
-                        ) : (
-                          <>
-                            <TrashIcon className="h-4 w-4 sm:h-4 sm:w-4" />
-                            <span className="ml-2 text-sm font-medium sm:hidden">Kaldır</span>
-                          </>
-                        )}
-                      </Button>
-                    </MicroFeedback>
                   </div>
                 </div>
               </CardContent>
