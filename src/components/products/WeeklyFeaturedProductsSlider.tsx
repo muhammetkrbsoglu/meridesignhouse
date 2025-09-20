@@ -166,7 +166,7 @@ export function WeeklyFeaturedProductsSlider({ categoryId }: WeeklyFeaturedProdu
             </div>
           </div>
           <div className="animate-pulse">
-            <div className="aspect-[16/9] bg-gray-200 rounded-2xl"></div>
+            <div className="aspect-[16/18] bg-gray-200 rounded-2xl"></div>
           </div>
         </div>
       </section>
@@ -247,7 +247,7 @@ export function WeeklyFeaturedProductsSlider({ categoryId }: WeeklyFeaturedProdu
                 animate={{ opacity: 1, x: 0 }}
                 exit={{ opacity: 0, x: -300 }}
                 transition={{ duration: 0.5, ease: "easeInOut" }}
-                className="aspect-[16/9] md:aspect-[16/8]"
+                className="aspect-[16/18] md:aspect-[16/16]"
               >
                 <div className="grid grid-cols-1 lg:grid-cols-2 h-full">
                   {/* Image Section */}
