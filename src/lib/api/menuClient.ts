@@ -15,3 +15,11 @@ export function fetchWeeklyFeaturedProduct(categoryId: string) {
   return callRpc<MenuProduct | null>('menu:fetchWeeklyFeaturedProduct', [categoryId])
 }
 
+export function fetchAllWeeklyFeaturedProducts() {
+  return callRpc<MenuProduct[]>('menu:fetchAllWeeklyFeaturedProducts')
+}
+
+export function fetchWeeklyFeaturedProductsForCategories(categoryIds: string[]) {
+  return callRpc<MenuProduct[]>('menu:fetchWeeklyFeaturedProductsForCategories', [categoryIds])
+}
+

@@ -16,6 +16,7 @@ import { AutoSubmitNumberInput } from '@/components/products/AutoSubmitField'
 import { SortDropdown } from '@/components/products/SortDropdown'
 import { FilterToggleClient } from '@/components/products/FilterToggleClient'
 import Image from 'next/image'
+import { WeeklyFeaturedProductsSlider } from '@/components/products/WeeklyFeaturedProductsSlider'
 const BLUR_DATA_URL = 'data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///ywAAAAAAQABAAACAUwAOw=='
 
 type Props = {
@@ -330,6 +331,9 @@ export default async function ProductsPage({ searchParams }: Props) {
             {/* Removed: Stock filter and lower price/sort section */}
         </div>
       </FilterToggleClient>
+
+      {/* Weekly Featured Slider */}
+      <WeeklyFeaturedProductsSlider categoryId={categoryId} />
 
       {/* Products Grid - Full Width When Filters Hidden */}
       <div className="w-full">

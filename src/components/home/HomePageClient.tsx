@@ -5,6 +5,7 @@ import dynamic from 'next/dynamic'
 import type { FeaturedProduct, SimpleProduct } from '@/types/product'
 import { HeroSection } from './HeroSection'
 const EventConceptDesigner = dynamic(() => import('./EventConceptDesigner').then(m => ({ default: m.EventConceptDesigner })), { ssr: false })
+const WeeklyFeaturedSlider = dynamic(() => import('./WeeklyFeaturedSlider').then(m => ({ default: m.WeeklyFeaturedSlider })), { ssr: false })
 const NewArrivals = dynamic(() => import('./NewArrivals').then(m => ({ default: m.NewArrivals })), { ssr: false })
 const FeaturedProducts = dynamic(() => import('./FeaturedProducts').then(m => ({ default: m.FeaturedProducts })), { ssr: false })
 const HappyCustomers = dynamic(() => import('./HappyCustomers'), { ssr: false })
@@ -26,6 +27,7 @@ export function HomePageClient({ newArrivals, featuredProducts }: HomePageClient
     >
       <HeroSection />
       <EventConceptDesigner />
+      <WeeklyFeaturedSlider />
       <FeaturedProducts products={featuredProducts} />
       <NewArrivals products={newArrivals} />
       <HappyCustomers />

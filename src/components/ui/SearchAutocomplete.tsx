@@ -42,16 +42,7 @@ export function SearchAutocomplete({
     }
   }, [externalIsOpen])
 
-  // Prevent background scroll when search is open on mobile
-  useEffect(() => {
-    if (isOpen && window.innerWidth < 768) {
-      const originalOverflow = document.body.style.overflow
-      document.body.style.overflow = 'hidden'
-      return () => {
-        document.body.style.overflow = originalOverflow
-      }
-    }
-  }, [isOpen])
+  // Mobile scroll prevention handled by SearchSheetModal
   const [suggestions, setSuggestions] = useState<SearchSuggestion[]>([])
   const [popularSearches, setPopularSearches] = useState<string[]>([])
   const [isLoading, setIsLoading] = useState(false)

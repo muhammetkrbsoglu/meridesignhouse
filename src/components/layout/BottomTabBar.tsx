@@ -27,7 +27,7 @@ import { getOptimalGlassConfig, getGlassIntensity, type GlassIntensity } from '@
 import { cn, formatPrice } from '@/lib/utils'
 import { getCartCount, getFavoriteCount } from '@/lib/api/cartClient'
 import { motion, useReducedMotion, AnimatePresence } from 'framer-motion'
-import { SearchAutocomplete } from '@/components/ui/SearchAutocomplete'
+import { SearchSheetModal } from '@/components/ui/SearchSheetModal'
 import { createAnonClient } from '@/lib/supabase'
 import { useKeyboardInsets } from '@/hooks/useKeyboardInsets'
 
@@ -234,18 +234,7 @@ export function BottomTabBar() {
     }
   }, [user])
 
-  // Prevent background scroll when search is open
-  useEffect(() => {
-    if (typeof document === 'undefined') return
-    if (!isSearchOpen) return
-
-    const previousOverflow = document.body.style.overflow
-    document.body.style.overflow = 'hidden'
-
-    return () => {
-      document.body.style.overflow = previousOverflow
-    }
-  }, [isSearchOpen])
+  // Modern search modal - no scroll blocking needed
 
   // Fetch weekly product when search opens
   useEffect(() => {
@@ -425,75 +414,11 @@ export function BottomTabBar() {
         </div>
       </motion.nav>
 
-      <AnimatePresence>
-        {isSearchOpen && (
-          <motion.div
-            key="mobile-search-sheet"
-            className="fixed inset-0 z-[1200] md:hidden"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            transition={{ duration: shouldReduceMotion ? 0 : 0.2 }}
-            role="dialog"
-            aria-modal="true"
-            aria-label="Mobil arama"
-          >
-            <motion.div
-              className={searchBackdropClass}
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              transition={{ duration: shouldReduceMotion ? 0 : 0.2 }}
-              onClick={closeSearch}
-            />
-
-            <motion.div
-              className="relative flex h-full w-full justify-center"
-              initial={{ y: shouldReduceMotion ? 0 : 40 }}
-              animate={{ y: 0 }}
-              exit={{ y: shouldReduceMotion ? 0 : 40 }}
-              transition={{ type: 'spring', stiffness: 320, damping: 28 }}
-            >
-              <div
-                className="relative flex h-full w-full max-w-3xl flex-col px-4"
-                style={{
-                  paddingTop: 'calc(env(safe-area-inset-top, 0px) + 1rem)',
-                  paddingBottom: `calc(env(safe-area-inset-bottom, 0px) + ${keyboardPadding}px)`
-                }}
-              >
-                <div
-                  className={searchPanelGlass}
-                  onClick={(event) => event.stopPropagation()}
-                >
-                  <div className="relative flex h-full flex-col gap-4">
-                    <div className="flex items-center justify-between">
-                      <span className="text-sm font-medium uppercase tracking-wide text-gray-600">Arama</span>
-                      <button
-                        type="button"
-                        onClick={closeSearch}
-                        className="rounded-full bg-white/70 p-2 text-gray-600 transition hover:bg-white/90"
-                        aria-label="Kapat"
-                      >
-                        <XMarkIcon className="h-5 w-5" />
-                      </button>
-                    </div>
-
-                    <SearchAutocomplete
-                      placeholder="Urun, kategori veya set ara..."
-                      className="w-full"
-                      autoFocus
-                      maxSuggestions={4}
-                      onSearch={closeSearch}
-                      onNavigate={closeSearch}
-                      isOpen={isSearchOpen}
-                    />
-                  </div>
-                </div>
-              </div>
-            </motion.div>
-          </motion.div>
-        )}
-      </AnimatePresence>
+      {/* Modern Search Sheet Modal */}
+      <SearchSheetModal
+        isOpen={isSearchOpen}
+        onClose={closeSearch}
+      />
     </>
   )
 }

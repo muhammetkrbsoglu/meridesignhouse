@@ -19,7 +19,7 @@ import {
 } from '@/lib/actions/cart'
 import { fetchAllMainCategoriesWithHierarchy } from '@/lib/actions/categories'
 import { fetchEventTypes, fetchThemeStyles } from '@/lib/actions/events'
-import { fetchMenuCategories, fetchFeaturedProductsForCategory, fetchWeeklyFeaturedProduct } from '@/lib/actions/menu'
+import { fetchMenuCategories, fetchFeaturedProductsForCategory, fetchWeeklyFeaturedProduct, fetchAllWeeklyFeaturedProducts, fetchWeeklyFeaturedProductsForCategories } from '@/lib/actions/menu'
 import { createContactMessage, backfillMessageUserIds } from '@/lib/actions/messages'
 
 const actionMap = {
@@ -45,6 +45,8 @@ const actionMap = {
   'menu:fetchMenuCategories': fetchMenuCategories,
   'menu:fetchFeaturedProductsForCategory': fetchFeaturedProductsForCategory,
   'menu:fetchWeeklyFeaturedProduct': fetchWeeklyFeaturedProduct,
+  'menu:fetchAllWeeklyFeaturedProducts': fetchAllWeeklyFeaturedProducts,
+  'menu:fetchWeeklyFeaturedProductsForCategories': fetchWeeklyFeaturedProductsForCategories,
   'messages:createContactMessage': createContactMessage,
   'messages:backfillMessageUserIds': backfillMessageUserIds,
 } satisfies Record<string, (...args: any[]) => Promise<any>>

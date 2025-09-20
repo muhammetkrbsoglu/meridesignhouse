@@ -3,26 +3,6 @@
 import { getSupabaseAdmin } from '@/lib/supabase';
 import type { MenuCategory, MenuProduct } from '@/types/menu';
 
-export interface MenuCategory {
-  id: string;
-  name: string;
-  slug: string;
-  children: MenuCategory[];
-  productCount: number;
-}
-
-export interface MenuProduct {
-  id: string;
-  name: string;
-  slug: string;
-  price: number;
-  images: string[];
-  categories: {
-    name: string;
-    slug: string;
-  }[];
-}
-
 export async function fetchMenuCategories(): Promise<MenuCategory[]> {
   try {
     const supabase = getSupabaseAdmin();
@@ -241,6 +221,117 @@ export async function fetchWeeklyFeaturedProduct(categoryId: string): Promise<Me
   } catch (error) {
     console.error('Haftanın öne çıkan ürünü getirilirken hata:', error);
     return null;
+  }
+}
+
+/**
+ * Fetch all weekly featured products for all categories
+ */
+export async function fetchAllWeeklyFeaturedProducts(): Promise<MenuProduct[]> {
+  try {
+    const supabase = getSupabaseAdmin();
+
+    const { data: products, error } = await supabase
+      .from('products')
+      .select(`
+        id,
+        name,
+        slug,
+        price,
+        product_images(url, alt, sortOrder),
+        category:categories!inner(
+          id,
+          name,
+          slug
+        )
+      `)
+      .eq('isActive', true)
+      .eq('isProductOfWeek', true)
+      .order('createdAt', { ascending: false });
+
+    if (error) {
+      console.error('Tüm haftanın öne çıkan ürünleri getirilirken hata:', error);
+      return [];
+    }
+
+    if (!products) {
+      return [];
+    }
+
+    return products.map((product: any) => {
+      // Sort images by sortOrder
+      const sortedImages = (product.product_images || [])
+        .sort((a: any, b: any) => (a.sortOrder || 0) - (b.sortOrder || 0))
+        .map((img: any) => img.url);
+
+      return {
+        id: product.id,
+        name: product.name,
+        slug: product.slug,
+        price: product.price,
+        images: sortedImages,
+        categories: [product.category]
+      };
+    });
+  } catch (error) {
+    console.error('Tüm haftanın öne çıkan ürünleri getirilirken hata:', error);
+    return [];
+  }
+}
+
+/**
+ * Fetch weekly featured products for specific categories
+ */
+export async function fetchWeeklyFeaturedProductsForCategories(categoryIds: string[]): Promise<MenuProduct[]> {
+  try {
+    const supabase = getSupabaseAdmin();
+
+    const { data: products, error } = await supabase
+      .from('products')
+      .select(`
+        id,
+        name,
+        slug,
+        price,
+        product_images(url, alt, sortOrder),
+        category:categories!inner(
+          id,
+          name,
+          slug
+        )
+      `)
+      .in('categoryId', categoryIds)
+      .eq('isActive', true)
+      .eq('isProductOfWeek', true)
+      .order('createdAt', { ascending: false });
+
+    if (error) {
+      console.error('Kategoriler için haftanın öne çıkan ürünleri getirilirken hata:', error);
+      return [];
+    }
+
+    if (!products) {
+      return [];
+    }
+
+    return products.map((product: any) => {
+      // Sort images by sortOrder
+      const sortedImages = (product.product_images || [])
+        .sort((a: any, b: any) => (a.sortOrder || 0) - (b.sortOrder || 0))
+        .map((img: any) => img.url);
+
+      return {
+        id: product.id,
+        name: product.name,
+        slug: product.slug,
+        price: product.price,
+        images: sortedImages,
+        categories: [product.category]
+      };
+    });
+  } catch (error) {
+    console.error('Kategoriler için haftanın öne çıkan ürünleri getirilirken hata:', error);
+    return [];
   }
 }
 

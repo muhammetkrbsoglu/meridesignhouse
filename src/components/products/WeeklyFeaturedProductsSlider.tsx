@@ -1,0 +1,449 @@
+'use client'
+
+import { useState, useEffect, useRef, useCallback } from 'react'
+import { motion, AnimatePresence } from 'framer-motion'
+import Link from 'next/link'
+import Image from 'next/image'
+import { ChevronLeftIcon, ChevronRightIcon, LightBulbIcon } from '@heroicons/react/24/outline'
+import { StarIcon as Star } from '@heroicons/react/24/solid'
+import { formatCurrency } from '@/lib/utils'
+import { fetchAllWeeklyFeaturedProducts, fetchWeeklyFeaturedProduct } from '@/lib/api/menuClient'
+import type { MenuProduct } from '@/types/menu'
+
+interface WeeklyFeaturedProductsSliderProps {
+  categoryId?: string
+}
+
+export function WeeklyFeaturedProductsSlider({ categoryId }: WeeklyFeaturedProductsSliderProps) {
+  const [products, setProducts] = useState<MenuProduct[]>([])
+  const [currentIndex, setCurrentIndex] = useState(0)
+  const [loading, setLoading] = useState(true)
+  const [isMobile, setIsMobile] = useState(false)
+  const [isPaused, setIsPaused] = useState(false)
+  const [selectedCategoryProduct, setSelectedCategoryProduct] = useState<MenuProduct | null>(null)
+
+  const autoSlideIntervalRef = useRef<NodeJS.Timeout | null>(null)
+  const touchStartRef = useRef<number | null>(null)
+  const touchEndRef = useRef<number | null>(null)
+
+  // Auto-slide interval (4 seconds for both desktop and mobile)
+  const AUTO_SLIDE_DELAY = 4000
+
+  // Load products based on category filter
+  useEffect(() => {
+    const loadProducts = async () => {
+      setLoading(true)
+
+      try {
+        if (categoryId) {
+          // If category is filtered, show only that category's weekly product
+          const product = await fetchWeeklyFeaturedProduct(categoryId)
+          if (product) {
+            setProducts([product])
+            setSelectedCategoryProduct(product)
+          } else {
+            setProducts([])
+            setSelectedCategoryProduct(null)
+          }
+        } else {
+          // No filter, show all weekly products in rotation
+          const featuredProducts = await fetchAllWeeklyFeaturedProducts()
+          setProducts(featuredProducts)
+          setSelectedCategoryProduct(null)
+        }
+      } catch (error) {
+        console.error('Haftanın seçimi ürünleri yüklenirken hata:', error)
+        setProducts([])
+        setSelectedCategoryProduct(null)
+      } finally {
+        setLoading(false)
+      }
+    }
+
+    loadProducts()
+  }, [categoryId])
+
+  // Handle responsive design
+  useEffect(() => {
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth <= 768)
+    }
+
+    checkMobile()
+    window.addEventListener('resize', checkMobile)
+
+    return () => window.removeEventListener('resize', checkMobile)
+  }, [])
+
+  // Auto-slide functionality (only when no category filter)
+  const startAutoSlide = useCallback(() => {
+    if (products.length <= 1 || categoryId) return
+
+    // Clear existing interval
+    if (autoSlideIntervalRef.current) {
+      clearInterval(autoSlideIntervalRef.current)
+    }
+
+    // Start auto slide
+    autoSlideIntervalRef.current = setInterval(() => {
+      if (!isPaused) {
+        setCurrentIndex((prev) => (prev + 1) % products.length)
+      }
+    }, AUTO_SLIDE_DELAY)
+  }, [products.length, categoryId, isPaused, AUTO_SLIDE_DELAY])
+
+  const stopAutoSlide = useCallback(() => {
+    if (autoSlideIntervalRef.current) {
+      clearInterval(autoSlideIntervalRef.current)
+      autoSlideIntervalRef.current = null
+    }
+  }, [])
+
+  useEffect(() => {
+    if (products.length > 1 && !categoryId) {
+      startAutoSlide()
+    } else {
+      stopAutoSlide()
+    }
+
+    return () => stopAutoSlide()
+  }, [products.length, categoryId, startAutoSlide, stopAutoSlide])
+
+
+  // Navigation functions
+  const goToPrevious = () => {
+    setCurrentIndex((prev) => (prev - 1 + products.length) % products.length)
+  }
+
+  const goToNext = () => {
+    setCurrentIndex((prev) => (prev + 1) % products.length)
+  }
+
+  // Touch handling for mobile
+  const handleTouchStart = (e: React.TouchEvent) => {
+    touchStartRef.current = e.touches[0].clientX
+  }
+
+  const handleTouchMove = (e: React.TouchEvent) => {
+    touchEndRef.current = e.touches[0].clientX
+  }
+
+  const handleTouchEnd = () => {
+    if (!touchStartRef.current || !touchEndRef.current) return
+
+    const distance = touchStartRef.current - touchEndRef.current
+    const isLeftSwipe = distance > 50
+    const isRightSwipe = distance < -50
+
+    if (isLeftSwipe) {
+      goToNext()
+    } else if (isRightSwipe) {
+      goToPrevious()
+    }
+
+    touchStartRef.current = null
+    touchEndRef.current = null
+  }
+
+  // Pause/resume on hover for desktop
+  const handleMouseEnter = () => {
+    setIsPaused(true)
+  }
+
+  const handleMouseLeave = () => {
+    setIsPaused(false)
+  }
+
+  // Loading state
+  if (loading) {
+    return (
+      <section className="py-10 sm:py-16">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center mb-8 sm:mb-12">
+            <div className="animate-pulse">
+              <div className="h-8 bg-gray-200 rounded-lg w-64 mx-auto mb-4"></div>
+              <div className="h-4 bg-gray-200 rounded w-96 mx-auto"></div>
+            </div>
+          </div>
+          <div className="animate-pulse">
+            <div className="aspect-[16/9] bg-gray-200 rounded-2xl"></div>
+          </div>
+        </div>
+      </section>
+    )
+  }
+
+  // Don't show if no products or only one product with category filter
+  if (products.length === 0 || (categoryId && selectedCategoryProduct === null)) {
+    return null
+  }
+
+  const currentProduct = selectedCategoryProduct || products[currentIndex]
+  const categoryName = currentProduct.categories[0]?.name || 'Genel'
+  const showSliderControls = products.length > 1 && !categoryId
+
+  return (
+    <section className="py-10 sm:py-16">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        {/* Header */}
+        <motion.div
+          className="text-center mb-8 sm:mb-12"
+          initial={{ opacity: 0, y: 30 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.8 }}
+          viewport={{ once: true }}
+        >
+          <div className="inline-block bg-gradient-to-r from-rose-500 to-pink-500 text-white px-4 py-2 rounded-full text-sm font-medium mb-4 shadow-lg">
+            ⭐ Haftanın Seçimi
+          </div>
+          <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold mb-4 bg-gradient-to-r from-rose-600 to-purple-600 bg-clip-text text-transparent">
+            {categoryName} Kategorisinde Özenle Seçilmiş
+          </h2>
+          <p className="text-lg sm:text-xl text-gray-600 max-w-3xl mx-auto mb-6">
+            Her hafta farklı kategorilerden el yapımı hediyelerimizle tanışın
+          </p>
+          
+          {/* İpucu Bandı */}
+          <motion.div
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5, delay: 0.3 }}
+            className="inline-block bg-gradient-to-r from-amber-50 to-yellow-50 border border-amber-200/60 rounded-xl p-4 shadow-sm"
+          >
+            <div className="flex items-center justify-center gap-3 text-amber-800">
+              <motion.div
+                animate={{
+                  rotate: [0, 10, -10, 0],
+                  scale: [1, 1.1, 1]
+                }}
+                transition={{
+                  duration: 2,
+                  repeat: Infinity,
+                  repeatDelay: 3
+                }}
+              >
+                <LightBulbIcon className="w-5 h-5 text-amber-500" />
+              </motion.div>
+              <p className="text-sm font-medium text-center leading-relaxed">
+                Her kategorinin kendine özel bir <span className="font-semibold text-amber-900">haftanın seçimi</span> var!
+                İlham almak için kategoriye tıklayın ve özenle seçilmiş el yapımı hediyemizi keşfedin.
+              </p>
+            </div>
+          </motion.div>
+        </motion.div>
+
+        {/* Slider Container */}
+        <div
+          className="relative"
+          onMouseEnter={handleMouseEnter}
+          onMouseLeave={handleMouseLeave}
+          onTouchStart={handleTouchStart}
+          onTouchMove={handleTouchMove}
+          onTouchEnd={handleTouchEnd}
+        >
+          {/* Main Slider */}
+          <div className="relative overflow-hidden rounded-2xl bg-white shadow-xl border border-gray-100">
+            <AnimatePresence mode="wait">
+              <motion.div
+                key={categoryId ? currentProduct.id : currentIndex}
+                initial={{ opacity: 0, x: 300 }}
+                animate={{ opacity: 1, x: 0 }}
+                exit={{ opacity: 0, x: -300 }}
+                transition={{ duration: 0.5, ease: "easeInOut" }}
+                className="aspect-[16/8] md:aspect-[16/7]"
+              >
+                <div className="grid grid-cols-1 lg:grid-cols-2 h-full">
+                  {/* Image Section */}
+                  <div className="relative overflow-hidden">
+                    <Image
+                      src={currentProduct.images[0] || '/placeholder-product.svg'}
+                      alt={currentProduct.name}
+                      fill
+                      className="object-cover"
+                      sizes="(min-width:1024px) 50vw, 100vw"
+                    />
+
+                    {/* Category Badge */}
+                    <div className="absolute top-4 left-4">
+                      <span className="bg-white/90 backdrop-blur-sm text-rose-700 px-3 py-1.5 rounded-full text-xs font-semibold shadow-lg">
+                        {categoryName}
+                      </span>
+                    </div>
+
+                    {/* "Bu Hafta Özel" Badge */}
+                    <div className="absolute top-4 right-4">
+                      <span className="bg-gradient-to-r from-rose-500 to-pink-500 text-white px-3 py-1.5 rounded-full text-xs font-bold shadow-lg">
+                        Bu Hafta Özel
+                      </span>
+                    </div>
+                  </div>
+
+                  {/* Content Section */}
+                  <div className="flex flex-col justify-center p-4 lg:p-6 bg-gradient-to-br from-white via-rose-50 to-pink-50 relative overflow-hidden">
+                    {/* Background decorative elements */}
+                    <div className="absolute top-3 right-3 w-6 h-6 bg-rose-200/30 rounded-full blur-sm animate-pulse"></div>
+                    <div className="absolute bottom-6 left-6 w-5 h-5 bg-pink-200/40 rounded-full blur-sm animate-pulse delay-1000"></div>
+                    <div className="absolute top-1/2 left-3 w-3 h-3 bg-purple-200/30 rounded-full blur-sm animate-pulse delay-500"></div>
+
+                    <div className="relative z-10">
+                      {/* Rating Stars */}
+                      <div className="flex items-center gap-1 mb-2">
+                        {[...Array(5)].map((_, i) => (
+                          <motion.div
+                            key={i}
+                            initial={{ opacity: 0, scale: 0 }}
+                            animate={{ opacity: 1, scale: 1 }}
+                            transition={{ delay: i * 0.1, duration: 0.3 }}
+                          >
+                            <Star className="w-3 h-3 text-yellow-400 fill-current" />
+                          </motion.div>
+                        ))}
+                        <span className="text-xs text-gray-600 ml-2 font-medium">4.9/5</span>
+                      </div>
+
+                      {/* Campaign badges */}
+                      <div className="flex flex-wrap gap-2 mb-4">
+                        <motion.span
+                          initial={{ opacity: 0, y: 20 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          transition={{ delay: 0.2, duration: 0.4 }}
+                          className="bg-gradient-to-r from-orange-400 to-red-500 text-white px-3 py-1 rounded-full text-xs font-bold shadow-lg"
+                        >
+                          🎉 Bu Haftanın En Popüler Ürünü
+                        </motion.span>
+                        <motion.span
+                          initial={{ opacity: 0, y: 20 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          transition={{ delay: 0.4, duration: 0.4 }}
+                          className="bg-gradient-to-r from-purple-500 to-pink-500 text-white px-3 py-1 rounded-full text-xs font-bold shadow-lg"
+                        >
+                          ✨ Özenle Seçildi
+                        </motion.span>
+                        <motion.span
+                          initial={{ opacity: 0, y: 20 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          transition={{ delay: 0.6, duration: 0.4 }}
+                          className="bg-gradient-to-r from-green-500 to-emerald-600 text-white px-3 py-1 rounded-full text-xs font-bold shadow-lg animate-pulse"
+                        >
+                          🔥 Sınırlı Stok
+                        </motion.span>
+                      </div>
+
+                      {/* Product Name */}
+                      <motion.h3
+                        className="text-lg lg:text-xl font-bold text-gray-900 mb-2 leading-tight"
+                        initial={{ opacity: 0, x: -20 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        transition={{ delay: 0.3, duration: 0.5 }}
+                      >
+                        {currentProduct.name}
+                      </motion.h3>
+
+                      {/* Product Description */}
+                      <motion.p
+                        className="text-gray-600 text-sm mb-4 leading-relaxed"
+                        initial={{ opacity: 0, x: -20 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        transition={{ delay: 0.5, duration: 0.5 }}
+                      >
+                        El yapımı özel tasarım. Her detay özenle işlendi. Kalite ve zarafet bir arada.
+                      </motion.p>
+
+                      {/* Special campaign highlight */}
+                      <motion.div
+                        className="bg-gradient-to-r from-rose-100 to-pink-100 border-2 border-rose-300 rounded-xl p-3 mb-4"
+                        initial={{ opacity: 0, scale: 0.9 }}
+                        animate={{ opacity: 1, scale: 1 }}
+                        transition={{ delay: 0.7, duration: 0.4 }}
+                      >
+                        <div className="flex items-center gap-2 text-rose-700 font-semibold text-sm">
+                          <span className="text-lg">💝</span>
+                          <span>Özel El Yapımı Tasarım</span>
+                        </div>
+                      </motion.div>
+
+                      {/* Price */}
+                      <motion.div
+                        className="text-xl lg:text-2xl font-bold bg-gradient-to-r from-rose-600 to-purple-600 bg-clip-text text-transparent mb-3"
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ delay: 0.6, duration: 0.5 }}
+                      >
+                        {formatCurrency(currentProduct.price)}
+                      </motion.div>
+
+                      {/* Action Buttons */}
+                      <motion.div
+                        className="flex flex-col sm:flex-row gap-2"
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ delay: 0.8, duration: 0.5 }}
+                      >
+                        <Link
+                          href={`/products/${currentProduct.slug}`}
+                          className="flex-1 min-w-[120px] bg-gradient-to-r from-rose-500 to-pink-500 hover:from-rose-600 hover:to-pink-600 text-white px-3 py-2.5 rounded-lg font-semibold text-center transition-all duration-300 transform hover:scale-105 shadow-lg hover:shadow-xl relative overflow-hidden group flex items-center justify-center"
+                        >
+                          <span className="relative z-10">Ürünü İncele</span>
+                          <div className="absolute inset-0 bg-gradient-to-r from-pink-600 to-purple-600 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+                        </Link>
+                        <Link
+                          href={`/categories/${currentProduct.categories[0]?.slug}`}
+                          className="flex-1 min-w-[120px] bg-white border-2 border-rose-500 text-rose-600 hover:bg-rose-50 px-3 py-2.5 rounded-lg font-semibold text-center transition-all duration-300 relative overflow-hidden group flex items-center justify-center"
+                        >
+                          <span className="relative z-10">Kategoriyi Keşfet</span>
+                          <div className="absolute inset-0 bg-rose-50 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+                        </Link>
+                      </motion.div>
+                    </div>
+                  </div>
+                </div>
+              </motion.div>
+            </AnimatePresence>
+          </div>
+
+          {/* Navigation Arrows - Desktop (only when multiple products) */}
+          <div className="hidden md:block">
+            {showSliderControls && (
+              <>
+                <button
+                  onClick={goToPrevious}
+                  className="absolute left-4 top-1/2 -translate-y-1/2 w-12 h-12 bg-white/90 backdrop-blur-sm rounded-full shadow-lg hover:shadow-xl transition-all duration-300 flex items-center justify-center text-rose-600 hover:text-rose-700 hover:scale-110 z-10"
+                  aria-label="Önceki ürün"
+                >
+                  <ChevronLeftIcon className="w-6 h-6" />
+                </button>
+                <button
+                  onClick={goToNext}
+                  className="absolute right-4 top-1/2 -translate-y-1/2 w-12 h-12 bg-white/90 backdrop-blur-sm rounded-full shadow-lg hover:shadow-xl transition-all duration-300 flex items-center justify-center text-rose-600 hover:text-rose-700 hover:scale-110 z-10"
+                  aria-label="Sonraki ürün"
+                >
+                  <ChevronRightIcon className="w-6 h-6" />
+                </button>
+              </>
+            )}
+          </div>
+
+
+          {/* Dots Indicator (only when multiple products) */}
+          {showSliderControls && (
+            <div className="flex justify-center mt-3 space-x-2">
+              {products.map((_, index) => (
+                <button
+                  key={index}
+                  onClick={() => setCurrentIndex(index)}
+                  className={`w-2.5 h-2.5 rounded-full transition-all duration-300 ${
+                    index === currentIndex
+                      ? 'bg-rose-500 scale-125'
+                      : 'bg-gray-300 hover:bg-gray-400'
+                  }`}
+                  aria-label={`${index + 1}. ürüne git`}
+                />
+              ))}
+            </div>
+          )}
+        </div>
+
+      </div>
+    </section>
+  )
+}
