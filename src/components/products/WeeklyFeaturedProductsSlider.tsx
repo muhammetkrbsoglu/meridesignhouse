@@ -231,7 +231,7 @@ export function WeeklyFeaturedProductsSlider({ categoryId }: WeeklyFeaturedProdu
 
         {/* Slider Container */}
         <div
-          className="relative"
+          className="relative px-4 sm:px-6 lg:px-8"
           onMouseEnter={handleMouseEnter}
           onMouseLeave={handleMouseLeave}
           onTouchStart={handleTouchStart}

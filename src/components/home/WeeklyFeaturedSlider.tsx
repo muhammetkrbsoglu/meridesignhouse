@@ -191,7 +191,7 @@ export function WeeklyFeaturedSlider() {
 
         {/* Slider Container */}
         <div
-          className="relative"
+          className="relative px-4 sm:px-6 lg:px-8"
           onMouseEnter={handleMouseEnter}
           onMouseLeave={handleMouseLeave}
           onTouchStart={handleTouchStart}
