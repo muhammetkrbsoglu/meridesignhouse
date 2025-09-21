@@ -3,6 +3,7 @@
 import { useState, useEffect, useRef, useCallback } from 'react'
 import { motion, AnimatePresence, useReducedMotion, PanInfo } from 'framer-motion'
 import { XMarkIcon, MagnifyingGlassIcon } from '@heroicons/react/24/outline'
+import Image from 'next/image'
 import { cn } from '@/lib/utils'
 import { SearchAutocomplete } from './SearchAutocomplete'
 import { formatPrice } from '@/lib/utils'
@@ -16,6 +17,7 @@ interface SearchSheetModalProps {
 export function SearchSheetModal({ isOpen, onClose, initialQuery }: SearchSheetModalProps) {
   const [searchQuery, setSearchQuery] = useState(initialQuery || '')
   const [viewportHeight, setViewportHeight] = useState('100vh')
+  const [keyboardOffset, setKeyboardOffset] = useState(0)
   const [realTimeResults, setRealTimeResults] = useState<any[]>([])
   const [isLoadingResults, setIsLoadingResults] = useState(false)
   const shouldReduceMotion = useReducedMotion()
@@ -67,6 +69,9 @@ export function SearchSheetModal({ isOpen, onClose, initialQuery }: SearchSheetM
     setSearchQuery(query)
     if (query.length >= 2) {
       setIsLoadingResults(true)
+    } else {
+      setIsLoadingResults(false)
+      setRealTimeResults([])
     }
   }, [])
 
@@ -78,55 +83,43 @@ export function SearchSheetModal({ isOpen, onClose, initialQuery }: SearchSheetM
 
   // Handle viewport height changes for keyboard
   useEffect(() => {
-    const updateViewportHeight = () => {
-      // Use visual viewport if available (accounts for keyboard)
-      if (typeof window !== 'undefined' && window.visualViewport) {
-        const height = window.visualViewport.height
+    const updateViewportMetrics = () => {
+      if (typeof window === 'undefined') return
+
+      if (window.visualViewport) {
+        const { height, offsetTop } = window.visualViewport
+        const layoutHeight = window.innerHeight
+        const offset = Math.max(0, layoutHeight - height - offsetTop)
+
         setViewportHeight(`${height}px`)
+        setKeyboardOffset(offset)
       } else {
         // Fallback for browsers without visual viewport support
         setViewportHeight('100vh')
+        setKeyboardOffset(0)
       }
     }
 
-    if (typeof window !== 'undefined') {
-      // Initial height
-      updateViewportHeight()
+    updateViewportMetrics()
 
-      // Listen for viewport changes
+    if (typeof window !== 'undefined') {
       if (window.visualViewport) {
-        window.visualViewport.addEventListener('resize', updateViewportHeight)
-        window.visualViewport.addEventListener('scroll', updateViewportHeight)
+        window.visualViewport.addEventListener('resize', updateViewportMetrics)
+        window.visualViewport.addEventListener('scroll', updateViewportMetrics)
       } else {
-        window.addEventListener('resize', updateViewportHeight)
+        window.addEventListener('resize', updateViewportMetrics)
       }
 
       return () => {
         if (window.visualViewport) {
-          window.visualViewport.removeEventListener('resize', updateViewportHeight)
-          window.visualViewport.removeEventListener('scroll', updateViewportHeight)
+          window.visualViewport.removeEventListener('resize', updateViewportMetrics)
+          window.visualViewport.removeEventListener('scroll', updateViewportMetrics)
         } else {
-          window.removeEventListener('resize', updateViewportHeight)
+          window.removeEventListener('resize', updateViewportMetrics)
         }
       }
     }
   }, [])
-
-  // Focus management for accessibility
-  useEffect(() => {
-    if (isOpen && sheetRef.current) {
-      const firstFocusableElement = sheetRef.current.querySelector(
-        'input, button, [tabindex]:not([tabindex="-1"])'
-      ) as HTMLElement
-
-      if (firstFocusableElement) {
-        // 100ms delay to allow keyboard to appear on mobile
-        setTimeout(() => {
-          firstFocusableElement.focus()
-        }, 100)
-      }
-    }
-  }, [isOpen])
 
   return (
     <AnimatePresence>
@@ -182,7 +175,7 @@ export function SearchSheetModal({ isOpen, onClose, initialQuery }: SearchSheetM
               'supports-[backdrop-filter]:bg-white/90',
               'shadow-2xl'
             )}
-            style={{ height: viewportHeight }}
+            style={{ height: viewportHeight, paddingBottom: keyboardOffset }}
             role="dialog"
             aria-modal="true"
             aria-labelledby="search-modal-title"
@@ -246,71 +239,97 @@ export function SearchSheetModal({ isOpen, onClose, initialQuery }: SearchSheetM
               </div>
 
               {/* Real-time Results Grid */}
-              <div className="flex-1 overflow-y-auto pb-safe">
-                {isLoadingResults && searchQuery.length >= 2 && (
-                  <div className="p-4 text-center text-gray-500">
-                    <div className="mx-auto h-6 w-6 animate-spin rounded-full border-b-2 border-blue-500" />
-                    <span className="sr-only">Arama yapılıyor</span>
-                  </div>
-                )}
+              <div className="flex-1 overflow-y-auto pb-safe" style={{ paddingBottom: keyboardOffset }}>
+                <AnimatePresence initial={false} mode="popLayout">
+                  {isLoadingResults && searchQuery.length >= 2 && (
+                    <motion.div
+                      key="loading"
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: 1 }}
+                      exit={{ opacity: 0 }}
+                      transition={{ duration: 0.2 }}
+                      className="p-4 text-center text-gray-500"
+                    >
+                      <div className="mx-auto h-6 w-6 animate-spin rounded-full border-b-2 border-blue-500" />
+                      <span className="sr-only">Arama yapılıyor</span>
+                    </motion.div>
+                  )}
 
-                {!isLoadingResults && realTimeResults.length > 0 && (
-                  <div className="p-4">
-                    <div className="grid grid-cols-2 gap-3">
-                      {realTimeResults.slice(0, 4).map((result, index) => (
-                        <div
-                          key={`${result.type}-${result.id}-${index}`}
-                          className="bg-white rounded-lg border border-gray-200 p-3 hover:border-rose-300 transition-colors"
-                        >
-                          {result.image && (
-                            <div className="aspect-square mb-2 overflow-hidden rounded-md bg-gray-100">
-                              <Image
-                                src={result.image}
-                                alt={result.name}
-                                width={100}
-                                height={100}
-                                className="w-full h-full object-cover"
-                              />
-                            </div>
-                          )}
-                          <h3 className="text-sm font-medium text-gray-900 line-clamp-2 mb-1">
-                            {result.name}
-                          </h3>
-                          <div className="flex items-center justify-between">
-                            <span className="text-xs bg-blue-100 text-blue-800 px-2 py-0.5 rounded-full">
-                              {result.type === 'product' ? 'Ürün' : result.type === 'category' ? 'Kategori' : 'Set'}
-                            </span>
-                            {result.price && (
-                              <span className="text-sm font-bold text-rose-600">
-                                {formatPrice(result.price)}
-                              </span>
+                  {!isLoadingResults && realTimeResults.length > 0 && (
+                    <motion.div
+                      key="results"
+                      initial={{ opacity: 0, y: 12 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      exit={{ opacity: 0, y: 12 }}
+                      transition={{ duration: 0.25 }}
+                      className="p-4"
+                    >
+                      <div className="grid grid-cols-2 gap-3">
+                        {realTimeResults.slice(0, 4).map((result, index) => (
+                          <motion.div
+                            key={`${result.type}-${result.id}-${index}`}
+                            initial={{ opacity: 0, y: 8 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            transition={{ duration: 0.2, delay: index * 0.04 }}
+                            className="bg-white rounded-lg border border-gray-200 p-3 hover:border-rose-300 transition-colors"
+                          >
+                            {result.image && (
+                              <div className="aspect-square mb-2 overflow-hidden rounded-md bg-gray-100">
+                                <Image
+                                  src={result.image}
+                                  alt={result.name}
+                                  width={100}
+                                  height={100}
+                                  className="w-full h-full object-cover"
+                                />
+                              </div>
                             )}
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                    {realTimeResults.length > 4 && (
-                      <div className="text-center mt-4">
-                        <button
-                          onClick={() => handleSearch(searchQuery)}
-                          className="text-sm text-rose-600 hover:text-rose-800 font-medium"
-                        >
-                          +{realTimeResults.length - 4} sonuç daha göster
-                        </button>
+                            <h3 className="text-sm font-medium text-gray-900 line-clamp-2 mb-1">
+                              {result.name}
+                            </h3>
+                            <div className="flex items-center justify-between">
+                              <span className="text-xs bg-blue-100 text-blue-800 px-2 py-0.5 rounded-full">
+                                {result.type === 'product' ? 'Ürün' : result.type === 'category' ? 'Kategori' : 'Set'}
+                              </span>
+                              {result.price && (
+                                <span className="text-sm font-bold text-rose-600">
+                                  {formatPrice(result.price)}
+                                </span>
+                              )}
+                            </div>
+                          </motion.div>
+                        ))}
                       </div>
-                    )}
-                  </div>
-                )}
+                      {realTimeResults.length > 4 && (
+                        <div className="text-center mt-4">
+                          <button
+                            onClick={() => handleSearch(searchQuery)}
+                            className="text-sm text-rose-600 hover:text-rose-800 font-medium"
+                          >
+                            +{realTimeResults.length - 4} sonuç daha göster
+                          </button>
+                        </div>
+                      )}
+                    </motion.div>
+                  )}
 
-                {!isLoadingResults && searchQuery.length >= 2 && realTimeResults.length === 0 && (
-                  <div className="p-8 text-center text-gray-500">
-                    <div className="mx-auto mb-2 h-8 w-8 text-gray-300" />
-                    <p className="text-sm">
-                      &ldquo;<span className="font-medium">{searchQuery}</span>&rdquo; için sonuç bulunamadı
-                    </p>
-                    <p className="mt-1 text-xs">Farklı anahtar kelimeler deneyebilirsiniz</p>
-                  </div>
-                )}
+                  {!isLoadingResults && searchQuery.length >= 2 && realTimeResults.length === 0 && (
+                    <motion.div
+                      key="empty"
+                      initial={{ opacity: 0, y: 12 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      exit={{ opacity: 0, y: 12 }}
+                      transition={{ duration: 0.2 }}
+                      className="p-8 text-center text-gray-500"
+                    >
+                      <div className="mx-auto mb-2 h-8 w-8 text-gray-300" />
+                      <p className="text-sm">
+                        &ldquo;<span className="font-medium">{searchQuery}</span>&rdquo; için sonuç bulunamadı
+                      </p>
+                      <p className="mt-1 text-xs">Farklı anahtar kelimeler deneyebilirsiniz</p>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
               </div>
             </div>
           </motion.div>

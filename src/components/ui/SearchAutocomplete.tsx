@@ -19,6 +19,9 @@ interface SearchAutocompleteProps {
   footerContent?: ReactNode
   onNavigate?: () => void
   isOpen?: boolean
+  onQueryChange?: (query: string) => void
+  showRealTimeResults?: boolean
+  onRealTimeResults?: (results: SearchSuggestion[]) => void
 }
 
 export function SearchAutocomplete({
@@ -29,7 +32,10 @@ export function SearchAutocomplete({
   maxSuggestions,
   footerContent,
   onNavigate,
-  isOpen: externalIsOpen
+  isOpen: externalIsOpen,
+  onQueryChange,
+  showRealTimeResults = false,
+  onRealTimeResults
 }: SearchAutocompleteProps) {
   const router = useRouter()
   const [query, setQuery] = useState('')
@@ -56,6 +62,12 @@ export function SearchAutocomplete({
   const inputRef = useRef<HTMLInputElement>(null)
   const listboxId = 'search-suggestions'
 
+  const updateQuery = (value: string) => {
+    setQuery(value)
+    if (onQueryChange) {
+      onQueryChange(value)
+    }
+  }
 
   const limitedSuggestions = typeof maxSuggestions === 'number' && maxSuggestions >= 0
     ? suggestions.slice(0, maxSuggestions)
@@ -125,6 +137,16 @@ export function SearchAutocomplete({
     fetchSuggestions()
   }, [debouncedQuery])
 
+  useEffect(() => {
+    if (!showRealTimeResults || !onRealTimeResults) return
+
+    if (debouncedQuery.length >= 2) {
+      onRealTimeResults(suggestions)
+    } else {
+      onRealTimeResults([])
+    }
+  }, [showRealTimeResults, onRealTimeResults, suggestions, debouncedQuery])
+
   // Close dropdown when clicking outside
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -148,7 +170,7 @@ export function SearchAutocomplete({
 
     router.push(`/products?query=${encodeURIComponent(searchQuery)}`)
     setIsOpen(false)
-    setQuery('')
+    updateQuery('')
 
     if (onSearch) {
       onSearch(searchQuery)
@@ -164,14 +186,14 @@ export function SearchAutocomplete({
       router.push(`/bundles/${suggestion.slug}`)
     }
     setIsOpen(false)
-    setQuery('')
+    updateQuery('')
     if (onNavigate) {
       onNavigate()
     }
   }
 
   const handleRecentSearchClick = (search: string) => {
-    setQuery(search)
+    updateQuery(search)
     handleSearch(search)
   }
 
@@ -205,7 +227,7 @@ export function SearchAutocomplete({
           ref={inputRef}
           type="text"
           value={query}
-          onChange={(event) => setQuery(event.target.value)}
+          onChange={(event) => updateQuery(event.target.value)}
           onFocus={() => setIsOpen(true)}
           onKeyDown={handleKeyDown}
           placeholder={placeholder}
@@ -219,7 +241,7 @@ export function SearchAutocomplete({
           {query && (
             <button
               onClick={() => {
-                setQuery('')
+                updateQuery('')
                 setSuggestions([])
                 setLoadError(null)
                 inputRef.current?.focus()
