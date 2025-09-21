@@ -1,4 +1,6 @@
-﻿export interface CartProductCategory {
+﻿import type { PersonalizationPayload } from './personalization'
+
+export interface CartProductCategory {
   name: string
 }
 
@@ -48,6 +50,7 @@ export interface CartItem {
   createdAt: string
   updatedAt: string
   product: CartProduct
+  personalization?: PersonalizationPayload | null
   variant?: CartItemVariant | null
 }
 

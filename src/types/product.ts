@@ -2,6 +2,7 @@
 // Bu dosya tüm product ile ilgili tipleri içerir ve tutarlılığı sağlar
 
 import { Decimal } from '@prisma/client/runtime/library';
+import type { PersonalizationConfig } from './personalization';
 
 // Temel Category tipi
 export interface Category {
@@ -96,6 +97,7 @@ export interface BaseProduct {
   isNewArrival?: boolean;
   isProductOfWeek?: boolean;
   productOfWeekCategoryId?: string | null;
+  isPersonalizable?: boolean;
   weight?: number | null;
   dimensions?: string | null;
   categoryId: string;
@@ -111,6 +113,7 @@ export interface ProductWithCategory extends BaseProduct {
   product_images?: ProductImage[];
   options?: ProductOption[];
   variants?: ProductVariant[];
+  personalizationConfig?: PersonalizationConfig | null;
 }
 
 export interface ProductWithVariants extends ProductWithCategory {
@@ -129,6 +132,7 @@ export interface AdminProduct extends BaseProduct {
   images?: ProductImage[];
   options?: ProductOption[];
   variants?: ProductVariant[];
+  personalizationConfig?: PersonalizationConfig | null;
 }
 
 // Component'lar için basitleştirilmiş Product tipi
@@ -211,6 +215,7 @@ export interface SupabaseProductResult {
   price: number | { toString(): string };
   gallery: string[]; // Supabase'deki gerçek field adı
   is_active?: boolean; // Supabase'deki gerçek field adı
+  is_personalizable?: boolean | null;
   created_at?: string; // Supabase'deki gerçek field adı
   category: Category; // Supabase join sonucu object döndürür
 }
@@ -227,6 +232,7 @@ export function convertSupabaseToProductWithCategory(
     price: typeof supabaseProduct.price === 'object' ? parseFloat(supabaseProduct.price.toString()) : supabaseProduct.price,
     images: supabaseProduct.gallery?.map(url => ({ url, alt: null })) || [],
     isActive: supabaseProduct.is_active,
+    isPersonalizable: Boolean(supabaseProduct.is_personalizable),
     createdAt: supabaseProduct.created_at ? new Date(supabaseProduct.created_at) : undefined,
     category: supabaseProduct.category, // Kategori objesi
     categoryId: supabaseProduct.category?.id || '',

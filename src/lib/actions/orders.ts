@@ -4,6 +4,7 @@ import { getSupabaseAdmin } from '@/lib/supabase';
 import { revalidatePath } from 'next/cache';
 import { sendOrderConfirmation, sendOrderStatusUpdate } from '@/lib/whatsapp';
 import { formatPhoneForWhatsApp, isValidTurkishPhone } from '@/lib/whatsapp-utils';
+import type { PersonalizationPayload } from '@/types/personalization';
 
 export interface Order {
   id: string;
@@ -62,6 +63,7 @@ export interface OrderItem {
   productId: string;
   quantity: number;
   price: number;
+  personalization?: PersonalizationPayload | null;
   product: {
     id: string;
     name: string;
@@ -219,7 +221,8 @@ export async function createOrderFromCart(checkoutData: CheckoutData) {
       orderId: order.id,
       productId: item.productId,
       quantity: item.quantity,
-      price: item.product.price
+      price: item.product.price,
+      personalization: item.personalization ?? null,
     }));
 
     const { error: itemsError } = await adminSupabase

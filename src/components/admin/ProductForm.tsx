@@ -1,6 +1,6 @@
 'use client'
 
-import { useCallback, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
@@ -23,8 +23,10 @@ import { Badge } from '@/components/ui/badge'
 import { ImageKitUpload } from '@/components/ui/imagekit-upload'
 import { ImageKitImage } from '@/components/ui/imagekit-image'
 import { PRODUCT_TEMPLATES, type ProductTemplate, type ProductOptionTemplate } from '@/config/productTemplates'
+import { PERSONALIZATION_CATALOG_TEMPLATES } from '@/config/personalizationCatalog'
 import { createProduct, updateProduct } from '@/lib/actions/products'
 import type { ProductWithVariants, ProductVariant } from '@/types/product'
+import type { PersonalizationFieldType, PersonalizationFieldOption, PersonalizationCatalogTemplate } from '@/types/personalization'
 import { cn } from '@/lib/utils'
 import { Plus, X, ImagePlus, ShieldCheck, Sparkles } from 'lucide-react'
 
@@ -98,6 +100,30 @@ type VariantBuilderState = {
   variants: BuilderVariant[]
   sharedImages: BuilderImageInput[]
   defaultVariantId?: string
+}
+
+type PersonalizationFieldBuilder = {
+  id: string
+  key: string
+  label: string
+  type: PersonalizationFieldType
+  placeholder?: string
+  helperText?: string
+  isRequired: boolean
+  sortOrder: number
+  options?: PersonalizationFieldOption[]
+  metadata?: Record<string, any> | null
+}
+
+type PersonalizationBuilderState = {
+  enabled: boolean
+  requireCompletion: boolean
+  stepCount: number
+  fields: PersonalizationFieldBuilder[]
+  settings: {
+    catalogTemplates: PersonalizationCatalogTemplate[]
+    requireCatalogBeforeSize: boolean
+  }
 }
 
 type UploadedAsset = {
@@ -277,6 +303,134 @@ const deriveBuilderStateFromProduct = (product?: ProductWithVariants | null): Va
   }
 }
 
+const DEFAULT_TAG_SIZE_OPTIONS: PersonalizationFieldOption[] = [
+  { value: '50x50', label: '5 x 5 cm' },
+  { value: '60x60', label: '6 x 6 cm' },
+  { value: '80x50', label: '8 x 5 cm' },
+  { value: '80x60', label: '8 x 6 cm' },
+  { value: '90x50', label: '9 x 5 cm' },
+]
+
+type PersonalizationFieldPreset = {
+  key: string
+  label: string
+  type: PersonalizationFieldType
+  placeholder?: string
+  helperText?: string
+  isRequired?: boolean
+  options?: PersonalizationFieldOption[]
+  metadata?: Record<string, any> | null
+}
+
+const PERSONALIZATION_FIELD_PRESETS: PersonalizationFieldPreset[] = [
+  {
+    key: 'names',
+    label: 'İsimler',
+    type: 'text',
+    placeholder: 'Örn. Ali & Ayşe',
+    helperText: 'Etiket üzerinde yer alacak isimleri yazın.',
+    isRequired: true,
+  },
+  {
+    key: 'eventDate',
+    label: 'Tarih',
+    type: 'date',
+    helperText: 'Etkinlik tarihini seçin.',
+    isRequired: false,
+  },
+  {
+    key: 'tagSize',
+    label: 'Etiket Boyutu',
+    type: 'select',
+    helperText: 'Etiket ölçüsünü seçin.',
+    isRequired: true,
+    options: DEFAULT_TAG_SIZE_OPTIONS,
+  },
+  {
+    key: 'tagTemplate',
+    label: 'Etiket Tasarımı',
+    type: 'catalog',
+    helperText: 'Müşteri kataloğu açarak tasarım seçimini yapacak.',
+    isRequired: true,
+    metadata: {
+      catalogPreview: true,
+    },
+  },
+  {
+    key: 'extraText',
+    label: 'Ek Metin',
+    type: 'text',
+    placeholder: 'Örn. Nişan Hatırası',
+    helperText: 'Etikete eklenecek kısa bir ifade.',
+    isRequired: false,
+  },
+  {
+    key: 'note',
+    label: 'Üretim Notu',
+    type: 'textarea',
+    placeholder: 'Üretim notları veya özel istekler',
+    helperText: 'Müşteri ek not bırakabilir.',
+    isRequired: false,
+  },
+]
+
+const createPersonalizationField = (preset: PersonalizationFieldPreset, sortOrder: number): PersonalizationFieldBuilder => ({
+  id: crypto.randomUUID(),
+  key: preset.key,
+  label: preset.label,
+  type: preset.type,
+  placeholder: preset.placeholder,
+  helperText: preset.helperText,
+  isRequired: preset.isRequired ?? false,
+  sortOrder,
+  options: preset.options ? preset.options.map((option) => ({ ...option })) : undefined,
+  metadata: preset.metadata ?? null,
+})
+
+const createBlankPersonalizationState = (): PersonalizationBuilderState => ({
+  enabled: false,
+  requireCompletion: true,
+  stepCount: 2,
+  fields: [],
+  settings: {
+    catalogTemplates: PERSONALIZATION_CATALOG_TEMPLATES,
+    requireCatalogBeforeSize: true,
+  },
+})
+
+const derivePersonalizationStateFromProduct = (product?: ProductWithVariants | null): PersonalizationBuilderState => {
+  if (!product?.personalizationConfig) {
+    return createBlankPersonalizationState()
+  }
+
+  const config = product.personalizationConfig
+  const fields: PersonalizationFieldBuilder[] = (config.fields || []).map((field, index) => ({
+    id: field.id || crypto.randomUUID(),
+    key: field.key,
+    label: field.label,
+    type: field.type,
+    placeholder: field.placeholder ?? undefined,
+    helperText: field.helperText ?? undefined,
+    isRequired: Boolean(field.isRequired),
+    sortOrder: field.sortOrder ?? index,
+    options: field.options ? field.options.map((option) => ({ ...option })) : undefined,
+    metadata: field.metadata ?? null,
+  }))
+
+  return {
+    enabled: true,
+    requireCompletion: config.requireCompletion,
+    stepCount: config.stepCount || 2,
+    fields,
+    settings: {
+      catalogTemplates: config.settings?.catalogTemplates?.length
+        ? config.settings.catalogTemplates
+        : PERSONALIZATION_CATALOG_TEMPLATES,
+      requireCatalogBeforeSize: Boolean(config.settings?.requireCatalogBeforeSize ?? true),
+    },
+  }
+}
+
 const buildVariantPayload = (state: VariantBuilderState) => {
   return {
     hasVariants: state.hasVariants,
@@ -326,13 +480,50 @@ const buildVariantPayload = (state: VariantBuilderState) => {
   }
 }
 
-const stepLabels = ['Genel Bilgiler', 'Varyasyonlar', 'Görseller & Yayın']
+const buildPersonalizationPayload = (state: PersonalizationBuilderState) => {
+  return {
+    enabled: state.enabled,
+    requireCompletion: state.requireCompletion,
+    stepCount: state.stepCount,
+    settings: {
+      catalogTemplates: state.settings.catalogTemplates,
+      requireCatalogBeforeSize: state.settings.requireCatalogBeforeSize,
+    },
+    fields: state.fields
+      .slice()
+      .sort((a, b) => (a.sortOrder ?? 0) - (b.sortOrder ?? 0))
+      .map((field, index) => ({
+        id: field.id,
+        key: field.key,
+        label: field.label,
+        type: field.type,
+        placeholder: field.placeholder,
+        helperText: field.helperText,
+        isRequired: field.isRequired,
+        sortOrder: field.sortOrder ?? index,
+        options: field.options,
+        metadata: field.metadata ?? null,
+      })),
+  }
+}
+
+const stepLabels = ['Genel Bilgiler', 'Varyasyonlar', 'Kişiselleştirme', 'Görseller & Yayın']
 
 export function ProductForm({ categories, product }: ProductFormProps) {
   const router = useRouter()
   const initialBuilderState = useMemo(() => deriveBuilderStateFromProduct(product), [product])
+  const initialPersonalizationState = useMemo(() => derivePersonalizationStateFromProduct(product), [product])
   const [builderState, setBuilderState] = useState<VariantBuilderState>(initialBuilderState)
+  const [personalizationState, setPersonalizationState] = useState<PersonalizationBuilderState>(initialPersonalizationState)
   const [activeStep, setActiveStep] = useState(0)
+
+  useEffect(() => {
+    setBuilderState(initialBuilderState)
+  }, [initialBuilderState])
+
+  useEffect(() => {
+    setPersonalizationState(initialPersonalizationState)
+  }, [initialPersonalizationState])
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [success, setSuccess] = useState<string | null>(null)
@@ -372,6 +563,148 @@ export function ProductForm({ categories, product }: ProductFormProps) {
   const hasVariants = builderState.hasVariants
 
   const categoryOptions = useMemo(() => categories.map((category) => ({ label: category.name, value: category.id })), [categories])
+
+  const handleTogglePersonalizationEnabled = useCallback((checked: boolean) => {
+    setPersonalizationState((prev) => {
+      if (checked) {
+        if (prev.fields.length === 0) {
+          const defaultKeys = ['tagTemplate', 'tagSize', 'names', 'eventDate', 'extraText']
+          const seededFields: PersonalizationFieldBuilder[] = []
+          defaultKeys.forEach((key) => {
+            if (seededFields.find((field) => field.key === key)) return
+            const preset = PERSONALIZATION_FIELD_PRESETS.find((item) => item.key === key)
+            if (preset) {
+              seededFields.push(createPersonalizationField(preset, seededFields.length))
+            }
+          })
+          return {
+            ...prev,
+            enabled: true,
+            fields: seededFields,
+          }
+        }
+        return { ...prev, enabled: true }
+      }
+      return { ...prev, enabled: false }
+    })
+  }, [])
+
+  const handleTogglePersonalizationField = useCallback((key: string, checked: boolean) => {
+    setPersonalizationState((prev) => {
+      if (checked) {
+        if (prev.fields.some((field) => field.key === key)) {
+          return prev
+        }
+        const preset = PERSONALIZATION_FIELD_PRESETS.find((item) => item.key === key)
+        if (!preset) {
+          return prev
+        }
+        const nextField = createPersonalizationField(preset, prev.fields.length)
+        return {
+          ...prev,
+          fields: [...prev.fields, nextField],
+        }
+      }
+
+      return {
+        ...prev,
+        fields: prev.fields
+          .filter((field) => field.key !== key)
+          .map((field, index) => ({ ...field, sortOrder: index })),
+      }
+    })
+  }, [])
+
+  const handleUpdatePersonalizationField = useCallback(
+    (fieldId: string, patch: Partial<PersonalizationFieldBuilder>) => {
+      setPersonalizationState((prev) => ({
+        ...prev,
+        fields: prev.fields.map((field) => (field.id === fieldId ? { ...field, ...patch } : field)),
+      }))
+    },
+  [])
+
+  const handleAddSelectOption = useCallback((fieldId: string) => {
+    setPersonalizationState((prev) => ({
+      ...prev,
+      fields: prev.fields.map((field) => {
+        if (field.id !== fieldId) return field
+        const nextOptions = [...(field.options || []), { value: crypto.randomUUID(), label: 'Yeni seçenek' }]
+        return { ...field, options: nextOptions }
+      }),
+    }))
+  }, [])
+
+  const handleUpdateSelectOption = useCallback(
+    (fieldId: string, index: number, patch: Partial<PersonalizationFieldOption>) => {
+      setPersonalizationState((prev) => ({
+        ...prev,
+        fields: prev.fields.map((field) => {
+          if (field.id !== fieldId) return field
+          const nextOptions = [...(field.options || [])]
+          if (!nextOptions[index]) {
+            return field
+          }
+          nextOptions[index] = { ...nextOptions[index], ...patch }
+          return { ...field, options: nextOptions }
+        }),
+      }))
+    },
+  [])
+
+  const handleRemoveSelectOption = useCallback((fieldId: string, index: number) => {
+    setPersonalizationState((prev) => ({
+      ...prev,
+      fields: prev.fields.map((field) => {
+        if (field.id !== fieldId) return field
+        const nextOptions = (field.options || []).filter((_, optionIndex) => optionIndex !== index)
+        return { ...field, options: nextOptions }
+      }),
+    }))
+  }, [])
+
+  const handleToggleCatalogTemplate = useCallback((template: PersonalizationCatalogTemplate) => {
+    setPersonalizationState((prev) => {
+      const exists = prev.settings.catalogTemplates.some((item) => item.id === template.id)
+      let nextTemplates: PersonalizationCatalogTemplate[]
+      if (exists) {
+        nextTemplates = prev.settings.catalogTemplates.filter((item) => item.id !== template.id)
+        if (nextTemplates.length === 0) {
+          // En az bir şablon kalmalı
+          return prev
+        }
+      } else {
+        nextTemplates = [...prev.settings.catalogTemplates, template]
+      }
+      return {
+        ...prev,
+        settings: {
+          ...prev.settings,
+          catalogTemplates: nextTemplates,
+        },
+      }
+    })
+  }, [])
+
+  const handleSelectAllCatalogTemplates = useCallback(() => {
+    setPersonalizationState((prev) => ({
+      ...prev,
+      settings: {
+        ...prev.settings,
+        catalogTemplates: PERSONALIZATION_CATALOG_TEMPLATES,
+      },
+    }))
+  }, [])
+
+  const handleClearCatalogTemplates = useCallback(() => {
+    setPersonalizationState((prev) => ({
+      ...prev,
+      settings: {
+        ...prev.settings,
+        catalogTemplates: PERSONALIZATION_CATALOG_TEMPLATES.slice(0, 1),
+      },
+    }))
+  }, [])
 
   const applyTemplate = useCallback((template: ProductTemplate) => {
     const optionDrafts: BuilderOption[] = template.optionGroups.map((group, index) => {
@@ -612,6 +945,33 @@ export function ProductForm({ categories, product }: ProductFormProps) {
     }))
   }, [])
 
+  const handleFormKeyDown = useCallback((event: React.KeyboardEvent<HTMLFormElement>) => {
+    if (event.key !== 'Enter') {
+      return
+    }
+
+    const target = event.target as HTMLElement | null
+    if (!target) {
+      return
+    }
+
+    const tagName = target.tagName.toLowerCase()
+
+    if (tagName !== 'input') {
+      return
+    }
+
+    const inputType = (target as HTMLInputElement).type?.toLowerCase()
+    const allowTypes = new Set(['submit', 'button', 'checkbox', 'radio'])
+
+    if (allowTypes.has(inputType)) {
+      return
+    }
+
+    event.preventDefault()
+    event.stopPropagation()
+  }, [])
+
   const goToStep = useCallback(async (nextStep: number) => {
     if (nextStep > activeStep) {
       // basic validation before moving forward
@@ -629,10 +989,16 @@ export function ProductForm({ categories, product }: ProductFormProps) {
           return
         }
       }
+      if (activeStep === 2 && personalizationState.enabled) {
+        if (personalizationState.fields.length === 0) {
+          setError('Kişiselleştirme için en az bir alan seçmelisiniz.')
+          return
+        }
+      }
     }
     setError(null)
     setActiveStep(nextStep)
-  }, [activeStep, trigger, builderState])
+  }, [activeStep, trigger, builderState, personalizationState])
 
   const onSubmit = handleSubmit(async (data) => {
     try {
@@ -660,6 +1026,9 @@ export function ProductForm({ categories, product }: ProductFormProps) {
 
       const variantPayload = buildVariantPayload(builderState)
       formData.append('variantState', JSON.stringify(variantPayload))
+
+      const personalizationPayload = buildPersonalizationPayload(personalizationState)
+      formData.append('personalizationState', JSON.stringify(personalizationPayload))
 
       if (!builderState.hasVariants && builderState.sharedImages.length > 0) {
         formData.append('images', JSON.stringify(builderState.sharedImages))
@@ -1130,6 +1499,270 @@ export function ProductForm({ categories, product }: ProductFormProps) {
     </div>
   )
 
+  const renderPersonalizationStep = () => {
+    const activeFieldKeys = new Set(personalizationState.fields.map((field) => field.key))
+    const sortedFields = personalizationState.fields.slice().sort((a, b) => (a.sortOrder ?? 0) - (b.sortOrder ?? 0))
+    const catalogFieldEnabled = activeFieldKeys.has('tagTemplate')
+    const selectedTemplateIds = new Set(personalizationState.settings.catalogTemplates.map((template) => template.id))
+    const allTemplatesSelected = selectedTemplateIds.size === PERSONALIZATION_CATALOG_TEMPLATES.length
+
+    return (
+      <div className="space-y-6">
+        <Card className="border shadow-sm">
+          <CardHeader className="flex flex-col gap-3 space-y-0 md:flex-row md:items-center md:justify-between">
+            <div>
+              <CardTitle className="text-base font-semibold">Kişiselleştirme Ayarları</CardTitle>
+              <p className="text-xs text-muted-foreground">
+                Müşteriden hangi bilgileri toplayacağınızı belirleyin. Etkinleştirdiğinizde ürün müşteriye iki adımda sunulur.
+              </p>
+            </div>
+            <div className="flex items-center gap-3">
+              <span className="text-xs font-medium text-muted-foreground">Kişiselleştirme</span>
+              <Switch checked={personalizationState.enabled} onCheckedChange={handleTogglePersonalizationEnabled} />
+            </div>
+          </CardHeader>
+          {personalizationState.enabled && (
+            <CardContent className="grid gap-4 md:grid-cols-2">
+              <label className="flex items-center justify-between rounded-lg border p-4">
+                <div>
+                  <p className="text-sm font-medium">Alanlar tamamlanmadan sepete eklenemez</p>
+                  <p className="text-xs text-muted-foreground">Müşteri tüm kişiselleştirme adımlarını doldurmak zorunda.</p>
+                </div>
+                <Switch
+                  checked={personalizationState.requireCompletion}
+                  onCheckedChange={(checked) =>
+                    setPersonalizationState((prev) => ({ ...prev, requireCompletion: checked }))
+                  }
+                />
+              </label>
+              <label className="flex items-center justify-between rounded-lg border p-4">
+                <div>
+                  <p className="text-sm font-medium">Önce katalog sonra boyut seçilsin</p>
+                  <p className="text-xs text-muted-foreground">Katalog alanı aktifse müşteri önce tasarımı seçer.</p>
+                </div>
+                <Switch
+                  checked={personalizationState.settings.requireCatalogBeforeSize}
+                  onCheckedChange={(checked) =>
+                    setPersonalizationState((prev) => ({
+                      ...prev,
+                      settings: { ...prev.settings, requireCatalogBeforeSize: checked },
+                    }))
+                  }
+                />
+              </label>
+            </CardContent>
+          )}
+        </Card>
+
+        {personalizationState.enabled && (
+          <>
+            <Card className="border shadow-sm">
+              <CardHeader>
+                <CardTitle className="text-sm font-semibold">Talep Edilecek Bilgiler</CardTitle>
+                <p className="text-xs text-muted-foreground">Müşteriden hangi alanları soracağınızı seçin.</p>
+              </CardHeader>
+              <CardContent className="grid gap-4 md:grid-cols-2">
+                {PERSONALIZATION_FIELD_PRESETS.map((preset) => {
+                  const isActive = activeFieldKeys.has(preset.key)
+                  return (
+                    <div key={preset.key} className="flex items-center justify-between rounded-lg border p-4">
+                      <div className="pr-4">
+                        <p className="text-sm font-medium">{preset.label}</p>
+                        {preset.helperText && <p className="text-xs text-muted-foreground">{preset.helperText}</p>}
+                      </div>
+                      <Switch checked={isActive} onCheckedChange={(checked) => handleTogglePersonalizationField(preset.key, checked)} />
+                    </div>
+                  )
+                })}
+              </CardContent>
+            </Card>
+
+            {sortedFields.map((field) => {
+              const isSelect = field.type === 'select'
+              const isCatalog = field.type === 'catalog'
+              const fieldOptions = field.options || []
+              return (
+                <Card key={field.id} className="border shadow-sm">
+                  <CardHeader className="flex flex-col gap-3 space-y-0 md:flex-row md:items-center md:justify-between">
+                    <div className="space-y-1">
+                      <CardTitle className="text-sm font-semibold flex items-center gap-2">
+                        {field.label}
+                        <Badge variant="secondary" className="text-[10px] uppercase">{field.type}</Badge>
+                      </CardTitle>
+                      {field.helperText && <p className="text-xs text-muted-foreground">{field.helperText}</p>}
+                    </div>
+                    <div className="flex items-center gap-3">
+                      <label className="flex items-center gap-2 text-xs text-muted-foreground">
+                        <Switch
+                          checked={field.isRequired}
+                          onCheckedChange={(checked) => handleUpdatePersonalizationField(field.id, { isRequired: checked })}
+                        />
+                        Zorunlu alan
+                      </label>
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => handleTogglePersonalizationField(field.key, false)}
+                      >
+                        <X className="mr-1 h-4 w-4" /> Kaldır
+                      </Button>
+                    </div>
+                  </CardHeader>
+                  <CardContent className="space-y-4">
+                    <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+                      <div className="space-y-1">
+                        <Label className="text-xs">Alan Başlığı</Label>
+                        <Input
+                          value={field.label}
+                          onChange={(event) => handleUpdatePersonalizationField(field.id, { label: event.target.value })}
+                        />
+                      </div>
+                      {field.type !== 'catalog' && (
+                        <div className="space-y-1">
+                          <Label className="text-xs">Yardım Metni</Label>
+                          <Input
+                            value={field.helperText ?? ''}
+                            onChange={(event) => handleUpdatePersonalizationField(field.id, { helperText: event.target.value })}
+                          />
+                        </div>
+                      )}
+                      {(field.type === 'text' || field.type === 'textarea') && (
+                        <div className="space-y-1">
+                          <Label className="text-xs">Placeholder</Label>
+                          <Input
+                            value={field.placeholder ?? ''}
+                            onChange={(event) => handleUpdatePersonalizationField(field.id, { placeholder: event.target.value })}
+                          />
+                        </div>
+                      )}
+                    </div>
+
+                    {isSelect && (
+                      <div className="space-y-3">
+                        <div className="flex items-center justify-between">
+                          <Label className="text-xs">Seçenekler</Label>
+                          <Button type="button" size="sm" variant="outline" onClick={() => handleAddSelectOption(field.id)}>
+                            <Plus className="mr-2 h-4 w-4" /> Seçenek Ekle
+                          </Button>
+                        </div>
+                        {fieldOptions.length === 0 ? (
+                          <div className="rounded-md border border-dashed p-3 text-xs text-muted-foreground">
+                            Henüz seçenek eklenmedi.
+                          </div>
+                        ) : (
+                          <div className="space-y-2">
+                            {fieldOptions.map((option, index) => (
+                              <div key={option.value} className="grid grid-cols-1 gap-3 rounded-md border p-3 md:grid-cols-12">
+                                <div className="md:col-span-5 space-y-1">
+                                  <Label className="text-[11px] uppercase text-muted-foreground">Etiket</Label>
+                                  <Input
+                                    value={option.label}
+                                    onChange={(event) => handleUpdateSelectOption(field.id, index, { label: event.target.value })}
+                                  />
+                                </div>
+                                <div className="md:col-span-5 space-y-1">
+                                  <Label className="text-[11px] uppercase text-muted-foreground">Değer</Label>
+                                  <Input
+                                    value={option.value}
+                                    onChange={(event) => handleUpdateSelectOption(field.id, index, { value: event.target.value })}
+                                  />
+                                </div>
+                                <div className="md:col-span-2 flex items-end justify-end">
+                                  <Button type="button" variant="ghost" size="icon" onClick={() => handleRemoveSelectOption(field.id, index)}>
+                                    <X className="h-4 w-4" />
+                                  </Button>
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+                    )}
+
+                    {isCatalog && (
+                      <div className="space-y-2 text-xs text-muted-foreground">
+                        Müşteri bu alanda tasarım kataloğunu açıp şablon seçebilir. Aşağıdaki listeden hangi şablonların gösterileceğini belirleyebilirsiniz.
+                      </div>
+                    )}
+                  </CardContent>
+                </Card>
+              )})}
+
+            {catalogFieldEnabled && (
+              <Card className="border shadow-sm">
+                <CardHeader className="flex flex-col gap-3 space-y-0 md:flex-row md:items-center md:justify-between">
+                  <div>
+                    <CardTitle className="text-sm font-semibold">Etiket Tasarım Kataloğu</CardTitle>
+                    <p className="text-xs text-muted-foreground">
+                      Müşteriye göstermek istediğiniz hazır tasarımları seçin. En az bir şablon seçili olmalıdır.
+                    </p>
+                  </div>
+                  <div className="flex flex-wrap items-center gap-2">
+                    <Button type="button" variant="outline" size="sm" onClick={handleSelectAllCatalogTemplates}>
+                      Tümünü Seç
+                    </Button>
+                    <Button type="button" variant="ghost" size="sm" onClick={handleClearCatalogTemplates}>
+                      En Popülerle Başla
+                    </Button>
+                  </div>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="grid grid-cols-1 gap-3 md:grid-cols-3 xl:grid-cols-4">
+                    {PERSONALIZATION_CATALOG_TEMPLATES.map((template) => {
+                      const isSelected = selectedTemplateIds.has(template.id)
+                      return (
+                        <button
+                          key={template.id}
+                          type="button"
+                          onClick={() => handleToggleCatalogTemplate(template)}
+                          className={cn(
+                            'group flex h-full flex-col overflow-hidden rounded-lg border text-left transition',
+                            isSelected ? 'border-rose-500 shadow-md' : 'border-muted hover:border-rose-300',
+                          )}
+                        >
+                          <div className="relative h-32 w-full bg-muted">
+                            <span className="absolute inset-0 flex items-center justify-center text-[11px] text-muted-foreground">
+                              {template.imageUrl ? 'Önizleme' : 'Görsel bulunamadı'}
+                            </span>
+                          </div>
+                          <div className="flex flex-1 flex-col gap-1 p-3">
+                            <div className="flex items-center justify-between">
+                              <span className="text-sm font-medium">{template.title}</span>
+                              <Badge variant={isSelected ? 'default' : 'outline'} className="text-[10px] uppercase">
+                                {isSelected ? 'Seçili' : 'Pasif'}
+                              </Badge>
+                            </div>
+                            {template.description && (
+                              <p className="text-xs text-muted-foreground line-clamp-2">{template.description}</p>
+                            )}
+                            {template.recommendedSizes && template.recommendedSizes.length > 0 && (
+                              <div className="flex flex-wrap gap-1 pt-1">
+                                {template.recommendedSizes.map((size) => (
+                                  <Badge key={size} variant="secondary" className="text-[10px]">
+                                    {size}
+                                  </Badge>
+                                ))}
+                              </div>
+                            )}
+                          </div>
+                        </button>
+                      )
+                    })}
+                  </div>
+                  <p className="text-xs text-muted-foreground">
+                    Seçili şablon sayısı: {selectedTemplateIds.size} / {PERSONALIZATION_CATALOG_TEMPLATES.length}
+                    {!allTemplatesSelected && '  - Dilerseniz kalan şablonları da etkinleştirebilirsiniz.'}
+                  </p>
+                </CardContent>
+              </Card>
+            )}
+          </>
+        )}
+      </div>
+    )
+  }
+
   const renderMediaStep = () => (
     <div className="space-y-6">
       <Card className="border shadow-sm">
@@ -1224,7 +1857,7 @@ export function ProductForm({ categories, product }: ProductFormProps) {
   )
 
   return (
-    <form onSubmit={onSubmit} className="space-y-6">
+    <form onSubmit={onSubmit} onKeyDown={handleFormKeyDown} className="space-y-6">
       {error && (
         <Alert variant="destructive">
           <AlertDescription>{error}</AlertDescription>
@@ -1256,7 +1889,8 @@ export function ProductForm({ categories, product }: ProductFormProps) {
       <div className="rounded-xl border bg-card p-6 shadow-sm">
         {activeStep === 0 && renderGeneralStep()}
         {activeStep === 1 && renderVariantsStep()}
-        {activeStep === 2 && renderMediaStep()}
+        {activeStep === 2 && renderPersonalizationStep()}
+        {activeStep === 3 && renderMediaStep()}
       </div>
 
       <div className="flex flex-wrap items-center justify-between gap-3">

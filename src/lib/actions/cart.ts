@@ -3,11 +3,71 @@
 import { getSupabaseAdmin, createServerClient } from '@/lib/supabase'
 import { logger } from '@/lib/logger'
 import type { CartItem, CartBundleLine, FavoriteItem } from '@/types/cart'
+import type { PersonalizationPayload } from '@/types/personalization'
 import { revalidatePath } from 'next/cache'
+const sanitizePersonalizationPayload = (payload: any): PersonalizationPayload | null => {
+  if (!payload || typeof payload !== 'object') {
+    return null
+  }
+
+  const answers = Array.isArray(payload.answers)
+    ? payload.answers
+        .map((answer: any) => {
+          if (!answer || typeof answer !== 'object') {
+            return null
+          }
+
+          const fieldKey = typeof answer.fieldKey === 'string' ? answer.fieldKey : null
+          if (!fieldKey) {
+            return null
+          }
+
+          const fieldLabel = typeof answer.fieldLabel === 'string' ? answer.fieldLabel : ''
+          const type = typeof answer.type === 'string' ? answer.type : 'text'
+
+          let value: string | string[] | null = null
+          if (Array.isArray(answer.value)) {
+            value = answer.value.filter((item: unknown) => typeof item === 'string')
+          } else if (typeof answer.value === 'string') {
+            value = answer.value
+          } else if (answer.value === null || answer.value === undefined) {
+            value = null
+          } else {
+            value = String(answer.value)
+          }
+
+          return {
+            fieldKey,
+            fieldLabel,
+            type,
+            value,
+            displayValue: typeof answer.displayValue === 'string' ? answer.displayValue : undefined,
+            metadata: answer.metadata && typeof answer.metadata === 'object' ? answer.metadata : null,
+          }
+        })
+        .filter((entry): entry is PersonalizationPayload['answers'][number] => entry !== null)
+    : []
+
+  if (answers.length === 0) {
+    return null
+  }
+
+  return {
+    completed: Boolean(payload.completed),
+    completedAt: typeof payload.completedAt === 'string' ? payload.completedAt : undefined,
+    answers,
+  }
+}
+
 /**
  * Add item to cart
  */
-export async function addToCart(productId: string, quantity: number = 1, variantId?: string | null) {
+export async function addToCart(
+  productId: string,
+  quantity: number = 1,
+  variantId?: string | null,
+  personalization?: PersonalizationPayload | null,
+) {
   try {
     const serverClient = await createServerClient();
     const { data: { user }, error: authError } = await serverClient.auth.getUser();
@@ -19,7 +79,15 @@ export async function addToCart(productId: string, quantity: number = 1, variant
 
     const supabase = getSupabaseAdmin();
     const normalizedVariantId = variantId ?? null;
-    logger.debug('[cart.addToCart] input', { productId, quantity, variantId: normalizedVariantId });
+    const personalizationPayload = sanitizePersonalizationPayload(personalization);
+    const shouldMerge = !personalizationPayload;
+
+    logger.debug('[cart.addToCart] input', {
+      productId,
+      quantity,
+      variantId: normalizedVariantId,
+      hasPersonalization: Boolean(personalizationPayload),
+    });
 
     if (normalizedVariantId) {
       const { data: variantRow, error: variantError } = await supabase
@@ -34,28 +102,35 @@ export async function addToCart(productId: string, quantity: number = 1, variant
       }
     }
 
-    let existingQuery = supabase
-      .from('cart_items')
-      .select('id, quantity')
-      .eq('userId', user.id)
-      .eq('productId', productId)
-      .limit(1);
+    let existingItem: { id: string; quantity: number } | null = null;
 
-    if (normalizedVariantId) {
-      existingQuery = existingQuery.eq('variantId', normalizedVariantId);
-    } else {
-      existingQuery = existingQuery.is('variantId', null);
+    if (shouldMerge) {
+      let existingQuery = supabase
+        .from('cart_items')
+        .select('id, quantity')
+        .eq('userId', user.id)
+        .eq('productId', productId)
+        .limit(1);
+
+      if (normalizedVariantId) {
+        existingQuery = existingQuery.eq('variantId', normalizedVariantId);
+      } else {
+        existingQuery = existingQuery.is('variantId', null);
+      }
+
+      existingQuery = existingQuery.is('personalization', null);
+
+      const { data: existingItems, error: checkError } = await existingQuery;
+      logger.debug('[cart.addToCart] existingItems', { existingItems, checkError });
+
+      if (checkError) {
+        logger.error('[cart.addToCart] check error', checkError);
+        return { success: false, error: 'Sepet kontrol edilirken hata oluştu' };
+      }
+
+      existingItem = existingItems && existingItems.length > 0 ? existingItems[0] : null;
     }
 
-    const { data: existingItems, error: checkError } = await existingQuery;
-    logger.debug('[cart.addToCart] existingItems', { existingItems, checkError });
-
-    if (checkError) {
-      logger.error('[cart.addToCart] check error', checkError);
-      return { success: false, error: 'Sepet kontrol edilirken hata oluştu' };
-    }
-
-    const existingItem = existingItems && existingItems.length > 0 ? existingItems[0] : null;
     const now = new Date().toISOString();
 
     if (existingItem) {
@@ -64,6 +139,7 @@ export async function addToCart(productId: string, quantity: number = 1, variant
         .update({
           quantity: existingItem.quantity + quantity,
           variantId: normalizedVariantId,
+          personalization: personalizationPayload,
           updatedAt: now,
         })
         .eq('id', existingItem.id);
@@ -82,6 +158,7 @@ export async function addToCart(productId: string, quantity: number = 1, variant
           productId,
           variantId: normalizedVariantId,
           quantity,
+          personalization: personalizationPayload,
           updatedAt: now,
         });
       logger.debug('[cart.addToCart] insert', { insertError });
@@ -102,7 +179,9 @@ export async function addToCart(productId: string, quantity: number = 1, variant
 /**
  * Add many items to cart (best-effort sequential upsert)
  */
-export async function addManyToCart(items: { productId: string; quantity: number; variantId?: string | null }[]) {
+export async function addManyToCart(
+  items: { productId: string; quantity: number; variantId?: string | null; personalization?: PersonalizationPayload | null }[],
+) {
   try {
     const serverClient = await createServerClient();
     const { data: { user }, error: authError } = await serverClient.auth.getUser();
@@ -113,8 +192,10 @@ export async function addManyToCart(items: { productId: string; quantity: number
 
     const supabase = getSupabaseAdmin();
 
-    for (const { productId, quantity, variantId } of items) {
+    for (const { productId, quantity, variantId, personalization } of items) {
       const normalizedVariantId = variantId ?? null;
+      const personalizationPayload = sanitizePersonalizationPayload(personalization);
+      const shouldMerge = !personalizationPayload;
 
       if (normalizedVariantId) {
         const { data: variantRow, error: variantError } = await supabase
@@ -129,24 +210,32 @@ export async function addManyToCart(items: { productId: string; quantity: number
         }
       }
 
-      let existingQuery = supabase
-        .from('cart_items')
-        .select('id, quantity')
-        .eq('userId', user.id)
-        .eq('productId', productId)
-        .limit(1);
+      let existingItem: { id: string; quantity: number } | null = null;
 
-      if (normalizedVariantId) {
-        existingQuery = existingQuery.eq('variantId', normalizedVariantId);
-      } else {
-        existingQuery = existingQuery.is('variantId', null);
-      }
+      if (shouldMerge) {
+        let existingQuery = supabase
+          .from('cart_items')
+          .select('id, quantity')
+          .eq('userId', user.id)
+          .eq('productId', productId)
+          .limit(1);
 
-      const { data: existingItem, error: checkError } = await existingQuery.maybeSingle();
+        if (normalizedVariantId) {
+          existingQuery = existingQuery.eq('variantId', normalizedVariantId);
+        } else {
+          existingQuery = existingQuery.is('variantId', null);
+        }
 
-      if (checkError && checkError.code !== 'PGRST116') {
-        logger.error('[cart.addManyToCart] check error', checkError);
-        continue;
+        existingQuery = existingQuery.is('personalization', null);
+
+        const { data: existing, error: checkError } = await existingQuery.maybeSingle();
+
+        if (checkError && checkError.code !== 'PGRST116') {
+          logger.error('[cart.addManyToCart] check error', checkError);
+          continue;
+        }
+
+        existingItem = existing ?? null;
       }
 
       const now = new Date().toISOString();
@@ -157,6 +246,7 @@ export async function addManyToCart(items: { productId: string; quantity: number
           .update({
             quantity: existingItem.quantity + quantity,
             variantId: normalizedVariantId,
+            personalization: personalizationPayload,
             updatedAt: now,
           })
           .eq('id', existingItem.id);
@@ -169,6 +259,7 @@ export async function addManyToCart(items: { productId: string; quantity: number
             productId,
             variantId: normalizedVariantId,
             quantity,
+            personalization: personalizationPayload,
             updatedAt: now,
           });
       }
@@ -522,6 +613,7 @@ export async function getCartItems(): Promise<CartItem[]> {
         productId,
         variantId,
         quantity,
+        personalization,
         createdAt,
         updatedAt,
         product:products (
@@ -639,6 +731,10 @@ export async function getCartItems(): Promise<CartItem[]> {
         category: null,
       };
 
+      const personalizationPayload =
+        sanitizePersonalizationPayload(item.personalization) ??
+        (item.personalization ? (item.personalization as PersonalizationPayload) : null);
+
       return {
         id: item.id,
         userId: item.userId,
@@ -648,6 +744,7 @@ export async function getCartItems(): Promise<CartItem[]> {
         createdAt: item.createdAt,
         updatedAt: item.updatedAt,
         product: safeProduct,
+        personalization: personalizationPayload,
         variant,
       };
     });

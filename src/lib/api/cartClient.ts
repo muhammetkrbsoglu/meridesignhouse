@@ -2,16 +2,25 @@
 
 import { callRpc } from './rpcClient'
 import type { CartBundleLine, CartItem, FavoriteItem } from '@/types/cart'
+import type { PersonalizationPayload } from '@/types/personalization'
 
-export function addToCart(productId: string, quantity: number = 1, variantId?: string | null) {
-  return callRpc<{ success: boolean; error?: string }>('cart:addToCart', [productId, quantity, variantId ?? null])
+export function addToCart(
+  productId: string,
+  quantity: number = 1,
+  variantId?: string | null,
+  personalization?: PersonalizationPayload | null,
+) {
+  return callRpc<{ success: boolean; error?: string }>('cart:addToCart', [productId, quantity, variantId ?? null, personalization ?? null])
 }
 
-export function addManyToCart(items: { productId: string; quantity: number; variantId?: string | null }[]) {
+export function addManyToCart(
+  items: { productId: string; quantity: number; variantId?: string | null; personalization?: PersonalizationPayload | null }[],
+) {
   const payload = items.map((item) => ({
     productId: item.productId,
     quantity: item.quantity,
     variantId: item.variantId ?? null,
+    personalization: item.personalization ?? null,
   }))
   return callRpc<{ success: boolean; error?: string }>('cart:addManyToCart', [payload])
 }

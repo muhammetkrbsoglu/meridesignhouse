@@ -19,6 +19,13 @@ import {
   ProductOptionValue,
   ProductVariant,
 } from '@/types/product'
+import type {
+  PersonalizationConfig,
+  PersonalizationField,
+  PersonalizationFieldOption,
+  PersonalizationConfigSettings,
+  PersonalizationFieldType,
+} from '@/types/personalization'
 
 const VARIANT_OPTION_TYPES = ['swatch', 'pill', 'text'] as const
 
@@ -75,6 +82,27 @@ type VariantStatePayload = {
   variants: VariantDraft[]
   sharedImages?: BuilderImageInput[]
   defaultVariantClientId?: string | null
+}
+
+type PersonalizationFieldDraft = {
+  id: string
+  key: string
+  label: string
+  type: PersonalizationFieldType
+  placeholder?: string | null
+  helperText?: string | null
+  isRequired?: boolean
+  sortOrder?: number
+  options?: PersonalizationFieldOption[]
+  metadata?: Record<string, any> | null
+}
+
+type PersonalizationStatePayload = {
+  enabled: boolean
+  requireCompletion?: boolean
+  stepCount?: number
+  settings?: PersonalizationConfigSettings | null
+  fields: PersonalizationFieldDraft[]
 }
 
 const buildOptionValueKey = (
@@ -140,6 +168,86 @@ const parseVariantState = (raw: FormDataEntryValue | null): VariantStatePayload 
   }
 }
 
+const parsePersonalizationState = (raw: FormDataEntryValue | null): PersonalizationStatePayload | null => {
+  if (!raw || typeof raw !== 'string') {
+    return null
+  }
+
+  try {
+    const parsed = JSON.parse(raw) as PersonalizationStatePayload
+    if (!parsed || typeof parsed !== 'object') {
+      return null
+    }
+
+    const fieldsInput = Array.isArray((parsed as any).fields) ? (parsed as any).fields : []
+    const fields = fieldsInput
+      .map((field: any) => {
+        if (!field || typeof field !== 'object') {
+          return null
+        }
+
+        const key = typeof field.key === 'string' ? field.key : ''
+        const label = typeof field.label === 'string' ? field.label : key
+        const type = typeof field.type === 'string' ? field.type : null
+
+        if (!key || !label || !type) {
+          return null
+        }
+
+        const options = Array.isArray(field.options)
+          ? field.options
+              .map((option: any) => {
+                if (!option || typeof option !== 'object') {
+                  return null
+                }
+
+                const value = typeof option.value === 'string' ? option.value : null
+                const optionLabel = typeof option.label === 'string' ? option.label : value
+
+                if (!value || !optionLabel) {
+                  return null
+                }
+
+                return {
+                  value,
+                  label: optionLabel,
+                  description: typeof option.description === 'string' ? option.description : undefined,
+                  imageUrl: typeof option.imageUrl === 'string' ? option.imageUrl : undefined,
+                  metadata: option.metadata && typeof option.metadata === 'object' ? option.metadata : null,
+                } as PersonalizationFieldOption
+              })
+              .filter(Boolean)
+          : undefined
+
+        return {
+          id: typeof field.id === 'string' ? field.id : key,
+          key,
+          label,
+          type: type as PersonalizationFieldType,
+          placeholder: typeof field.placeholder === 'string' ? field.placeholder : undefined,
+          helperText: typeof field.helperText === 'string' ? field.helperText : undefined,
+          isRequired: Boolean(field.isRequired),
+          sortOrder: typeof field.sortOrder === 'number' ? field.sortOrder : undefined,
+          options,
+          metadata: field.metadata && typeof field.metadata === 'object' ? field.metadata : null,
+        }
+      })
+      .filter(Boolean) as PersonalizationFieldDraft[]
+
+    return {
+      enabled: Boolean((parsed as any).enabled),
+      requireCompletion:
+        (parsed as any).requireCompletion === undefined ? true : Boolean((parsed as any).requireCompletion),
+      stepCount: typeof (parsed as any).stepCount === 'number' ? (parsed as any).stepCount : 2,
+      settings: (parsed as any).settings && typeof (parsed as any).settings === 'object' ? (parsed as any).settings : null,
+      fields,
+    }
+  } catch (error) {
+    logger.error('[products.parsePersonalizationState] invalid JSON', error)
+    return null
+  }
+}
+
 const parseImageList = (raw: FormDataEntryValue | null): BuilderImageInput[] => {
   if (!raw || typeof raw !== 'string') {
     return []
@@ -181,11 +289,16 @@ interface PersistVariantResult {
   }>
 }
 
+interface PersistPersonalizationResult {
+  isPersonalizable: boolean
+  configId: string | null
+}
+
 const hydrateProductWithVariants = async (
   supabase: SupabaseClient,
   product: any,
 ): Promise<ProductWithVariants> => {
-  const [optionsRes, variantsRes] = await Promise.all([
+  const [optionsRes, variantsRes, personalizationRes] = await Promise.all([
     supabase
       .from('product_options')
       .select(`
@@ -216,10 +329,109 @@ const hydrateProductWithVariants = async (
       `)
       .eq('productId', product.id)
       .order('sortOrder', { ascending: true }),
+    supabase
+      .from('product_personalization_configs')
+      .select(`
+        id,
+        productId,
+        requireCompletion,
+        stepCount,
+        settings,
+        createdAt,
+        updatedAt,
+        fields:product_personalization_fields(
+          id,
+          configId,
+          key,
+          label,
+          type,
+          placeholder,
+          helperText,
+          isRequired,
+          sortOrder,
+          options,
+          metadata,
+          createdAt,
+          updatedAt
+        )
+      `)
+      .eq('productId', product.id)
+      .maybeSingle(),
   ])
 
   const optionsData = optionsRes.data ?? []
   const variantsData = variantsRes.data ?? []
+
+  if (personalizationRes.error) {
+    logger.error('[products.hydrateProductWithVariants] personalization fetch error', personalizationRes.error)
+  }
+
+  const personalizationRow = personalizationRes.data ?? null
+  let personalizationConfig: PersonalizationConfig | null = null
+
+  if (personalizationRow) {
+    const fieldsRaw = Array.isArray(personalizationRow.fields) ? personalizationRow.fields : []
+    const fields: PersonalizationField[] = fieldsRaw
+      .map((field: any) => {
+        if (!field) {
+          return null
+        }
+
+        const options = Array.isArray(field.options)
+          ? field.options
+              .map((option: any) => {
+                if (!option || typeof option !== 'object') {
+                  return null
+                }
+
+                const value = typeof option.value === 'string' ? option.value : null
+                const label = typeof option.label === 'string' ? option.label : value
+
+                if (!value || !label) {
+                  return null
+                }
+
+                return {
+                  value,
+                  label,
+                  description: typeof option.description === 'string' ? option.description : undefined,
+                  imageUrl: typeof option.imageUrl === 'string' ? option.imageUrl : undefined,
+                  metadata: option.metadata && typeof option.metadata === 'object' ? option.metadata : null,
+                } satisfies PersonalizationFieldOption
+              })
+              .filter((option): option is PersonalizationFieldOption => Boolean(option))
+          : undefined
+
+        return {
+          id: field.id,
+          key: field.key,
+          label: field.label,
+          type: field.type,
+          placeholder: field.placeholder ?? undefined,
+          helperText: field.helperText ?? undefined,
+          isRequired: Boolean(field.isRequired),
+          sortOrder: field.sortOrder ?? 0,
+          options,
+          metadata: field.metadata ?? null,
+        } satisfies PersonalizationField
+      })
+      .filter(Boolean)
+      .sort((a, b) => (a?.sortOrder ?? 0) - (b?.sortOrder ?? 0)) as PersonalizationField[]
+
+    personalizationConfig = {
+      id: personalizationRow.id,
+      productId: personalizationRow.productId,
+      requireCompletion: personalizationRow.requireCompletion ?? true,
+      stepCount: personalizationRow.stepCount ?? 2,
+      settings:
+        personalizationRow.settings && typeof personalizationRow.settings === 'object'
+          ? personalizationRow.settings
+          : undefined,
+      fields,
+      createdAt: personalizationRow.createdAt ?? undefined,
+      updatedAt: personalizationRow.updatedAt ?? undefined,
+    }
+  }
 
   const options = optionsData.map((option) => ({
     id: option.id,
@@ -315,6 +527,8 @@ const hydrateProductWithVariants = async (
     product_images: imagesForProduct,
     options,
     variants,
+    personalizationConfig,
+    isPersonalizable: Boolean(product.isPersonalizable ?? personalizationConfig),
   }
 }
 
@@ -502,6 +716,77 @@ const persistVariantGraph = async (
   }
 }
 
+const persistPersonalizationGraph = async (
+  supabase: SupabaseClient,
+  productId: string,
+  state: PersonalizationStatePayload | null,
+  now: string,
+): Promise<PersistPersonalizationResult> => {
+  if (!state || !state.enabled || (state.fields?.length ?? 0) === 0) {
+    await supabase.from('product_personalization_configs').delete().eq('productId', productId)
+    return {
+      isPersonalizable: false,
+      configId: null,
+    }
+  }
+
+  const configId = randomUUID()
+  const requireCompletion = state.requireCompletion !== false
+  const stepCount = typeof state.stepCount === 'number' ? state.stepCount : 2
+  const settings = state.settings && typeof state.settings === 'object' ? state.settings : null
+
+  await supabase.from('product_personalization_configs').delete().eq('productId', productId)
+
+  const { error: configError } = await supabase
+    .from('product_personalization_configs')
+    .insert({
+      id: configId,
+      productId,
+      requireCompletion,
+      stepCount,
+      settings: settings ?? {},
+      createdAt: now,
+      updatedAt: now,
+    })
+
+  if (configError) {
+    throw configError
+  }
+
+  const fieldsSorted = [...(state.fields || [])].sort((a, b) => (a.sortOrder ?? 0) - (b.sortOrder ?? 0))
+
+  if (fieldsSorted.length > 0) {
+    const fieldRecords = fieldsSorted.map((field) => ({
+      id: randomUUID(),
+      configId,
+      key: field.key,
+      label: field.label,
+      type: field.type,
+      placeholder: field.placeholder ?? null,
+      helperText: field.helperText ?? null,
+      isRequired: Boolean(field.isRequired),
+      sortOrder: field.sortOrder ?? 0,
+      options: field.options && field.options.length > 0 ? field.options : null,
+      metadata: field.metadata ?? null,
+      createdAt: now,
+      updatedAt: now,
+    }))
+
+    const { error: fieldError } = await supabase
+      .from('product_personalization_fields')
+      .insert(fieldRecords)
+
+    if (fieldError) {
+      throw fieldError
+    }
+  }
+
+  return {
+    isPersonalizable: true,
+    configId,
+  }
+}
+
 const ProductSchema = z.object({
   name: z.string().min(1, 'Ürün adı gereklidir'),
   cardTitle: z.string().min(1, 'Kart başlığı gereklidir'),
@@ -567,6 +852,8 @@ export async function createProduct(prevState: State, formData: FormData): Promi
 
   const base = validationResult.data
   const variantState = parseVariantState(formData.get('variantState'))
+  const personalizationState = parsePersonalizationState(formData.get('personalizationState'))
+  const personalizationEnabled = Boolean(personalizationState?.enabled && (personalizationState?.fields?.length ?? 0) > 0)
   const fallbackImages = parseImageList(formData.get('images'))
   const sharedImagesState = variantState?.sharedImages ?? []
   const sharedImages = sharedImagesState.length > 0 ? sharedImagesState : fallbackImages
@@ -627,6 +914,7 @@ export async function createProduct(prevState: State, formData: FormData): Promi
         productOfWeekCategoryId: base.productOfWeekCategoryId || null,
         colors: Array.from(colorHexSet),
         hasVariants,
+        isPersonalizable: personalizationEnabled,
         defaultVariantId: null,
         createdAt: now,
         updatedAt: now,
@@ -715,6 +1003,20 @@ export async function createProduct(prevState: State, formData: FormData): Promi
     }
   }
 
+  let personalizationResult: PersistPersonalizationResult = {
+    isPersonalizable: personalizationEnabled,
+    configId: null,
+  }
+
+  try {
+    personalizationResult = await persistPersonalizationGraph(supabase, productId, personalizationState, now)
+  } catch (error) {
+    logger.error('[products.createProduct] personalization persistence failed', error)
+    return {
+      message: 'Kişiselleştirme alanları kaydedilirken bir hata oluştu.',
+    }
+  }
+
   try {
     await supabase
       .from('products')
@@ -723,6 +1025,7 @@ export async function createProduct(prevState: State, formData: FormData): Promi
         hasVariants,
         stock: totalStock,
         colors: Array.from(colorHexSet),
+        isPersonalizable: personalizationResult.isPersonalizable,
         updatedAt: new Date().toISOString(),
       })
       .eq('id', productId)
@@ -765,6 +1068,8 @@ export async function updateProduct(
 
   const base = validationResult.data
   const variantState = parseVariantState(formData.get('variantState'))
+  const personalizationState = parsePersonalizationState(formData.get('personalizationState'))
+  const personalizationEnabled = Boolean(personalizationState?.enabled && (personalizationState?.fields?.length ?? 0) > 0)
   const fallbackImages = parseImageList(formData.get('images'))
   const sharedImagesState = variantState?.sharedImages ?? []
   const sharedImages = sharedImagesState.length > 0 ? sharedImagesState : fallbackImages
@@ -822,6 +1127,7 @@ export async function updateProduct(
         isProductOfWeek: base.isProductOfWeek,
         productOfWeekCategoryId: base.productOfWeekCategoryId || null,
         hasVariants,
+        isPersonalizable: personalizationEnabled,
         colors: Array.from(colorHexSet),
         updatedAt: now,
       })
@@ -913,6 +1219,20 @@ export async function updateProduct(
     }
   }
 
+  let personalizationResult: PersistPersonalizationResult = {
+    isPersonalizable: personalizationEnabled,
+    configId: null,
+  }
+
+  try {
+    personalizationResult = await persistPersonalizationGraph(supabase, id, personalizationState, now)
+  } catch (error) {
+    logger.error('[products.updateProduct] personalization persistence failed', error)
+    return {
+      message: 'Kişiselleştirme alanları kaydedilirken bir hata oluştu.',
+    }
+  }
+
   try {
     await supabase
       .from('products')
@@ -921,6 +1241,7 @@ export async function updateProduct(
         hasVariants,
         stock: totalStock,
         colors: Array.from(colorHexSet),
+        isPersonalizable: personalizationResult.isPersonalizable,
         updatedAt: new Date().toISOString(),
       })
       .eq('id', id)

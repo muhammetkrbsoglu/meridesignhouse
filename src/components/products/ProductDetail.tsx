@@ -6,13 +6,26 @@ import { HeartIcon, ShoppingCartIcon, ShareIcon } from '@heroicons/react/24/outl
 import { HeartIcon as HeartSolidIcon } from '@heroicons/react/24/solid'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
+import { Label } from '@/components/ui/label'
 import { MicroFeedback } from '@/components/motion/MicroFeedback'
 import { LoadingSpinner } from '@/components/motion/LoadingStates'
+import { Modal } from '@/components/motion/Modal'
 import { ProductMediaCarousel, type ProductMediaItem } from '@/components/products/ProductMediaCarousel'
 import { VariantSelector } from '@/components/products/VariantSelector'
+import { PERSONALIZATION_CATALOG_TEMPLATES } from '@/config/personalizationCatalog'
+import { usePersonalization } from '@/hooks/usePersonalization'
+import { Textarea } from '@/components/ui/textarea'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select'
 import type { ProductWithVariants, ProductOption, ProductVariant } from '@/types/product'
+import type { PersonalizationCatalogTemplate, PersonalizationField } from '@/types/personalization'
 import { addToCart, addToFavorites, removeFromFavorites, isProductInFavorites } from '@/lib/api/cartClient'
-import { formatCurrency } from '@/lib/utils'
+import { cn, formatCurrency } from '@/lib/utils'
 import {
   buildSelectionMap,
   findMatchingVariant,
@@ -87,6 +100,298 @@ export function ProductDetail({ product }: ProductDetailProps) {
   const activeVariantLabel = useMemo(() => getVariantLabel(selectedVariant), [selectedVariant])
   const activeVariantBadgeColor = selectedVariant?.badgeHex
   const activeVariantStock = toNumeric(selectedVariant?.stock ?? product.stock ?? 0)
+
+  const personalizationConfig = product.personalizationConfig ?? null
+  const personalizationEnabled = Boolean(
+    product.isPersonalizable && personalizationConfig && (personalizationConfig.fields?.length ?? 0) > 0,
+  )
+
+  const {
+    fields: personalizationFields,
+    values: personalizationValues,
+    touched: personalizationTouched,
+    setFieldValue: setPersonalizationFieldValue,
+    markTouched: markPersonalizationFieldTouched,
+    touchAll: touchAllPersonalizationFields,
+    errors: personalizationErrors,
+    isComplete: isPersonalizationComplete,
+    buildPayload: buildPersonalizationPayload,
+  } = usePersonalization(personalizationConfig)
+
+  const [currentStep, setCurrentStep] = useState<'overview' | 'personalization'>(personalizationEnabled ? 'overview' : 'overview')
+  const [showPersonalizationErrors, setShowPersonalizationErrors] = useState(false)
+  const [showCatalogModal, setShowCatalogModal] = useState(false)
+  const [activeCatalogField, setActiveCatalogField] = useState<string | null>(null)
+
+  const catalogTemplates: PersonalizationCatalogTemplate[] = personalizationConfig?.settings?.catalogTemplates?.length
+    ? personalizationConfig.settings.catalogTemplates
+    : PERSONALIZATION_CATALOG_TEMPLATES
+
+  useEffect(() => {
+    if (!personalizationEnabled) {
+      setCurrentStep('overview')
+      setShowPersonalizationErrors(false)
+    }
+  }, [personalizationEnabled])
+
+  useEffect(() => {
+    if (isPersonalizationComplete) {
+      setShowPersonalizationErrors(false)
+    }
+  }, [isPersonalizationComplete])
+
+  const personalizationFieldHasError = (fieldKey: string) =>
+    Boolean(personalizationErrors[fieldKey] && (personalizationTouched[fieldKey] || showPersonalizationErrors))
+
+  const handleCatalogTemplateSelect = (template: PersonalizationCatalogTemplate) => {
+    if (!activeCatalogField) return
+    setPersonalizationFieldValue(activeCatalogField, {
+      value: template.id,
+      displayValue: template.title,
+      metadata: template,
+    })
+    markPersonalizationFieldTouched(activeCatalogField)
+    setShowCatalogModal(false)
+  }
+
+  const clearCatalogSelection = (fieldKey: string) => {
+    setPersonalizationFieldValue(fieldKey, { value: null, displayValue: undefined, metadata: null })
+    markPersonalizationFieldTouched(fieldKey)
+  }
+
+  const renderPersonalizationField = (field: PersonalizationField) => {
+    const entry = personalizationValues[field.key] || { value: null }
+    const rawValue = entry.value
+    const errorMessage = personalizationErrors[field.key]
+    const showError = personalizationFieldHasError(field.key)
+
+    const commonLabel = (
+      <div className="flex items-center justify-between">
+        <Label htmlFor={`personalization-${field.key}`} className="text-sm font-medium text-gray-900">
+          {field.label}
+        </Label>
+        {field.isRequired && <span className="text-xs text-rose-600">Zorunlu</span>}
+      </div>
+    )
+
+    const helper = field.helperText ? (
+      <p className="text-xs text-muted-foreground">{field.helperText}</p>
+    ) : null
+
+    const errorText = showError && errorMessage ? (
+      <p className="text-xs text-rose-600">{errorMessage}</p>
+    ) : null
+
+    if (field.type === 'textarea' || field.type === 'note') {
+      const value = typeof rawValue === 'string' ? rawValue : ''
+      return (
+        <div key={field.id} className="space-y-2">
+          {commonLabel}
+          <Textarea
+            id={`personalization-${field.key}`}
+            value={value}
+            onChange={(event) =>
+              setPersonalizationFieldValue(field.key, {
+                value: event.target.value,
+                displayValue: event.target.value,
+                metadata: entry.metadata ?? null,
+              })
+            }
+            onBlur={() => markPersonalizationFieldTouched(field.key)}
+            rows={3}
+          />
+          {helper}
+          {errorText}
+        </div>
+      )
+    }
+
+    if (field.type === 'text') {
+      const value = typeof rawValue === 'string' ? rawValue : ''
+      return (
+        <div key={field.id} className="space-y-2">
+          {commonLabel}
+          <Input
+            id={`personalization-${field.key}`}
+            value={value}
+            placeholder={field.placeholder ?? ''}
+            onChange={(event) =>
+              setPersonalizationFieldValue(field.key, {
+                value: event.target.value,
+                displayValue: event.target.value,
+                metadata: entry.metadata ?? null,
+              })
+            }
+            onBlur={() => markPersonalizationFieldTouched(field.key)}
+          />
+          {helper}
+          {errorText}
+        </div>
+      )
+    }
+
+    if (field.type === 'date') {
+      const value = typeof rawValue === 'string' ? rawValue : ''
+      return (
+        <div key={field.id} className="space-y-2">
+          {commonLabel}
+          <Input
+            id={`personalization-${field.key}`}
+            type="date"
+            value={value}
+            onChange={(event) => {
+              const nextValue = event.target.value || null
+              setPersonalizationFieldValue(field.key, {
+                value: nextValue,
+                displayValue: nextValue
+                  ? new Date(nextValue).toLocaleDateString('tr-TR', {
+                      day: '2-digit',
+                      month: '2-digit',
+                      year: 'numeric',
+                    })
+                  : undefined,
+                metadata: entry.metadata ?? null,
+              })
+            }}
+            onBlur={() => markPersonalizationFieldTouched(field.key)}
+          />
+          {helper}
+          {errorText}
+        </div>
+      )
+    }
+
+    if (field.type === 'select') {
+      const value = typeof rawValue === 'string' ? rawValue : ''
+      return (
+        <div key={field.id} className="space-y-2">
+          {commonLabel}
+          <Select
+            value={value}
+            onValueChange={(val) => {
+              const option = field.options?.find((item) => item.value === val)
+              setPersonalizationFieldValue(field.key, {
+                value: val,
+                displayValue: option?.label ?? val,
+                metadata: option ?? null,
+              })
+              markPersonalizationFieldTouched(field.key)
+            }}
+          >
+            <SelectTrigger id={`personalization-${field.key}`}>
+              <SelectValue placeholder={field.placeholder ?? 'Seçiniz'} />
+            </SelectTrigger>
+            <SelectContent>
+              {(field.options || []).map((option) => (
+                <SelectItem key={option.value} value={option.value}>
+                  {option.label || option.value}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+          {helper}
+          {errorText}
+        </div>
+      )
+    }
+
+    if (field.type === 'catalog') {
+      const selectedTemplate = (entry.metadata as PersonalizationCatalogTemplate) || null
+      return (
+        <div key={field.id} className="space-y-2">
+          {commonLabel}
+          {selectedTemplate ? (
+            <div className="flex items-center justify-between gap-3 rounded-lg border p-3">
+              <div className="max-w-[70%]">
+                <p className="text-sm font-medium text-gray-900">{selectedTemplate.title}</p>
+                {selectedTemplate.description && (
+                  <p className="text-xs text-muted-foreground">{selectedTemplate.description}</p>
+                )}
+              </div>
+              <Button type="button" variant="ghost" size="sm" onClick={() => clearCatalogSelection(field.key)}>
+                Kaldır
+              </Button>
+            </div>
+          ) : (
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => {
+                setActiveCatalogField(field.key)
+                setShowCatalogModal(true)
+              }}
+            >
+              Etiket tasarımlarımızı görün
+            </Button>
+          )}
+          {helper}
+          {errorText}
+        </div>
+      )
+    }
+
+    const value = typeof rawValue === 'string' ? rawValue : ''
+    return (
+      <div key={field.id} className="space-y-2">
+        {commonLabel}
+        <Input
+          id={`personalization-${field.key}`}
+          value={value}
+          onChange={(event) =>
+            setPersonalizationFieldValue(field.key, {
+              value: event.target.value,
+              displayValue: event.target.value,
+              metadata: entry.metadata ?? null,
+            })
+          }
+          onBlur={() => markPersonalizationFieldTouched(field.key)}
+        />
+        {helper}
+        {errorText}
+      </div>
+    )
+  }
+
+  const steps = personalizationEnabled
+    ? [
+        { id: 'overview' as const, label: 'Ürün Seçimi' },
+        { id: 'personalization' as const, label: 'Kişiselleştirme' },
+      ]
+    : []
+
+  const stepIndicator = personalizationEnabled ? (
+    <div className="flex items-center gap-3 rounded-xl border border-rose-100 bg-rose-50/60 p-3">
+      {steps.map((step, index) => {
+        const isActive = currentStep === step.id
+        const isCompleted = currentStep === 'personalization' && step.id === 'overview'
+        return (
+          <button
+            key={step.id}
+            type="button"
+            onClick={() => setCurrentStep(step.id)}
+            className={cn(
+              'flex flex-1 items-center gap-3 rounded-lg px-3 py-2 text-left transition',
+              isActive ? 'bg-white text-rose-600 shadow' : 'text-rose-500 hover:bg-white/70',
+            )}
+          >
+            <span
+              className={cn(
+                'flex h-8 w-8 items-center justify-center rounded-full border text-sm font-semibold',
+                isActive
+                  ? 'border-rose-500 bg-rose-500 text-white'
+                  : isCompleted
+                    ? 'border-rose-400 bg-rose-100 text-rose-600'
+                    : 'border-rose-200 text-rose-500',
+              )}
+            >
+              {index + 1}
+            </span>
+            <span className="text-sm font-semibold">{step.label}</span>
+          </button>
+        )
+      })}
+    </div>
+  ) : null
 
   useEffect(() => {
     if (!hasVariants) return
@@ -189,10 +494,21 @@ export function ProductDetail({ product }: ProductDetailProps) {
       return
     }
 
+    if (personalizationEnabled && !isPersonalizationComplete) {
+      touchAllPersonalizationFields()
+      setShowPersonalizationErrors(true)
+      if (currentStep !== 'personalization') {
+        setCurrentStep('personalization')
+      }
+      toast.error('Lütfen önce kişiselleştirme alanlarını doldurun.')
+      return
+    }
+
     setIsLoading(true)
 
     try {
-      const result = await addToCart(product.id, quantity, variantKey)
+      const personalizationPayload = personalizationEnabled ? buildPersonalizationPayload() : null
+      const result = await addToCart(product.id, quantity, variantKey, personalizationPayload)
       if (result.success) {
         toast.success('Ürün sepete eklendi')
         window.dispatchEvent(new Event('cartUpdated'))
@@ -205,7 +521,19 @@ export function ProductDetail({ product }: ProductDetailProps) {
     } finally {
       setIsLoading(false)
     }
-  }, [activeVariantStock, hasVariants, product.id, product.stock, quantity, selectedVariant])
+  }, [
+    activeVariantStock,
+    buildPersonalizationPayload,
+    currentStep,
+    hasVariants,
+    isPersonalizationComplete,
+    personalizationEnabled,
+    product.id,
+    product.stock,
+    quantity,
+    selectedVariant,
+    touchAllPersonalizationFields,
+  ])
 
   const shareProduct = useCallback(async () => {
     if (typeof window === 'undefined') return
