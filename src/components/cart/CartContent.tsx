@@ -58,6 +58,10 @@ export function CartContent() {
       const [items, bundles] = await Promise.all([getCartItems(), getCartBundles()])
       setCartItems(items)
       setBundleLines(bundles)
+      setDraftQuantities(items.reduce<Record<string, string>>((acc, cartItem) => {
+        acc[cartItem.id] = String(cartItem.quantity)
+        return acc
+      }, {}))
     } catch (error) {
       console.error('Sepet yüklenirken hata:', error)
       toast({ intent: 'error', description: 'Sepet yüklenirken hata oluştu' })
@@ -81,7 +85,7 @@ export function CartContent() {
           action: (
             <ToastAction altText="Geri Al" onClick={async () => {
               if (removed) {
-                await addToCart(removed.productId, removed.quantity)
+                await addToCart(removed.productId, removed.quantity, removed.variantId ?? null)
                 await loadCartItems()
                 toast({ intent: 'success', description: 'Ürün geri alındı' })
               }
@@ -102,23 +106,24 @@ export function CartContent() {
     }
   }
 
-  const handleUpdateQuantity = async (productId: string, newQuantity: number) => {
+  const handleUpdateQuantity = async (item: CartItem, newQuantity: number) => {
     if (newQuantity < 1) return
-    
-    setUpdatingItems(prev => new Set(prev).add(productId))
-    
+
+    const itemKey = item.id
+    setUpdatingItems(prev => new Set(prev).add(itemKey))
+
     try {
-      const result = await updateCartItemQuantity(productId, newQuantity)
-      
+      const result = await updateCartItemQuantity(item.productId, item.variantId ?? null, newQuantity)
+
       if (result.success) {
-        setCartItems(prev => 
-          prev.map(item => 
-            item.productId === productId 
-              ? { ...item, quantity: newQuantity }
-              : item
-          )
+        setCartItems(prev =>
+          prev.map(entry =>
+            entry.id === item.id
+              ? { ...entry, quantity: newQuantity }
+              : entry,
+          ),
         )
-        setDraftQuantities(prev => ({ ...prev, [productId]: String(newQuantity) }))
+        setDraftQuantities(prev => ({ ...prev, [itemKey]: String(newQuantity) }))
       } else {
         toast({ intent: 'error', description: result.error || 'Bir hata oluştu' })
       }
@@ -127,25 +132,25 @@ export function CartContent() {
     } finally {
       setUpdatingItems(prev => {
         const newSet = new Set(prev)
-        newSet.delete(productId)
+        newSet.delete(itemKey)
         return newSet
       })
     }
   }
 
-  const commitQuantity = async (productId: string, currentQuantity: number) => {
-    const raw = draftQuantities[productId]
+  const commitQuantity = async (item: CartItem) => {
+    const raw = draftQuantities[item.id]
     const parsed = parseInt(raw ?? '', 10)
     if (Number.isNaN(parsed)) {
-      setDraftQuantities(prev => ({ ...prev, [productId]: String(currentQuantity) }))
+      setDraftQuantities(prev => ({ ...prev, [item.id]: String(item.quantity) }))
       return
     }
     const clamped = Math.max(1, Math.min(999, parsed))
-    if (clamped === currentQuantity) {
-      setDraftQuantities(prev => ({ ...prev, [productId]: String(clamped) }))
+    if (clamped === item.quantity) {
+      setDraftQuantities(prev => ({ ...prev, [item.id]: String(clamped) }))
       return
     }
-    await handleUpdateQuantity(productId, clamped)
+    await handleUpdateQuantity(item, clamped)
   }
 
   const handleClearCart = async () => {
@@ -175,11 +180,14 @@ export function CartContent() {
     router.push('/checkout')
   }
 
-  const handleAddToFavorites = async (productId: string, productName: string) => {
+  const handleAddToFavorites = async (item: CartItem) => {
     try {
-      const result = await addToFavorites(productId)
+      const result = await addToFavorites(item.productId, item.variantId ?? null)
       if (result.success) {
-        toast({ intent: 'success', description: `${productName} favorilere eklendi` })
+        toast({ intent: 'success', description: `${item.product.name} favorilere eklendi` })
+        if (typeof window !== 'undefined') {
+          window.dispatchEvent(new Event('favoriteUpdated'))
+        }
       } else {
         toast({ intent: 'error', description: result.error || 'Bir hata oluştu' })
       }
@@ -395,7 +403,8 @@ export function CartContent() {
 
           {/* Product Lines */}
           {cartItems.map((item, index) => {
-            const isUpdating = updatingItems.has(item.productId) || updatingItems.has(item.id)
+            const itemKey = item.id
+            const isUpdating = updatingItems.has(itemKey)
             return (
             <SwipeActions
               key={item.id}
@@ -414,7 +423,7 @@ export function CartContent() {
                   label: 'Favori',
                   icon: <HeartIcon className="w-4 h-4" />,
                   color: 'red',
-                  action: () => handleAddToFavorites(item.productId, item.product.name)
+                  action: () => handleAddToFavorites(item)
                 }
               ]}
             >
@@ -467,6 +476,15 @@ export function CartContent() {
                             {item.product.category.name}
                           </span>
                         )}
+                        {item.variant && item.variant.optionValues && item.variant.optionValues.length > 0 && (
+                          <div className="mt-1 flex flex-wrap gap-2 text-xs text-gray-600">
+                            {item.variant.optionValues.map((value) => (
+                              <span key={`${value.optionId}-${value.valueId}`} className="rounded-full bg-gray-100 px-2 py-1">
+                                {value.optionLabel}: {value.valueLabel}
+                              </span>
+                            ))}
+                          </div>
+                        )}
                       </Link>
                     </div>
                   </div>
@@ -483,7 +501,7 @@ export function CartContent() {
                       <span className="text-sm text-gray-600">Adet:</span>
                       <div className="flex items-center border border-gray-300 rounded-lg bg-gray-50">
                         <button
-                          onClick={() => handleUpdateQuantity(item.productId, item.quantity - 1)}
+                          onClick={() => handleUpdateQuantity(item, item.quantity - 1)}
                           disabled={isUpdating || item.quantity <= 1}
                           className="w-6 h-6 flex items-center justify-center text-gray-600 hover:text-gray-800 hover:bg-gray-200 disabled:opacity-50 disabled:cursor-not-allowed rounded-l-lg transition-colors"
                           type="button"
@@ -497,19 +515,19 @@ export function CartContent() {
                           type="text"
                           inputMode="numeric"
                           pattern="[0-9]*"
-                          value={draftQuantities[item.productId] ?? String(item.quantity)}
+                          value={draftQuantities[itemKey] ?? String(item.quantity)}
                           onFocus={(e: React.FocusEvent<HTMLInputElement>) => e.currentTarget.select()}
                           onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
-                            const val = e.target.value.replace(/[^0-9]/g, '').slice(0, 3);
-                            setDraftQuantities(prev => ({ ...prev, [item.productId]: val }));
+                            const val = e.target.value.replace(/[^0-9]/g, '').slice(0, 3)
+                            setDraftQuantities(prev => ({ ...prev, [itemKey]: val }))
                           }}
-                          onBlur={() => commitQuantity(item.productId, item.quantity)}
+                          onBlur={() => commitQuantity(item)}
                           onKeyDown={(e: React.KeyboardEvent<HTMLInputElement>) => {
                             if (e.key === 'Enter') {
-                              (e.currentTarget as HTMLInputElement).blur();
+                              (e.currentTarget as HTMLInputElement).blur()
                             } else if (e.key === 'Escape') {
-                              setDraftQuantities(prev => ({ ...prev, [item.productId]: String(item.quantity) }));
-                              (e.currentTarget as HTMLInputElement).blur();
+                              setDraftQuantities(prev => ({ ...prev, [itemKey]: String(item.quantity) }))
+                              (e.currentTarget as HTMLInputElement).blur()
                             }
                           }}
                           disabled={isUpdating}
@@ -518,7 +536,7 @@ export function CartContent() {
                           aria-label="Miktar"
                         />
                         <button
-                          onClick={() => handleUpdateQuantity(item.productId, item.quantity + 1)}
+                          onClick={() => handleUpdateQuantity(item, item.quantity + 1)}
                           disabled={isUpdating}
                           className="w-6 h-6 flex items-center justify-center text-gray-600 hover:text-gray-800 hover:bg-gray-200 disabled:opacity-50 disabled:cursor-not-allowed rounded-r-lg transition-colors"
                           type="button"

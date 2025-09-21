@@ -32,7 +32,7 @@ export function FeaturedProducts({ products }: FeaturedProductsProps) {
       const favoriteStatuses = await Promise.all(
         products.map(async (product) => {
           try {
-            const isFavorite = await isProductInFavorites(product.id);
+            const isFavorite = await isProductInFavorites(product.id, null);
             return { productId: product.id, isFavorite };
           } catch (_) {
             return { productId: product.id, isFavorite: false };
@@ -64,7 +64,7 @@ export function FeaturedProducts({ products }: FeaturedProductsProps) {
       const isFavorite = favorites.has(productId);
       
       if (isFavorite) {
-        const result = await removeFromFavorites(productId);
+        const result = await removeFromFavorites(productId, null);
         if (result.success) {
           setFavorites(prev => {
             const newFavorites = new Set(prev);
@@ -78,7 +78,7 @@ export function FeaturedProducts({ products }: FeaturedProductsProps) {
           toast({ intent: 'error', description: result.error || 'Bir hata oluştu' });
         }
       } else {
-        const result = await addToFavorites(productId);
+        const result = await addToFavorites(productId, null);
         if (result.success) {
           setFavorites(prev => new Set([...prev, productId]));
           toast({ intent: 'success', description: 'Ürün favorilere eklendi' });
@@ -106,7 +106,7 @@ export function FeaturedProducts({ products }: FeaturedProductsProps) {
     }));
 
     try {
-      const result = await addToCart(productId, 1);
+      const result = await addToCart(productId, 1, null);
       if (result.success) {
         toast({ intent: 'success', description: 'Ürün sepete eklendi' });
         // Trigger cart update event

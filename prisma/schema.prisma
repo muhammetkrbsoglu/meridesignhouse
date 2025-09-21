@@ -75,6 +75,9 @@ model Product {
   updatedAt               DateTime            @updatedAt
   colors                  String[]            @default([])
   image                   String?
+  hasVariants             Boolean             @default(false)
+  defaultVariantId        String?
+  cardTitle               String?
   bundle_items            bundle_items[]
   cartItems               CartItem[]
   favorites               Favorite[]
@@ -83,9 +86,81 @@ model Product {
   product_colors          product_colors[]
   productEventThemes      ProductEventTheme[]
   images                  ProductImage[]
+  options                 ProductOption[]
+  variants                ProductVariant[]
   category                Category            @relation(fields: [categoryId], references: [id])
 
   @@map("products")
+}
+
+model ProductOption {
+  id          String   @id @default(uuid())
+  productId   String
+  key         String
+  label       String
+  displayType String   @default("swatch")
+  sortOrder   Int      @default(0)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  product     Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+  values      ProductOptionValue[]
+  variantOptions ProductVariantOption[]
+
+  @@unique([productId, key])
+  @@map("product_options")
+}
+
+model ProductOptionValue {
+  id        String   @id @default(uuid())
+  optionId  String
+  value     String
+  label     String
+  hexValue  String?
+  media     Json?
+  sortOrder Int      @default(0)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  option    ProductOption @relation(fields: [optionId], references: [id], onDelete: Cascade)
+  variantOptions ProductVariantOption[]
+
+  @@unique([optionId, value])
+  @@map("product_option_values")
+}
+
+model ProductVariant {
+  id            String   @id @default(uuid())
+  productId     String
+  title         String
+  description   String?
+  sku           String?
+  stock         Int      @default(0)
+  isActive      Boolean  @default(true)
+  sortOrder     Int      @default(0)
+  optionValueKey String
+  badgeHex      String?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  product       Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+  images        ProductImage[]
+  variantOptions ProductVariantOption[]
+  favorites     Favorite[]
+
+  @@unique([productId, optionValueKey])
+  @@map("product_variants")
+}
+
+model ProductVariantOption {
+  id       String   @id @default(uuid())
+  variantId String
+  optionId  String
+  valueId   String
+  createdAt DateTime @default(now())
+  variant  ProductVariant @relation(fields: [variantId], references: [id], onDelete: Cascade)
+  option   ProductOption @relation(fields: [optionId], references: [id], onDelete: Cascade)
+  value    ProductOptionValue @relation(fields: [valueId], references: [id], onDelete: Cascade)
+
+  @@unique([variantId, optionId])
+  @@map("product_variant_options")
 }
 
 model ProductImage {
@@ -94,9 +169,11 @@ model ProductImage {
   alt       String?
   sortOrder Int      @default(0)
   productId String
+  variantId String?
   createdAt DateTime @default(now())
   fileId    String?
-  product   Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+  product   Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+  variant   ProductVariant? @relation(fields: [variantId], references: [id], onDelete: Cascade)
 
   @@map("product_images")
 }
@@ -229,9 +306,11 @@ model Favorite {
   id        String   @id @default(uuid())
   userId    String
   productId String
+  variantId String?
   createdAt DateTime @default(now())
   product   Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
   user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  variant   ProductVariant? @relation(fields: [variantId], references: [id], onDelete: Cascade)
 
   @@unique([userId, productId])
   @@map("favorites")

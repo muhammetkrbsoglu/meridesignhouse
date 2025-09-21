@@ -152,7 +152,7 @@ export default function CheckoutClient({ initialAddresses }: CheckoutClientProps
 
   const _handleAddFavoriteToCart = async (productId: string) => {
     try {
-      await addToCart(productId, 1);
+      await addToCart(productId, 1, null);
       toast.success('Ürün sepete eklendi');
       loadCartItems();
     } catch {

@@ -3,6 +3,7 @@
 import { revalidatePath } from 'next/cache'
 import { redirect } from 'next/navigation'
 import { z } from 'zod'
+import type { SupabaseClient } from '@supabase/supabase-js'
 import { getSupabaseAdmin } from '@/lib/supabase'
 import { logger } from '@/lib/logger'
 import { randomUUID } from 'crypto'
@@ -10,13 +11,500 @@ import {
   ProductWithCategory,
   SimpleProduct,
   FeaturedProduct,
+  ProductWithVariants,
   convertSupabaseToProductWithCategory,
   convertToSimpleProduct,
-  convertToFeaturedProduct
+  convertToFeaturedProduct,
+  ProductOption,
+  ProductOptionValue,
+  ProductVariant,
 } from '@/types/product'
+
+const VARIANT_OPTION_TYPES = ['swatch', 'pill', 'text'] as const
+
+type VariantOptionDisplayType = typeof VARIANT_OPTION_TYPES[number]
+
+type BuilderImageInput = {
+  id?: string
+  url: string
+  fileId?: string | null
+  alt?: string | null
+  sortOrder?: number
+}
+
+type VariantOptionSelectionDraft = {
+  optionId: string
+  valueId: string
+}
+
+type VariantDraft = {
+  id: string
+  title: string
+  description?: string | null
+  sku?: string | null
+  stock?: number | null
+  isActive: boolean
+  sortOrder: number
+  badgeHex?: string | null
+  optionSelections: VariantOptionSelectionDraft[]
+  images?: BuilderImageInput[]
+  isDefault?: boolean
+}
+
+type OptionValueDraft = {
+  id: string
+  value: string
+  label: string
+  hexValue?: string | null
+  sortOrder?: number
+}
+
+type OptionDraft = {
+  id: string
+  key: string
+  label: string
+  displayType: VariantOptionDisplayType
+  sortOrder: number
+  values: OptionValueDraft[]
+}
+
+type VariantStatePayload = {
+  hasVariants: boolean
+  cardTitle?: string | null
+  options: OptionDraft[]
+  variants: VariantDraft[]
+  sharedImages?: BuilderImageInput[]
+  defaultVariantClientId?: string | null
+}
+
+const buildOptionValueKey = (
+  selections: Array<{ optionId: string; valueId: string }>,
+  optionOrder: string[],
+): string => {
+  if (selections.length === 0) return ''
+
+  const ordering = new Map(optionOrder.map((id, index) => [id, index]))
+
+  return selections
+    .slice()
+    .sort((a, b) => {
+      const indexA = ordering.get(a.optionId) ?? Number.MAX_SAFE_INTEGER
+      const indexB = ordering.get(b.optionId) ?? Number.MAX_SAFE_INTEGER
+
+      if (indexA !== indexB) {
+        return indexA - indexB
+      }
+
+      const optionComparison = a.optionId.localeCompare(b.optionId)
+      if (optionComparison !== 0) {
+        return optionComparison
+      }
+
+      return a.valueId.localeCompare(b.valueId)
+    })
+    .map(({ optionId, valueId }) => `${optionId}:${valueId}`)
+    .join('|')
+}
+
+const generateSlug = (name: string) => {
+  return name
+    .toLowerCase()
+    .replace(/[^a-z0-9\s-]/g, '')
+    .replace(/\s+/g, '-')
+    .replace(/-+/g, '-')
+    .trim()
+}
+
+const parseVariantState = (raw: FormDataEntryValue | null): VariantStatePayload | null => {
+  if (!raw || typeof raw !== 'string') {
+    return null
+  }
+
+  try {
+    const parsed = JSON.parse(raw) as VariantStatePayload
+    if (!parsed || typeof parsed !== 'object') {
+      return null
+    }
+
+    return {
+      hasVariants: Boolean(parsed.hasVariants),
+      cardTitle: parsed.cardTitle ?? null,
+      options: Array.isArray(parsed.options) ? parsed.options : [],
+      variants: Array.isArray(parsed.variants) ? parsed.variants : [],
+      sharedImages: Array.isArray(parsed.sharedImages) ? parsed.sharedImages : [],
+      defaultVariantClientId: parsed.defaultVariantClientId ?? null,
+    }
+  } catch (error) {
+    logger.error('[products.parseVariantState] invalid JSON', error)
+    return null
+  }
+}
+
+const parseImageList = (raw: FormDataEntryValue | null): BuilderImageInput[] => {
+  if (!raw || typeof raw !== 'string') {
+    return []
+  }
+
+  try {
+    const parsed = JSON.parse(raw)
+    if (!Array.isArray(parsed)) {
+      return []
+    }
+    return parsed
+      .filter((item) => item && typeof item === 'object' && typeof item.url === 'string')
+      .map((item) => ({
+        id: item.id,
+        url: item.url,
+        fileId: item.fileId ?? null,
+        alt: item.alt ?? null,
+        sortOrder: typeof item.sortOrder === 'number' ? item.sortOrder : undefined,
+      }))
+  } catch (error) {
+    logger.error('[products.parseImageList] invalid JSON', error)
+    return []
+  }
+}
+
+interface PersistVariantResult {
+  defaultVariantId: string | null
+  totalStock: number
+  variantOrder: string[]
+  variantImages: Array<{
+    id: string
+    productId: string
+    variantId: string | null
+    url: string
+    fileId: string | null
+    alt: string | null
+    sortOrder: number
+    createdAt: string
+  }>
+}
+
+const hydrateProductWithVariants = async (
+  supabase: SupabaseClient,
+  product: any,
+): Promise<ProductWithVariants> => {
+  const [optionsRes, variantsRes] = await Promise.all([
+    supabase
+      .from('product_options')
+      .select(`
+        id,
+        productId,
+        key,
+        label,
+        displayType,
+        sortOrder,
+        product_option_values(id, optionId, value, label, hexValue, sortOrder)
+      `)
+      .eq('productId', product.id)
+      .order('sortOrder', { ascending: true }),
+    supabase
+      .from('product_variants')
+      .select(`
+        id,
+        productId,
+        title,
+        description,
+        sku,
+        stock,
+        isActive,
+        sortOrder,
+        optionValueKey,
+        badgeHex,
+        product_variant_options(optionId, valueId)
+      `)
+      .eq('productId', product.id)
+      .order('sortOrder', { ascending: true }),
+  ])
+
+  const optionsData = optionsRes.data ?? []
+  const variantsData = variantsRes.data ?? []
+
+  const options = optionsData.map((option) => ({
+    id: option.id,
+    productId: option.productId,
+    key: option.key,
+    label: option.label,
+    displayType: option.displayType,
+    sortOrder: option.sortOrder ?? 0,
+    values: (option.product_option_values || []).map((value: any) => ({
+      id: value.id,
+      optionId: value.optionId,
+      value: value.value,
+      label: value.label,
+      hexValue: value.hexValue ?? null,
+      sortOrder: value.sortOrder ?? 0,
+      media: null,
+    })),
+  }))
+
+  const valueLookup = new Map<string, { optionId: string; optionKey: string; optionLabel: string; valueId: string; valueLabel: string; hexValue?: string | null }>()
+  for (const option of options) {
+    for (const value of option.values || []) {
+      valueLookup.set(value.id, {
+        optionId: option.id,
+        optionKey: option.key,
+        optionLabel: option.label,
+        valueId: value.id,
+        valueLabel: value.label,
+        hexValue: value.hexValue ?? null,
+      })
+    }
+  }
+
+  const productImages = Array.isArray(product.product_images)
+    ? product.product_images
+        .slice()
+        .sort((a: any, b: any) => (a.sortOrder ?? 0) - (b.sortOrder ?? 0))
+        .map((image: any) => ({
+          id: image.id,
+          url: image.url,
+          alt: image.alt ?? null,
+          sortOrder: image.sortOrder ?? 0,
+          variantId: image.variantId ?? null,
+        }))
+    : []
+
+  const variants = variantsData.map((variant) => {
+    const selections = Array.isArray(variant.product_variant_options) ? variant.product_variant_options : []
+    const optionValues = selections
+      .map((selection: any) => {
+        const mapped = valueLookup.get(selection.valueId)
+        if (!mapped) {
+          return null
+        }
+        return {
+          optionId: mapped.optionId,
+          optionKey: mapped.optionKey,
+          optionLabel: mapped.optionLabel,
+          valueId: mapped.valueId,
+          valueLabel: mapped.valueLabel,
+          hexValue: mapped.hexValue ?? undefined,
+        }
+      })
+      .filter(Boolean) as ProductVariant['optionValues']
+
+    const variantImages = productImages
+      .filter((image) => image.variantId === variant.id)
+      .map((image) => ({ ...image }))
+
+    return {
+      id: variant.id,
+      productId: variant.productId,
+      title: variant.title,
+      description: variant.description ?? null,
+      sku: variant.sku ?? null,
+      stock: variant.stock ?? 0,
+      isActive: variant.isActive,
+      sortOrder: variant.sortOrder ?? 0,
+      optionValueKey: variant.optionValueKey,
+      badgeHex: variant.badgeHex ?? null,
+      optionValues,
+      images: variantImages,
+    }
+  })
+
+  const imagesForProduct = productImages.map((image) => ({ ...image }))
+
+  return {
+    ...product,
+    price: typeof product.price === 'string' ? parseFloat(product.price) : product.price,
+    oldPrice: typeof product.oldPrice === 'string' ? parseFloat(product.oldPrice) : product.oldPrice,
+    images: imagesForProduct,
+    product_images: imagesForProduct,
+    options,
+    variants,
+  }
+}
+
+const persistVariantGraph = async (
+  supabase: SupabaseClient,
+  productId: string,
+  state: VariantStatePayload,
+  now: string,
+  defaultVariantClientId?: string | null,
+): Promise<PersistVariantResult> => {
+  if (!state.hasVariants || state.variants.length === 0) {
+    return {
+      defaultVariantId: null,
+      totalStock: 0,
+      variantOrder: [],
+      variantImages: [],
+    }
+  }
+
+  const optionIdMap = new Map<string, string>()
+  const valueIdMap = new Map<string, string>()
+  const variantIdMap = new Map<string, string>()
+
+  const sortedOptions = [...state.options].sort((a, b) => (a.sortOrder ?? 0) - (b.sortOrder ?? 0))
+  const optionRecords = sortedOptions.map((option) => {
+    const optionId = randomUUID()
+    optionIdMap.set(option.id, optionId)
+    return {
+      id: optionId,
+      productId,
+      key: option.key,
+      label: option.label,
+      displayType: VARIANT_OPTION_TYPES.includes(option.displayType) ? option.displayType : 'swatch',
+      sortOrder: option.sortOrder ?? 0,
+      createdAt: now,
+      updatedAt: now,
+    }
+  })
+
+  if (optionRecords.length > 0) {
+    const { error } = await supabase.from('product_options').insert(optionRecords as Partial<ProductOption>[]) // cast for Supabase typing
+    if (error) {
+      throw error
+    }
+  }
+
+  const valueRecords: Array<Partial<ProductOptionValue>> = []
+  for (const option of sortedOptions) {
+    const optionId = optionIdMap.get(option.id)
+    if (!optionId) continue
+
+    const valuesSorted = [...(option.values || [])].sort((a, b) => (a.sortOrder ?? 0) - (b.sortOrder ?? 0))
+    for (const value of valuesSorted) {
+      const valueId = randomUUID()
+      valueIdMap.set(value.id, valueId)
+      valueRecords.push({
+        id: valueId,
+        optionId,
+        value: value.value,
+        label: value.label,
+        hexValue: value.hexValue ?? null,
+        sortOrder: value.sortOrder ?? 0,
+        createdAt: now,
+        updatedAt: now,
+      })
+    }
+  }
+
+  if (valueRecords.length > 0) {
+    const { error } = await supabase.from('product_option_values').insert(valueRecords)
+    if (error) {
+      throw error
+    }
+  }
+
+  const variantRecords: Array<Partial<ProductVariant>> = []
+  const variantOptionRecords: Array<{ id: string; variantId: string; optionId: string; valueId: string; createdAt: string }> = []
+  const variantImages: PersistVariantResult['variantImages'] = []
+
+  const variantsSorted = [...state.variants].sort((a, b) => (a.sortOrder ?? 0) - (b.sortOrder ?? 0))
+  const optionOrder = optionRecords.map((option) => option.id as string)
+
+  for (const variant of variantsSorted) {
+    const variantId = randomUUID()
+    variantIdMap.set(variant.id, variantId)
+
+    const selectionPairs: Array<{ optionId: string; valueId: string }> = []
+    for (const selection of variant.optionSelections || []) {
+      const mappedOptionId = optionIdMap.get(selection.optionId)
+      const mappedValueId = valueIdMap.get(selection.valueId)
+      if (!mappedOptionId || !mappedValueId) {
+        continue
+      }
+      selectionPairs.push({ optionId: mappedOptionId, valueId: mappedValueId })
+      variantOptionRecords.push({
+        id: randomUUID(),
+        variantId,
+        optionId: mappedOptionId,
+        valueId: mappedValueId,
+        createdAt: now,
+      })
+    }
+
+    const optionValueKey = selectionPairs.length > 0 ? buildOptionValueKey(selectionPairs, optionOrder) : variantId
+
+    variantRecords.push({
+      id: variantId,
+      productId,
+      title: variant.title,
+      description: variant.description ?? null,
+      sku: variant.sku ?? null,
+      stock: variant.stock ?? 0,
+      isActive: variant.isActive,
+      sortOrder: variant.sortOrder ?? 0,
+      optionValueKey,
+      badgeHex: variant.badgeHex ?? null,
+      createdAt: now,
+      updatedAt: now,
+    })
+
+    const variantImagesSorted = [...(variant.images || [])].sort((a, b) => (a.sortOrder ?? 0) - (b.sortOrder ?? 0))
+    let localIndex = 0
+    for (const image of variantImagesSorted) {
+      variantImages.push({
+        id: randomUUID(),
+        productId,
+        variantId,
+        url: image.url,
+        fileId: image.fileId ?? null,
+        alt: image.alt ?? `${variant.title} görseli ${localIndex + 1}`,
+        sortOrder: 0,
+        createdAt: now,
+      })
+      localIndex += 1
+    }
+  }
+
+  if (variantRecords.length > 0) {
+    const { error } = await supabase.from('product_variants').insert(variantRecords)
+    if (error) {
+      throw error
+    }
+  }
+
+  if (variantOptionRecords.length > 0) {
+    const { error } = await supabase.from('product_variant_options').insert(variantOptionRecords)
+    if (error) {
+      throw error
+    }
+  }
+
+  // Recalculate global sort order for images (variant groups stay together)
+  let sortCursor = 0
+  const variantOrder: string[] = []
+  const imagesGroupedByVariant = new Map<string, PersistVariantResult['variantImages']>()
+
+  for (const payload of variantImages) {
+    const list = imagesGroupedByVariant.get(payload.variantId || '') || []
+    list.push(payload)
+    imagesGroupedByVariant.set(payload.variantId || '', list)
+  }
+
+  const finalVariantImages: PersistVariantResult['variantImages'] = []
+  for (const variant of variantsSorted) {
+    const variantId = variantIdMap.get(variant.id)
+    if (!variantId) continue
+    variantOrder.push(variantId)
+    const group = (imagesGroupedByVariant.get(variantId) || []).sort((a, b) => (a.sortOrder ?? 0) - (b.sortOrder ?? 0))
+    for (const image of group) {
+      finalVariantImages.push({ ...image, sortOrder: sortCursor++ })
+    }
+  }
+
+  const defaultVariantId = defaultVariantClientId && variantIdMap.get(defaultVariantClientId)
+    ? variantIdMap.get(defaultVariantClientId) ?? variantOrder[0] ?? null
+    : variantOrder[0] ?? null
+
+  const totalStock = variantsSorted.reduce((acc, variant) => acc + Math.max(variant.stock ?? 0, 0), 0)
+
+  return {
+    defaultVariantId: defaultVariantId ?? null,
+    totalStock,
+    variantOrder,
+    variantImages: finalVariantImages,
+  }
+}
 
 const ProductSchema = z.object({
   name: z.string().min(1, 'Ürün adı gereklidir'),
+  cardTitle: z.string().min(1, 'Kart başlığı gereklidir'),
   description: z.string().optional(),
   price: z.coerce.number().min(0, 'Fiyat 0 veya daha büyük olmalıdır'),
   oldPrice: z.coerce.number().min(0, 'Eski fiyat 0 veya daha büyük olmalıdır').optional(),
@@ -54,8 +542,9 @@ export type State = {
 
 // Create product action
 export async function createProduct(prevState: State, formData: FormData): Promise<State> {
-  const validatedFields = CreateProduct.safeParse({
+  const validationResult = CreateProduct.safeParse({
     name: formData.get('name'),
+    cardTitle: formData.get('cardTitle'),
     description: formData.get('description'),
     price: formData.get('price'),
     oldPrice: formData.get('oldPrice') || undefined,
@@ -69,132 +558,176 @@ export async function createProduct(prevState: State, formData: FormData): Promi
     colors: undefined,
   })
 
-  if (!validatedFields.success) {
+  if (!validationResult.success) {
     return {
-      errors: validatedFields.error.flatten().fieldErrors,
+      errors: validationResult.error.flatten().fieldErrors,
       message: 'Eksik alanlar. Ürün oluşturulamadı.',
     }
   }
 
-  const { name, description, price, oldPrice, categoryId, stock, isActive, isFeatured, isNewArrival, isProductOfWeek, productOfWeekCategoryId, colors } = validatedFields.data
-  const colorsArray: string[] = Array.isArray(colors) ? colors : []
+  const base = validationResult.data
+  const variantState = parseVariantState(formData.get('variantState'))
+  const fallbackImages = parseImageList(formData.get('images'))
+  const sharedImagesState = variantState?.sharedImages ?? []
+  const sharedImages = sharedImagesState.length > 0 ? sharedImagesState : fallbackImages
+  const hasVariants = Boolean(variantState?.hasVariants && (variantState?.variants.length ?? 0) > 0)
 
-  // Generate slug from name
-  const generateSlug = (name: string) => {
-    return name
-      .toLowerCase()
-      .replace(/[^a-z0-9\s-]/g, '') // Remove special characters
-      .replace(/\s+/g, '-') // Replace spaces with hyphens
-      .replace(/-+/g, '-') // Replace multiple hyphens with single hyphen
-      .trim()
+  let defaultVariantClientId: string | null = null
+  let defaultVariantDraft: VariantDraft | undefined
+
+  if (hasVariants && variantState) {
+    const fallbackVariant = variantState.variants[0]
+    defaultVariantDraft =
+      variantState.variants.find((variant) => variant.id === variantState.defaultVariantClientId) ??
+      variantState.variants.find((variant) => variant.isDefault) ??
+      fallbackVariant
+    defaultVariantClientId = defaultVariantDraft?.id ?? null
   }
 
-  const slug = generateSlug(name || '')
+  const productTitle = hasVariants ? (defaultVariantDraft?.title || base.name) : base.name
+  const productDescription = hasVariants
+    ? defaultVariantDraft?.description ?? base.description ?? null
+    : base.description ?? null
 
-  // Parse images from form data
-  let images: Array<{ url: string; fileId: string; alt?: string; sortOrder?: number }> = []
-  // Parse colorIds from form data
-  let colorIds: string[] = []
-  try {
-    const colorIdsData = formData.get('colorIds')
-    if (colorIdsData && typeof colorIdsData === 'string') {
-      colorIds = JSON.parse(colorIdsData)
+  const colorHexSet = new Set<string>()
+  if (hasVariants && variantState) {
+    for (const option of variantState.options) {
+      if (option.displayType === 'swatch') {
+        for (const value of option.values || []) {
+          if (value.hexValue) {
+            colorHexSet.add(value.hexValue.toLowerCase())
+          }
+        }
+      }
     }
-  } catch (error) {
-    logger.error('Error parsing colorIds:', error)
-  }
-  try {
-    const imagesData = formData.get('images')
-    if (imagesData && typeof imagesData === 'string') {
-      images = JSON.parse(imagesData)
-    }
-  } catch (error) {
-    logger.error('Error parsing images:', error)
   }
 
+  const slug = generateSlug(base.cardTitle || productTitle)
+  const now = new Date().toISOString()
+  const productId = randomUUID()
+  const supabase = getSupabaseAdmin()
+
   try {
-    const supabase = getSupabaseAdmin()
-    
-    // First, create the product
-    const productId = randomUUID()
-    const now = new Date().toISOString()
-    
-    const { data: _product, error: productError } = await supabase
+    const { error: insertError } = await supabase
       .from('products')
       .insert({
         id: productId,
-        name,
+        name: productTitle,
+        cardTitle: base.cardTitle,
         slug,
-        description,
-        price: (price || 0).toString(),
-        oldPrice: oldPrice ? oldPrice.toString() : null,
-        categoryId: categoryId,
-        stock,
-        isActive: isActive,
-        isFeatured: isFeatured,
-        isNewArrival: isNewArrival,
-        isProductOfWeek: isProductOfWeek,
-        productOfWeekCategoryId: productOfWeekCategoryId || null,
-        colors: colorsArray,
+        description: productDescription,
+        price: (base.price || 0).toString(),
+        oldPrice: base.oldPrice ? base.oldPrice.toString() : null,
+        categoryId: base.categoryId,
+        stock: hasVariants ? 0 : base.stock,
+        isActive: base.isActive,
+        isFeatured: base.isFeatured,
+        isNewArrival: base.isNewArrival,
+        isProductOfWeek: base.isProductOfWeek,
+        productOfWeekCategoryId: base.productOfWeekCategoryId || null,
+        colors: Array.from(colorHexSet),
+        hasVariants,
+        defaultVariantId: null,
         createdAt: now,
         updatedAt: now,
       })
       .select('id')
       .single()
 
-    if (productError) {
-      logger.error('Supabase error:', productError)
+    if (insertError) {
+      logger.error('[products.createProduct] product insert failed', insertError)
       return {
-        message: 'Database Hatası: Ürün oluşturulamadı.',
-      }
-    }
-
-    // Then, insert product images if any
-    if (images && images.length > 0) {
-      const imageRecords = images.map((image, index) => ({
-        id: randomUUID(),
-        productId: productId,
-        url: image.url,
-        fileId: image.fileId || null,
-        alt: image.alt || `${name} görseli ${index + 1}`,
-        sortOrder: image.sortOrder !== undefined ? image.sortOrder : index,
-        createdAt: now
-      }))
-
-      const { error: imagesError } = await supabase
-        .from('product_images')
-        .insert(imageRecords)
-
-      if (imagesError) {
-        logger.error('Error inserting product images:', imagesError)
-        // Don't fail the whole operation if images fail
-      }
-    }
-
-    // Link colors via product_colors and also store hex list in products.colors for backward compatibility
-    if (colorIds.length > 0) {
-      const { data: colorRows, error: colorFetchError } = await supabase
-        .from('colors')
-        .select('id, hex')
-        .in('id', colorIds)
-
-      if (!colorFetchError && colorRows) {
-        const hexes = colorRows.map((r: any) => r.hex)
-        await supabase.from('products').update({ colors: hexes }).eq('id', productId)
-
-        const now2 = now
-        const rel = colorRows.map((r: any) => ({ product_id: productId, color_id: r.id, created_at: now2 }))
-        const { error: relError } = await supabase.from('product_colors').upsert(rel, { onConflict: 'product_id,color_id' })
-        if (relError) {
-          logger.error('product_colors upsert error:', relError)
-        }
+        message: 'Database hatası: Ürün oluşturulamadı.',
       }
     }
   } catch (error) {
-    logger.error('Unexpected error:', error)
+    logger.error('[products.createProduct] unexpected insert error', error)
     return {
-      message: 'Database Hatası: Ürün oluşturulamadı.',
+      message: 'Database hatası: Ürün oluşturulamadı.',
     }
+  }
+
+  let defaultVariantId: string | null = null
+  let totalStock = hasVariants ? 0 : base.stock
+  const imageRecords: PersistVariantResult['variantImages'] = []
+
+  if (hasVariants && variantState) {
+    try {
+      const variantResult = await persistVariantGraph(
+        supabase,
+        productId,
+        variantState,
+        now,
+        defaultVariantClientId,
+      )
+
+      defaultVariantId = variantResult.defaultVariantId
+      totalStock = variantResult.totalStock
+      imageRecords.push(...variantResult.variantImages)
+    } catch (error) {
+      logger.error('[products.createProduct] variant persistence failed', error)
+      return {
+        message: 'Varyasyonlar kaydedilirken bir hata oluştu.',
+      }
+    }
+  }
+
+  if (sharedImages.length > 0) {
+    let sortCursor = imageRecords.length
+    const sharedSorted = [...sharedImages].sort((a, b) => (a.sortOrder ?? 0) - (b.sortOrder ?? 0))
+    for (const image of sharedSorted) {
+      imageRecords.push({
+        id: randomUUID(),
+        productId,
+        variantId: null,
+        url: image.url,
+        fileId: image.fileId ?? null,
+        alt: image.alt ?? `${base.cardTitle || productTitle} görseli ${sortCursor + 1}`,
+        sortOrder: sortCursor,
+        createdAt: now,
+      })
+      sortCursor += 1
+    }
+  }
+
+  if (!hasVariants && imageRecords.length === 0 && fallbackImages.length > 0) {
+    let sortCursor = 0
+    const fallbackSorted = [...fallbackImages].sort((a, b) => (a.sortOrder ?? 0) - (b.sortOrder ?? 0))
+    for (const image of fallbackSorted) {
+      imageRecords.push({
+        id: randomUUID(),
+        productId,
+        variantId: null,
+        url: image.url,
+        fileId: image.fileId ?? null,
+        alt: image.alt ?? `${base.cardTitle || productTitle} görseli ${sortCursor + 1}`,
+        sortOrder: sortCursor,
+        createdAt: now,
+      })
+      sortCursor += 1
+    }
+  }
+
+  if (imageRecords.length > 0) {
+    const { error: imagesError } = await supabase.from('product_images').insert(imageRecords)
+    if (imagesError) {
+      logger.error('[products.createProduct] product_images insert failed', imagesError)
+    }
+  }
+
+  try {
+    await supabase
+      .from('products')
+      .update({
+        defaultVariantId,
+        hasVariants,
+        stock: totalStock,
+        colors: Array.from(colorHexSet),
+        updatedAt: new Date().toISOString(),
+      })
+      .eq('id', productId)
+  } catch (error) {
+    logger.error('[products.createProduct] post-update failed', error)
   }
 
   revalidatePath('/admin/products')
@@ -207,8 +740,9 @@ export async function updateProduct(
   prevState: State,
   formData: FormData,
 ): Promise<State> {
-  const validatedFields = UpdateProduct.safeParse({
+  const validationResult = UpdateProduct.safeParse({
     name: formData.get('name'),
+    cardTitle: formData.get('cardTitle'),
     description: formData.get('description'),
     price: formData.get('price'),
     oldPrice: formData.get('oldPrice') || undefined,
@@ -222,134 +756,176 @@ export async function updateProduct(
     colors: undefined,
   })
 
-  if (!validatedFields.success) {
+  if (!validationResult.success) {
     return {
-      errors: validatedFields.error.flatten().fieldErrors,
+      errors: validationResult.error.flatten().fieldErrors,
       message: 'Eksik alanlar. Ürün güncellenemedi.',
     }
   }
 
-  const { name, description, price, oldPrice, categoryId, stock, isActive, isFeatured, isNewArrival, isProductOfWeek, productOfWeekCategoryId, colors } = validatedFields.data
-  const colorsArray: string[] | undefined = Array.isArray(colors) ? colors : undefined
+  const base = validationResult.data
+  const variantState = parseVariantState(formData.get('variantState'))
+  const fallbackImages = parseImageList(formData.get('images'))
+  const sharedImagesState = variantState?.sharedImages ?? []
+  const sharedImages = sharedImagesState.length > 0 ? sharedImagesState : fallbackImages
+  const hasVariants = Boolean(variantState?.hasVariants && (variantState?.variants.length ?? 0) > 0)
 
-  // Generate slug from name
-  const generateSlug = (name: string) => {
-    return name
-      .toLowerCase()
-      .replace(/[^a-z0-9\s-]/g, '') // Remove special characters
-      .replace(/\s+/g, '-') // Replace spaces with hyphens
-      .replace(/-+/g, '-') // Replace multiple hyphens with single hyphen
-      .trim()
+  let defaultVariantClientId: string | null = null
+  let defaultVariantDraft: VariantDraft | undefined
+
+  if (hasVariants && variantState) {
+    const fallbackVariant = variantState.variants[0]
+    defaultVariantDraft =
+      variantState.variants.find((variant) => variant.id === variantState.defaultVariantClientId) ??
+      variantState.variants.find((variant) => variant.isDefault) ??
+      fallbackVariant
+    defaultVariantClientId = defaultVariantDraft?.id ?? null
   }
 
-  const slug = generateSlug(name || '')
+  const productTitle = hasVariants ? (defaultVariantDraft?.title || base.name) : base.name
+  const productDescription = hasVariants
+    ? defaultVariantDraft?.description ?? base.description ?? null
+    : base.description ?? null
 
-  // Parse images from form data
-  let images: Array<{ url: string; fileId: string; alt?: string; sortOrder?: number }> = []
-  // Parse colorIds from form data
-  let colorIds: string[] = []
-  try {
-    const colorIdsData = formData.get('colorIds')
-    if (colorIdsData && typeof colorIdsData === 'string') {
-      colorIds = JSON.parse(colorIdsData)
+  const colorHexSet = new Set<string>()
+  if (hasVariants && variantState) {
+    for (const option of variantState.options) {
+      if (option.displayType === 'swatch') {
+        for (const value of option.values || []) {
+          if (value.hexValue) {
+            colorHexSet.add(value.hexValue.toLowerCase())
+          }
+        }
+      }
     }
-  } catch (error) {
-    logger.error('Error parsing colorIds (update):', error)
-  }
-  try {
-    const imagesData = formData.get('images')
-    if (imagesData && typeof imagesData === 'string') {
-      images = JSON.parse(imagesData)
-    }
-  } catch (error) {
-    logger.error('Error parsing images:', error)
   }
 
+  const slug = generateSlug(base.cardTitle || productTitle)
+  const now = new Date().toISOString()
+  const supabase = getSupabaseAdmin()
+
   try {
-    const supabase = getSupabaseAdmin()
-    
-    // First, update the product
-    const now = new Date().toISOString()
-    
-    const { error: productError } = await supabase
+    const { error: updateError } = await supabase
       .from('products')
       .update({
-        name,
+        name: productTitle,
+        cardTitle: base.cardTitle ?? null,
         slug,
-        description,
-        price: (price || 0).toString(),
-        oldPrice: oldPrice ? oldPrice.toString() : null,
-        categoryId: categoryId,
-        stock,
-        isActive: isActive,
-        isFeatured: isFeatured,
-        isNewArrival: isNewArrival,
-        isProductOfWeek: isProductOfWeek,
-        productOfWeekCategoryId: productOfWeekCategoryId || null,
-        ...(colorsArray !== undefined ? { colors: colorsArray } : {}),
+        description: productDescription,
+        price: (base.price || 0).toString(),
+        oldPrice: base.oldPrice ? base.oldPrice.toString() : null,
+        categoryId: base.categoryId,
+        stock: hasVariants ? 0 : base.stock,
+        isActive: base.isActive,
+        isFeatured: base.isFeatured,
+        isNewArrival: base.isNewArrival,
+        isProductOfWeek: base.isProductOfWeek,
+        productOfWeekCategoryId: base.productOfWeekCategoryId || null,
+        hasVariants,
+        colors: Array.from(colorHexSet),
         updatedAt: now,
       })
       .eq('id', id)
 
-    if (productError) {
-      logger.error('Supabase error:', productError)
+    if (updateError) {
+      logger.error('[products.updateProduct] product update failed', updateError)
       return {
-        message: 'Database Hatası: Ürün güncellenemedi.',
-      }
-    }
-
-    // Update product color relations if provided
-    if (Array.isArray(colorIds)) {
-      // Clear existing
-      await supabase.from('product_colors').delete().eq('product_id', id)
-      if (colorIds.length > 0) {
-        const { data: colorRows } = await supabase
-          .from('colors')
-          .select('id, hex')
-          .in('id', colorIds)
-        const hexes = (colorRows || []).map((r: any) => r.hex)
-        await supabase.from('products').update({ colors: hexes }).eq('id', id)
-        const now2 = new Date().toISOString()
-        const rel = (colorRows || []).map((r: any) => ({ product_id: id, color_id: r.id, created_at: now2 }))
-        await supabase.from('product_colors').upsert(rel, { onConflict: 'product_id,color_id' })
-      } else {
-        await supabase.from('products').update({ colors: [] }).eq('id', id)
-      }
-    }
-
-    // Then, update product images if any
-    if (images && images.length > 0) {
-      // First, delete existing images
-      await supabase
-        .from('product_images')
-        .delete()
-        .eq('productId', id)
-
-      // Then, insert new images
-      const imageRecords = images.map((image, index) => ({
-        id: randomUUID(),
-        productId: id,
-        url: image.url,
-        fileId: image.fileId || null,
-        alt: image.alt || `${name} görseli ${index + 1}`,
-        sortOrder: image.sortOrder !== undefined ? image.sortOrder : index,
-        createdAt: now
-      }))
-
-      const { error: imagesError } = await supabase
-        .from('product_images')
-        .insert(imageRecords)
-
-      if (imagesError) {
-        logger.error('Error updating product images:', imagesError)
-        // Don't fail the whole operation if images fail
+        message: 'Database hatası: Ürün güncellenemedi.',
       }
     }
   } catch (error) {
-    logger.error('Unexpected error:', error)
+    logger.error('[products.updateProduct] unexpected update error', error)
     return {
-      message: 'Database Hatası: Ürün güncellenemedi.',
+      message: 'Database hatası: Ürün güncellenemedi.',
     }
+  }
+
+  // Clear existing variant graph and images before re-inserting the new structure
+  await supabase.from('product_variants').delete().eq('productId', id)
+  await supabase.from('product_options').delete().eq('productId', id)
+  await supabase.from('product_images').delete().eq('productId', id)
+
+  let defaultVariantId: string | null = null
+  let totalStock = hasVariants ? 0 : base.stock
+  const imageRecords: PersistVariantResult['variantImages'] = []
+
+  if (hasVariants && variantState) {
+    try {
+      const variantResult = await persistVariantGraph(
+        supabase,
+        id,
+        variantState,
+        now,
+        defaultVariantClientId,
+      )
+
+      defaultVariantId = variantResult.defaultVariantId
+      totalStock = variantResult.totalStock
+      imageRecords.push(...variantResult.variantImages)
+    } catch (error) {
+      logger.error('[products.updateProduct] variant persistence failed', error)
+      return {
+        message: 'Varyasyonlar kaydedilirken bir hata oluştu.',
+      }
+    }
+  }
+
+  if (sharedImages.length > 0) {
+    let sortCursor = imageRecords.length
+    const sharedSorted = [...sharedImages].sort((a, b) => (a.sortOrder ?? 0) - (b.sortOrder ?? 0))
+    for (const image of sharedSorted) {
+      imageRecords.push({
+        id: randomUUID(),
+        productId: id,
+        variantId: null,
+        url: image.url,
+        fileId: image.fileId ?? null,
+        alt: image.alt ?? `${base.cardTitle || productTitle} görseli ${sortCursor + 1}`,
+        sortOrder: sortCursor,
+        createdAt: now,
+      })
+      sortCursor += 1
+    }
+  }
+
+  if (!hasVariants && imageRecords.length === 0 && fallbackImages.length > 0) {
+    let sortCursor = 0
+    const fallbackSorted = [...fallbackImages].sort((a, b) => (a.sortOrder ?? 0) - (b.sortOrder ?? 0))
+    for (const image of fallbackSorted) {
+      imageRecords.push({
+        id: randomUUID(),
+        productId: id,
+        variantId: null,
+        url: image.url,
+        fileId: image.fileId ?? null,
+        alt: image.alt ?? `${base.cardTitle || productTitle} görseli ${sortCursor + 1}`,
+        sortOrder: sortCursor,
+        createdAt: now,
+      })
+      sortCursor += 1
+    }
+  }
+
+  if (imageRecords.length > 0) {
+    const { error: imagesError } = await supabase.from('product_images').insert(imageRecords)
+    if (imagesError) {
+      logger.error('[products.updateProduct] product_images insert failed', imagesError)
+    }
+  }
+
+  try {
+    await supabase
+      .from('products')
+      .update({
+        defaultVariantId,
+        hasVariants,
+        stock: totalStock,
+        colors: Array.from(colorHexSet),
+        updatedAt: new Date().toISOString(),
+      })
+      .eq('id', id)
+  } catch (error) {
+    logger.error('[products.updateProduct] post-update failed', error)
   }
 
   revalidatePath('/admin/products')
@@ -448,43 +1024,31 @@ export async function fetchProductsPages(query: string) {
 }
 
 // Fetch product by ID
-export async function fetchProductById(id: string): Promise<{ id: string; name: string; slug: string; image?: string } | null> {
+export async function fetchProductById(id: string): Promise<ProductWithVariants | null> {
   try {
     const supabase = getSupabaseAdmin()
-    
-    const { data, error } = await supabase
+
+    const { data: product, error } = await supabase
       .from('products')
       .select(`
-        id, 
-        name,
-        slug,
-        product_images (
-          url
-        )
+        *,
+        category:categories!left(id, name, slug),
+        product_images(id, url, fileId, alt, sortOrder, variantId)
       `)
       .eq('id', id)
-      .eq('isActive', true)
       .maybeSingle()
 
     if (error) {
-      logger.error('Product fetch error:', error)
+      logger.error('[products.fetchProductById] supabase error', error)
       return null
     }
 
-    if (!data) {
-      logger.debug('Product not found for ID', { id })
+    if (!product) {
+      logger.debug('[products.fetchProductById] not found', { id })
       return null
     }
 
-    // ProductGrid ile aynı şekilde ilk görseli al
-    const imageUrl = data.product_images && data.product_images.length > 0 ? data.product_images[0].url : null
-
-    return {
-      id: data.id,
-      name: data.name,
-      slug: data.slug,
-      image: imageUrl
-    }
+    return hydrateProductWithVariants(supabase, product)
   } catch (error) {
     logger.error('Product fetch error:', error)
     return null
@@ -991,10 +1555,10 @@ export async function fetchCategoryBySlug(slug: string) {
   }
 }
 
-export async function fetchProductBySlug(slug: string) {
+export async function fetchProductBySlug(slug: string): Promise<ProductWithVariants | null> {
   try {
-    const supabase = getSupabaseAdmin();
-    
+    const supabase = getSupabaseAdmin()
+
     const { data: product, error } = await supabase
       .from('products')
       .select(`
@@ -1005,25 +1569,25 @@ export async function fetchProductBySlug(slug: string) {
           slug,
           parent:categories!parentId(id, name, slug)
         ),
-        product_images(id, url, fileId, alt, sortOrder)
+        product_images(id, url, fileId, alt, sortOrder, variantId)
       `)
       .eq('slug', slug)
-      .maybeSingle();
+      .maybeSingle()
 
     if (error) {
-      logger.error('Supabase error:', error);
-      return null;
+      logger.error('[products.fetchProductBySlug] supabase error', error)
+      return null
     }
 
     if (!product) {
-      logger.debug('Product not found for slug', { slug });
-      return null;
+      logger.debug('[products.fetchProductBySlug] not found', { slug })
+      return null
     }
 
-    return product;
+    return hydrateProductWithVariants(supabase, product)
   } catch (error) {
-    logger.error('Ürün getirilirken hata:', error);
-    return null;
+    logger.error('Ürün getirilirken hata:', error)
+    return null
   }
 }
 

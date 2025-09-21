@@ -15,14 +15,40 @@ export interface CartProduct {
   category: CartProductCategory | null
 }
 
+export interface CartItemVariantOptionValue {
+  optionId: string
+  optionLabel: string
+  valueId: string
+  valueLabel: string
+  hexValue?: string | null
+}
+
+export interface CartItemVariantImage {
+  url: string
+  alt: string | null
+  sortOrder: number | null
+}
+
+export interface CartItemVariant {
+  id: string
+  title: string
+  sku?: string | null
+  badgeHex?: string | null
+  stock?: number | null
+  optionValues?: CartItemVariantOptionValue[]
+  images?: CartItemVariantImage[]
+}
+
 export interface CartItem {
   id: string
   userId: string
   productId: string
+  variantId: string | null
   quantity: number
   createdAt: string
   updatedAt: string
   product: CartProduct
+  variant?: CartItemVariant | null
 }
 
 export interface CartBundleItemProduct {
@@ -56,7 +82,9 @@ export interface FavoriteItem {
   id: string
   userId: string
   productId: string
+  variantId: string | null
   createdAt: string
   product: CartProduct
+  variant?: CartItemVariant | null
 }
 

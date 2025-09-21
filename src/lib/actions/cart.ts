@@ -7,27 +7,47 @@ import { revalidatePath } from 'next/cache'
 /**
  * Add item to cart
  */
-export async function addToCart(productId: string, quantity: number = 1) {
+export async function addToCart(productId: string, quantity: number = 1, variantId?: string | null) {
   try {
-    // Get user from server client for authentication check
     const serverClient = await createServerClient();
     const { data: { user }, error: authError } = await serverClient.auth.getUser();
     logger.debug('[cart.addToCart] auth', { hasUser: !!user, authError });
-    
+
     if (authError || !user) {
       return { success: false, error: 'Giriş yapmanız gerekiyor' };
     }
 
-    // Use admin client for database operations (bypasses RLS)
     const supabase = getSupabaseAdmin();
-    logger.debug('[cart.addToCart] input', { productId, quantity });
+    const normalizedVariantId = variantId ?? null;
+    logger.debug('[cart.addToCart] input', { productId, quantity, variantId: normalizedVariantId });
 
-    // Check if item already exists in cart
-    const { data: existingItems, error: checkError } = await supabase
+    if (normalizedVariantId) {
+      const { data: variantRow, error: variantError } = await supabase
+        .from('product_variants')
+        .select('id, productId')
+        .eq('id', normalizedVariantId)
+        .maybeSingle();
+
+      if (variantError || !variantRow || variantRow.productId !== productId) {
+        logger.warn('[cart.addToCart] invalid variant reference', { productId, normalizedVariantId, variantError });
+        return { success: false, error: 'Geçersiz varyant seçimi' };
+      }
+    }
+
+    let existingQuery = supabase
       .from('cart_items')
       .select('id, quantity')
       .eq('userId', user.id)
-      .eq('productId', productId);
+      .eq('productId', productId)
+      .limit(1);
+
+    if (normalizedVariantId) {
+      existingQuery = existingQuery.eq('variantId', normalizedVariantId);
+    } else {
+      existingQuery = existingQuery.is('variantId', null);
+    }
+
+    const { data: existingItems, error: checkError } = await existingQuery;
     logger.debug('[cart.addToCart] existingItems', { existingItems, checkError });
 
     if (checkError) {
@@ -36,14 +56,15 @@ export async function addToCart(productId: string, quantity: number = 1) {
     }
 
     const existingItem = existingItems && existingItems.length > 0 ? existingItems[0] : null;
+    const now = new Date().toISOString();
 
     if (existingItem) {
-      // Update quantity if item exists
       const { error: updateError } = await supabase
         .from('cart_items')
-        .update({ 
+        .update({
           quantity: existingItem.quantity + quantity,
-          updatedAt: new Date().toISOString(),
+          variantId: normalizedVariantId,
+          updatedAt: now,
         })
         .eq('id', existingItem.id);
       logger.debug('[cart.addToCart] update', { updateError });
@@ -53,15 +74,15 @@ export async function addToCart(productId: string, quantity: number = 1) {
         return { success: false, error: 'Sepet güncellenirken hata oluştu' };
       }
     } else {
-      // Add new item to cart
       const { error: insertError } = await supabase
         .from('cart_items')
         .insert({
           id: crypto.randomUUID(),
           userId: user.id,
-          productId: productId,
+          productId,
+          variantId: normalizedVariantId,
           quantity,
-          updatedAt: new Date().toISOString(),
+          updatedAt: now,
         });
       logger.debug('[cart.addToCart] insert', { insertError });
 
@@ -71,8 +92,6 @@ export async function addToCart(productId: string, quantity: number = 1) {
       }
     }
 
-    // Client should refresh state and emit events.
-    
     return { success: true };
   } catch (error) {
     logger.error('[cart.addToCart] unexpected error', error);
@@ -83,9 +102,8 @@ export async function addToCart(productId: string, quantity: number = 1) {
 /**
  * Add many items to cart (best-effort sequential upsert)
  */
-export async function addManyToCart(items: { productId: string; quantity: number }[]) {
+export async function addManyToCart(items: { productId: string; quantity: number; variantId?: string | null }[]) {
   try {
-    // Get user from server client for authentication check
     const serverClient = await createServerClient();
     const { data: { user }, error: authError } = await serverClient.auth.getUser();
     
@@ -93,28 +111,53 @@ export async function addManyToCart(items: { productId: string; quantity: number
       return { success: false, error: 'Giriş yapmanız gerekiyor' };
     }
 
-    // Use admin client for database operations (bypasses RLS)
     const supabase = getSupabaseAdmin();
 
-    for (const { productId, quantity } of items) {
-      const { data: existingItem, error: checkError } = await supabase
+    for (const { productId, quantity, variantId } of items) {
+      const normalizedVariantId = variantId ?? null;
+
+      if (normalizedVariantId) {
+        const { data: variantRow, error: variantError } = await supabase
+          .from('product_variants')
+          .select('id, productId')
+          .eq('id', normalizedVariantId)
+          .maybeSingle();
+
+        if (variantError || !variantRow || variantRow.productId !== productId) {
+          logger.warn('[cart.addManyToCart] invalid variant reference', { productId, normalizedVariantId, variantError });
+          continue;
+        }
+      }
+
+      let existingQuery = supabase
         .from('cart_items')
         .select('id, quantity')
         .eq('userId', user.id)
         .eq('productId', productId)
-        .maybeSingle();
+        .limit(1);
+
+      if (normalizedVariantId) {
+        existingQuery = existingQuery.eq('variantId', normalizedVariantId);
+      } else {
+        existingQuery = existingQuery.is('variantId', null);
+      }
+
+      const { data: existingItem, error: checkError } = await existingQuery.maybeSingle();
 
       if (checkError && checkError.code !== 'PGRST116') {
         logger.error('[cart.addManyToCart] check error', checkError);
         continue;
       }
 
+      const now = new Date().toISOString();
+
       if (existingItem) {
         await supabase
           .from('cart_items')
-          .update({ 
+          .update({
             quantity: existingItem.quantity + quantity,
-            updatedAt: new Date().toISOString(),
+            variantId: normalizedVariantId,
+            updatedAt: now,
           })
           .eq('id', existingItem.id);
       } else {
@@ -123,15 +166,14 @@ export async function addManyToCart(items: { productId: string; quantity: number
           .insert({
             id: crypto.randomUUID(),
             userId: user.id,
-            productId: productId,
+            productId,
+            variantId: normalizedVariantId,
             quantity,
-            updatedAt: new Date().toISOString(),
+            updatedAt: now,
           });
       }
     }
 
-    // Client should refresh state and emit events.
-    
     return { success: true };
   } catch (error) {
     logger.error('[cart.addManyToCart] unexpected error', error);
@@ -402,9 +444,8 @@ export async function removeFromCart(cartItemId: string) {
 /**
  * Update cart item quantity
  */
-export async function updateCartItemQuantity(productId: string, quantity: number) {
+export async function updateCartItemQuantity(productId: string, variantId: string | null, quantity: number) {
   try {
-    // Get user from server client for authentication check
     const serverClient = await createServerClient();
     const { data: { user }, error: authError } = await serverClient.auth.getUser();
     
@@ -412,16 +453,23 @@ export async function updateCartItemQuantity(productId: string, quantity: number
       return { success: false, error: 'Giriş yapmanız gerekiyor' };
     }
 
-    // Use admin client for database operations (bypasses RLS)
     const supabase = getSupabaseAdmin();
+    const normalizedVariantId = variantId ?? null;
 
-    // First find the cart item by product_id
-    const { data: cartItem, error: findError } = await supabase
+    let findQuery = supabase
       .from('cart_items')
       .select('id')
       .eq('productId', productId)
       .eq('userId', user.id)
-      .single();
+      .limit(1);
+
+    if (normalizedVariantId) {
+      findQuery = findQuery.eq('variantId', normalizedVariantId);
+    } else {
+      findQuery = findQuery.is('variantId', null);
+    }
+
+    const { data: cartItem, error: findError } = await findQuery.single();
 
     if (findError || !cartItem) {
       return { success: false, error: 'Sepet öğesi bulunamadı' };
@@ -445,8 +493,6 @@ export async function updateCartItemQuantity(productId: string, quantity: number
       return { success: false, error: 'Sepet güncellenirken hata oluştu' };
     }
 
-    // Client should refresh state and emit events.
-    
     return { success: true };
   } catch (error) {
     logger.error('[cart.updateCartItemQuantity] unexpected error', error);
@@ -459,15 +505,13 @@ export async function updateCartItemQuantity(productId: string, quantity: number
  */
 export async function getCartItems(): Promise<CartItem[]> {
   try {
-    // Get user from server client for authentication check
     const serverClient = await createServerClient();
     const { data: { user }, error: authError } = await serverClient.auth.getUser();
-    
+
     if (authError || !user) {
       return [];
     }
 
-    // Use admin client for database operations (bypasses RLS)
     const supabase = getSupabaseAdmin();
 
     const { data, error } = await supabase
@@ -476,6 +520,7 @@ export async function getCartItems(): Promise<CartItem[]> {
         id,
         userId,
         productId,
+        variantId,
         quantity,
         createdAt,
         updatedAt,
@@ -484,22 +529,130 @@ export async function getCartItems(): Promise<CartItem[]> {
           name,
           slug,
           price,
-          product_images!left(url, alt, "sortOrder"),
-          category:categories (
-            name
+          product_images!left(url, alt, "sortOrder", variantId),
+          category:categories ( name ),
+          options:product_options!left(
+            id,
+            label,
+            displayType,
+            product_option_values(id, value, label, hexValue)
           )
         )
       `)
       .eq('userId', user.id)
       .order('createdAt', { ascending: false });
 
-
     if (error) {
       logger.error('Error fetching cart items:', error);
       return [];
     }
 
-    return data || [];
+    const items = (data || []) as Array<any>;
+    const variantIds = Array.from(new Set(items.map((item) => item.variantId).filter(Boolean))) as string[];
+
+    const variantMap = new Map<string, any>();
+
+    if (variantIds.length > 0) {
+      const { data: variantRows, error: variantError } = await supabase
+        .from('product_variants')
+        .select(`
+          id,
+          productId,
+          title,
+          sku,
+          badgeHex,
+          stock,
+          product_variant_options(optionId, valueId),
+          images:product_images!left(url, alt, sortOrder)
+        `)
+        .in('id', variantIds);
+
+      if (variantError) {
+        logger.error('[cart.getCartItems] variant fetch error', variantError);
+      } else {
+        for (const row of variantRows || []) {
+          variantMap.set(row.id, row);
+        }
+      }
+    }
+
+    const result: CartItem[] = items.map((item) => {
+      const rawProduct = item.product || null;
+      const productImages = (rawProduct?.product_images || []).map((image: any) => ({
+        url: image.url,
+        alt: image.alt ?? null,
+        sortOrder: image.sortOrder ?? 0,
+      }));
+
+      const transformedProduct = rawProduct
+        ? {
+            id: rawProduct.id,
+            name: rawProduct.name,
+            slug: rawProduct.slug,
+            price: typeof rawProduct.price === 'number' ? rawProduct.price : Number(rawProduct.price),
+            product_images: productImages,
+            category: rawProduct.category ?? null,
+          }
+        : null;
+
+      const variantSource = item.variantId ? variantMap.get(item.variantId) ?? null : null;
+      let variantOptionValues;
+
+      if (variantSource && rawProduct?.options) {
+        const optionList = rawProduct.options || [];
+        variantOptionValues = (variantSource.product_variant_options || []).map((selection: any) => {
+          const option = optionList.find((opt: any) => opt.id === selection.optionId);
+          const valueList = option?.product_option_values || [];
+          const value = valueList.find((val: any) => val.id === selection.valueId);
+          return {
+            optionId: selection.optionId,
+            optionLabel: option?.label ?? '',
+            valueId: selection.valueId,
+            valueLabel: value?.label ?? value?.value ?? selection.valueId,
+            hexValue: value?.hexValue ?? null,
+          };
+        });
+      }
+
+      const variant = variantSource
+        ? {
+            id: variantSource.id,
+            title: variantSource.title,
+            sku: variantSource.sku ?? null,
+            badgeHex: variantSource.badgeHex ?? null,
+            stock: typeof variantSource.stock === 'number' ? variantSource.stock : Number(variantSource.stock ?? 0),
+            optionValues: variantOptionValues,
+            images: (variantSource.images || []).map((img: any) => ({
+              url: img.url,
+              alt: img.alt ?? null,
+              sortOrder: img.sortOrder ?? 0,
+            })),
+          }
+        : null;
+
+      const safeProduct = transformedProduct ?? {
+        id: item.productId,
+        name: 'Ürün',
+        slug: '',
+        price: 0,
+        product_images: [],
+        category: null,
+      };
+
+      return {
+        id: item.id,
+        userId: item.userId,
+        productId: item.productId,
+        variantId: item.variantId ?? null,
+        quantity: item.quantity,
+        createdAt: item.createdAt,
+        updatedAt: item.updatedAt,
+        product: safeProduct,
+        variant,
+      };
+    });
+
+    return result;
   } catch (error) {
     logger.error('[cart.getCartItems] unexpected error', error);
     return [];
@@ -601,9 +754,8 @@ export async function clearCart() {
 /**
  * Add item to favorites
  */
-export async function addToFavorites(productId: string) {
+export async function addToFavorites(productId: string, variantId?: string | null) {
   try {
-    // Get user from server client for authentication check
     const serverClient = await createServerClient();
     const { data: { user }, error: authError } = await serverClient.auth.getUser();
     
@@ -611,17 +763,37 @@ export async function addToFavorites(productId: string) {
       return { success: false, error: 'Giriş yapmanız gerekiyor' };
     }
 
-    // Use admin client for database operations (bypasses RLS)
     const supabase = getSupabaseAdmin();
-    logger.debug('[favorites.add] input', { productId });
+    const normalizedVariantId = variantId ?? null;
+    logger.debug('[favorites.add] input', { productId, variantId: normalizedVariantId });
 
-    // Check if item already exists in favorites
-    const { data: existingItem, error: checkError } = await supabase
+    if (normalizedVariantId) {
+      const { data: variantRow, error: variantError } = await supabase
+        .from('product_variants')
+        .select('id, productId')
+        .eq('id', normalizedVariantId)
+        .maybeSingle();
+
+      if (variantError || !variantRow || variantRow.productId !== productId) {
+        logger.warn('[favorites.add] invalid variant reference', { productId, normalizedVariantId, variantError });
+        return { success: false, error: 'Geçersiz varyant seçimi' };
+      }
+    }
+
+    let existingQuery = supabase
       .from('favorites')
-      .select('*')
+      .select('id')
       .eq('userId', user.id)
       .eq('productId', productId)
-      .single();
+      .limit(1);
+
+    if (normalizedVariantId) {
+      existingQuery = existingQuery.eq('variantId', normalizedVariantId);
+    } else {
+      existingQuery = existingQuery.is('variantId', null);
+    }
+
+    const { data: existingItem, error: checkError } = await existingQuery.single();
     logger.debug('[favorites.add] existingItem', { existingItem, checkError });
 
     if (checkError && checkError.code !== 'PGRST116') {
@@ -633,13 +805,13 @@ export async function addToFavorites(productId: string) {
       return { success: false, error: 'Ürün zaten favorilerde' };
     }
 
-    // Add new item to favorites
     const { error: insertError } = await supabase
       .from('favorites')
       .insert({
         id: crypto.randomUUID(),
         userId: user.id,
-        productId: productId,
+        productId,
+        variantId: normalizedVariantId,
       });
     logger.debug('[favorites.add] insert', { insertError });
 
@@ -659,9 +831,8 @@ export async function addToFavorites(productId: string) {
 /**
  * Remove item from favorites
  */
-export async function removeFromFavorites(productId: string) {
+export async function removeFromFavorites(productId: string, variantId?: string | null) {
   try {
-    // Get user from server client for authentication check
     const serverClient = await createServerClient();
     const { data: { user }, error: authError } = await serverClient.auth.getUser();
     
@@ -669,14 +840,22 @@ export async function removeFromFavorites(productId: string) {
       return { success: false, error: 'Giriş yapmanız gerekiyor' };
     }
 
-    // Use admin client for database operations (bypasses RLS)
     const supabase = getSupabaseAdmin();
+    const normalizedVariantId = variantId ?? null;
 
-    const { error } = await supabase
+    let deleteQuery = supabase
       .from('favorites')
       .delete()
       .eq('userId', user.id)
       .eq('productId', productId);
+
+    if (normalizedVariantId) {
+      deleteQuery = deleteQuery.eq('variantId', normalizedVariantId);
+    } else {
+      deleteQuery = deleteQuery.is('variantId', null);
+    }
+
+    const { error } = await deleteQuery;
 
     if (error) {
       logger.error('[favorites.remove] delete error', error);
@@ -696,7 +875,6 @@ export async function removeFromFavorites(productId: string) {
  */
 export async function getFavoriteItems(): Promise<FavoriteItem[]> {
   try {
-    // Get user from server client for authentication check
     const serverClient = await createServerClient();
     const { data: { user }, error: authError } = await serverClient.auth.getUser();
     
@@ -704,34 +882,143 @@ export async function getFavoriteItems(): Promise<FavoriteItem[]> {
       return [];
     }
 
-    // Use admin client for database operations (bypasses RLS)
     const supabase = getSupabaseAdmin();
 
     const { data, error } = await supabase
       .from('favorites')
       .select(`
-        *,
+        id,
+        userId,
+        productId,
+        variantId,
+        createdAt,
         product:products (
           id,
           name,
           slug,
           price,
-          product_images!left(url, alt, "sortOrder"),
-          category:categories (
-            name
+          product_images!left(url, alt, "sortOrder", variantId),
+          category:categories ( name ),
+          options:product_options!left(
+            id,
+            label,
+            displayType,
+            product_option_values(id, value, label, hexValue)
           )
         )
       `)
       .eq('userId', user.id)
       .order('createdAt', { ascending: false });
 
-
     if (error) {
       logger.error('Error fetching favorite items:', error);
       return [];
     }
 
-    return data || [];
+    const items = (data || []) as Array<any>;
+    const variantIds = Array.from(new Set(items.map((item) => item.variantId).filter(Boolean))) as string[];
+
+    const variantMap = new Map<string, any>();
+
+    if (variantIds.length > 0) {
+      const { data: variantRows, error: variantError } = await supabase
+        .from('product_variants')
+        .select(`
+          id,
+          productId,
+          title,
+          sku,
+          badgeHex,
+          stock,
+          product_variant_options(optionId, valueId),
+          images:product_images!left(url, alt, sortOrder)
+        `)
+        .in('id', variantIds);
+
+      if (variantError) {
+        logger.error('[favorites.getFavoriteItems] variant fetch error', variantError);
+      } else {
+        for (const row of variantRows || []) {
+          variantMap.set(row.id, row);
+        }
+      }
+    }
+
+    const result: FavoriteItem[] = items.map((item) => {
+      const rawProduct = item.product || null;
+      const productImages = (rawProduct?.product_images || []).map((image: any) => ({
+        url: image.url,
+        alt: image.alt ?? null,
+        sortOrder: image.sortOrder ?? 0,
+      }));
+
+      const transformedProduct = rawProduct
+        ? {
+            id: rawProduct.id,
+            name: rawProduct.name,
+            slug: rawProduct.slug,
+            price: typeof rawProduct.price === 'number' ? rawProduct.price : Number(rawProduct.price),
+            product_images: productImages,
+            category: rawProduct.category ?? null,
+          }
+        : null;
+
+      const variantSource = item.variantId ? variantMap.get(item.variantId) ?? null : null;
+      let variantOptionValues;
+
+      if (variantSource && rawProduct?.options) {
+        const optionList = rawProduct.options || [];
+        variantOptionValues = (variantSource.product_variant_options || []).map((selection: any) => {
+          const option = optionList.find((opt: any) => opt.id === selection.optionId);
+          const valueList = option?.product_option_values || [];
+          const value = valueList.find((val: any) => val.id === selection.valueId);
+          return {
+            optionId: selection.optionId,
+            optionLabel: option?.label ?? '',
+            valueId: selection.valueId,
+            valueLabel: value?.label ?? value?.value ?? selection.valueId,
+            hexValue: value?.hexValue ?? null,
+          };
+        });
+      }
+
+      const variant = variantSource
+        ? {
+            id: variantSource.id,
+            title: variantSource.title,
+            sku: variantSource.sku ?? null,
+            badgeHex: variantSource.badgeHex ?? null,
+            stock: typeof variantSource.stock === 'number' ? variantSource.stock : Number(variantSource.stock ?? 0),
+            optionValues: variantOptionValues,
+            images: (variantSource.images || []).map((img: any) => ({
+              url: img.url,
+              alt: img.alt ?? null,
+              sortOrder: img.sortOrder ?? 0,
+            })),
+          }
+        : null;
+
+      const safeProduct = transformedProduct ?? {
+        id: item.productId,
+        name: 'Ürün',
+        slug: '',
+        price: 0,
+        product_images: [],
+        category: null,
+      };
+
+      return {
+        id: item.id,
+        userId: item.userId,
+        productId: item.productId,
+        variantId: item.variantId ?? null,
+        createdAt: item.createdAt,
+        product: safeProduct,
+        variant,
+      };
+    });
+
+    return result;
   } catch (error) {
     logger.error('[favorites.getFavoriteItems] unexpected error', error);
     return [];
@@ -741,9 +1028,8 @@ export async function getFavoriteItems(): Promise<FavoriteItem[]> {
 /**
  * Check if product is in favorites
  */
-export async function isProductInFavorites(productId: string): Promise<boolean> {
+export async function isProductInFavorites(productId: string, variantId?: string | null): Promise<boolean> {
   try {
-    // Get user from server client for authentication check
     const serverClient = await createServerClient();
     const { data: { user }, error: authError } = await serverClient.auth.getUser();
     
@@ -751,15 +1037,23 @@ export async function isProductInFavorites(productId: string): Promise<boolean> 
       return false;
     }
 
-    // Use admin client for database operations (bypasses RLS)
     const supabase = getSupabaseAdmin();
+    const normalizedVariantId = variantId ?? null;
 
-    const { data, error } = await supabase
+    let query = supabase
       .from('favorites')
       .select('id')
       .eq('userId', user.id)
       .eq('productId', productId)
-      .single();
+      .limit(1);
+
+    if (normalizedVariantId) {
+      query = query.eq('variantId', normalizedVariantId);
+    } else {
+      query = query.is('variantId', null);
+    }
+
+    const { data, error } = await query.single();
 
     if (error && error.code !== 'PGRST116') {
       logger.error('[favorites.isProductInFavorites] check error', error);

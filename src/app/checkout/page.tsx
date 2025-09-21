@@ -250,7 +250,7 @@ export default function CheckoutPage() {
 
   const handleAddFavoriteToCart = async (productId: string) => {
     try {
-      await addToCart(productId, 1);
+      await addToCart(productId, 1, null);
       toast.success('Ürün sepete eklendi');
       loadCartItems();
     } catch (error) {

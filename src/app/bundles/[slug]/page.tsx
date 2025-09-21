@@ -288,7 +288,7 @@ export default async function BundleDetailPage({ params }: Props) {
                         <p className="text-rose-600 mt-1 font-semibold">₺{priceNum.toLocaleString('tr-TR')}</p>
                       )}
                     </div>
-                    <form action={async () => { 'use server'; await addToCart(p.id, 1) }}>
+                    <form action={async () => { 'use server'; await addToCart(p.id, 1, null) }}>
                       <button className="rounded-md border border-stone-300 bg-white px-3 py-1.5 text-sm font-medium text-stone-700 hover:bg-stone-50">Ekle</button>
                     </form>
                   </div>

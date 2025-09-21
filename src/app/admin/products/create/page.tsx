@@ -2,7 +2,6 @@
 import { AdminLayout } from '@/components/admin/AdminLayout'
 import { ProductForm } from '@/components/admin/ProductForm'
 import { fetchCategories } from '@/lib/actions/products'
-import { listActiveColors, seedColorsIfEmpty } from '@/lib/actions/colors'
 
 export const metadata = {
   title: 'Ürün Ekle | Admin Panel',
@@ -10,11 +9,7 @@ export const metadata = {
 }
 
 export default async function CreateProductPage() {
-  const [categories] = await Promise.all([
-    fetchCategories(),
-  ])
-  await seedColorsIfEmpty()
-  const colors = await listActiveColors()
+  const categories = await fetchCategories()
 
   return (
     <AdminGuard>
@@ -24,7 +19,7 @@ export default async function CreateProductPage() {
             <h1 className="text-2xl font-bold">Ürün Ekle</h1>
           </div>
           <div className="mt-4 md:mt-8">
-            <ProductForm categories={categories} colors={colors} />
+            <ProductForm categories={categories} />
           </div>
         </div>
       </AdminLayout>

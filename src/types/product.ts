@@ -27,19 +27,70 @@ export interface ProductImage {
   url: string;
   alt?: string | null;
   sortOrder?: number;
+  variantId?: string | null;
+  fileId?: string | null;
 }
 
-// Temel Product tipi (Prisma schema'ya uygun)
+export interface ProductOption {
+  id: string;
+  productId: string;
+  key: string;
+  label: string;
+  displayType: 'swatch' | 'pill' | 'text';
+  sortOrder: number;
+  values?: ProductOptionValue[];
+}
+
+export interface ProductOptionValue {
+  id: string;
+  optionId: string;
+  value: string;
+  label: string;
+  hexValue?: string | null;
+  sortOrder?: number;
+  media?: {
+    url?: string | null;
+    fileId?: string | null;
+  } | null;
+}
+
+export interface ProductVariantOptionValue {
+  optionId: string;
+  optionKey: string;
+  optionLabel: string;
+  valueId: string;
+  valueLabel: string;
+  hexValue?: string | null;
+}
+
+export interface ProductVariant {
+  id: string;
+  productId: string;
+  title: string;
+  description?: string | null;
+  sku?: string | null;
+  stock?: number | null;
+  isActive: boolean;
+  sortOrder: number;
+  optionValueKey: string;
+  badgeHex?: string | null;
+  optionValues?: ProductVariantOptionValue[];
+  images?: ProductImage[];
+}
+
 export interface BaseProduct {
   id: string;
   name: string;
   slug: string;
   description?: string | null;
+  cardTitle?: string | null;
   price: number | Decimal;
   oldPrice?: number | Decimal | null;
   comparePrice?: number | Decimal | null;
   sku?: string | null;
   stock?: number;
+  hasVariants?: boolean;
+  defaultVariantId?: string | null;
   isActive?: boolean;
   isFeatured?: boolean;
   isNewArrival?: boolean;
@@ -58,6 +109,13 @@ export interface ProductWithCategory extends BaseProduct {
   images: ProductImage[]; // Supabase'den gelen format
   // Bazı bileşenler legacy alan adını kullanıyor
   product_images?: ProductImage[];
+  options?: ProductOption[];
+  variants?: ProductVariant[];
+}
+
+export interface ProductWithVariants extends ProductWithCategory {
+  defaultVariantId?: string | null;
+  hasVariants?: boolean;
 }
 
 // Detaylı Product tipi (image objeler ile)
@@ -69,6 +127,8 @@ export interface ProductWithImages extends BaseProduct {
 // Admin formu için Product tipi
 export interface AdminProduct extends BaseProduct {
   images?: ProductImage[];
+  options?: ProductOption[];
+  variants?: ProductVariant[];
 }
 
 // Component'lar için basitleştirilmiş Product tipi

@@ -3,7 +3,6 @@ import { AdminGuard } from '@/components/auth/AuthGuard'
 import { AdminLayout } from '@/components/admin/AdminLayout'
 import { ProductForm } from '@/components/admin/ProductForm'
 import { fetchProductById, fetchCategories } from '@/lib/actions/products'
-import { listActiveColors, seedColorsIfEmpty } from '@/lib/actions/colors'
 
 export const metadata = {
   title: 'Ürün Düzenle | Admin Panel',
@@ -23,8 +22,6 @@ export default async function EditProductPage({ params }: PageProps) {
     fetchProductById(id),
     fetchCategories(),
   ])
-  await seedColorsIfEmpty()
-  const colors = await listActiveColors()
 
   if (!product) {
     notFound()
@@ -38,7 +35,7 @@ export default async function EditProductPage({ params }: PageProps) {
             <h1 className="text-2xl font-bold">Ürün Düzenle</h1>
           </div>
           <div className="mt-4 md:mt-8">
-            <ProductForm categories={categories} product={product as unknown as Parameters<typeof ProductForm>[0]['product']} colors={colors} />
+            <ProductForm categories={categories} product={product} />
           </div>
         </div>
       </AdminLayout>

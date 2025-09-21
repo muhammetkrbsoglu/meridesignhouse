@@ -17,27 +17,24 @@ interface FavoriteItemsProps {
 }
 
 export function FavoriteItems({ items }: FavoriteItemsProps) {
-  const [loadingItems, setLoadingItems] = useState<Set<string>>(new Set());
   const [removingItems, setRemovingItems] = useState<Set<string>>(new Set());
   const [addingToCartItems, setAddingToCartItems] = useState<Set<string>>(new Set());
 
-  const handleRemoveFromFavorites = async (productId: string) => {
-    setRemovingItems(prev => new Set(prev).add(productId));
+  const handleRemoveFromFavorites = async (favorite: FavoriteItem) => {
+    setRemovingItems(prev => new Set(prev).add(favorite.id));
     
     try {
-      const result = await removeFromFavorites(productId);
+      const result = await removeFromFavorites(favorite.productId, favorite.variantId ?? null);
       
       if (result.success) {
         toast({ intent: 'success', description: 'Ürün favorilerden çıkarıldı', action: (
           <ToastAction altText="Geri Al" onClick={async () => {
-            await addToFavorites(productId)
+            await addToFavorites(favorite.productId, favorite.variantId ?? null)
             window.dispatchEvent(new Event('favoriteUpdated'))
             window.location.reload()
           }}>Geri Al</ToastAction>
         )});
-        // Trigger favorite update event
         window.dispatchEvent(new Event('favoriteUpdated'));
-        // Reload the page to refresh the list
         window.location.reload();
       } else {
         toast({ intent: 'error', description: result.error || 'Bir hata oluştu' });
@@ -48,20 +45,23 @@ export function FavoriteItems({ items }: FavoriteItemsProps) {
     } finally {
       setRemovingItems(prev => {
         const newSet = new Set(prev);
-        newSet.delete(productId);
+        newSet.delete(favorite.id);
         return newSet;
       });
     }
   };
 
-  const handleAddToCart = async (productId: string, productName: string) => {
-    setAddingToCartItems(prev => new Set(prev).add(productId));
+  const handleAddToCart = async (favorite: FavoriteItem) => {
+    setAddingToCartItems(prev => new Set(prev).add(favorite.id));
     
     try {
-      const result = await addToCart(productId, 1);
+      const result = await addToCart(favorite.productId, 1, favorite.variantId ?? null);
       
       if (result.success) {
-        toast({ intent: 'success', description: `${productName} sepete eklendi` });
+        toast({ intent: 'success', description: `${favorite.product.name} sepete eklendi` });
+        if (typeof window !== 'undefined') {
+          window.dispatchEvent(new Event('cartUpdated'));
+        }
       } else {
         toast({ intent: 'error', description: result.error || 'Bir hata oluştu' });
       }
@@ -70,7 +70,7 @@ export function FavoriteItems({ items }: FavoriteItemsProps) {
     } finally {
       setAddingToCartItems(prev => {
         const newSet = new Set(prev);
-        newSet.delete(productId);
+        newSet.delete(favorite.id);
         return newSet;
       });
     }
@@ -79,7 +79,7 @@ export function FavoriteItems({ items }: FavoriteItemsProps) {
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
       {items.map((item) => {
-        const isLoading = loadingItems.has(item.productId);
+        const isLoading = removingItems.has(item.id) || addingToCartItems.has(item.id);
         
         return (
           <SwipeActions
@@ -88,20 +88,20 @@ export function FavoriteItems({ items }: FavoriteItemsProps) {
               {
                 id: 'remove',
                 label: 'Kaldır',
-                icon: removingItems.has(item.productId) ? <LoadingSpinner size="sm" color="white" /> : <svg className="w-4 h-4" viewBox="0 0 20 20" fill="currentColor"><path fillRule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 100 2h.278l.823 9.043A3 3 0 008.09 18h3.82a3 3 0 002.99-2.957L15.722 6H16a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zm-1 6a1 1 0 112 0v6a1 1 0 11-2 0V8zm4 0a1 1 0 112 0v6a1 1 0 11-2 0V8z" clipRule="evenodd"/></svg>,
+                icon: removingItems.has(item.id) ? <LoadingSpinner size="sm" color="white" /> : <svg className="w-4 h-4" viewBox="0 0 20 20" fill="currentColor"><path fillRule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 100 2h.278l.823 9.043A3 3 0 008.09 18h3.82a3 3 0 002.99-2.957L15.722 6H16a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zm-1 6a1 1 0 112 0v6a1 1 0 11-2 0V8zm4 0a1 1 0 112 0v6a1 1 0 11-2 0V8z" clipRule="evenodd"/></svg>,
                 color: 'red' as any,
-                action: () => handleRemoveFromFavorites(item.productId),
-                disabled: removingItems.has(item.productId)
+                action: () => handleRemoveFromFavorites(item),
+                disabled: removingItems.has(item.id)
               }
             ]}
             rightActions={[
               {
                 id: 'add-to-cart',
                 label: 'Sepete',
-                icon: addingToCartItems.has(item.productId) ? <LoadingSpinner size="sm" color="white" /> : <svg className="w-4 h-4" viewBox="0 0 20 20" fill="currentColor"><path d="M16 11V9h-3V6h-2v3H8v2h3v3h2v-3h3z"/></svg>,
+                icon: addingToCartItems.has(item.id) ? <LoadingSpinner size="sm" color="white" /> : <svg className="w-4 h-4" viewBox="0 0 20 20" fill="currentColor"><path d="M16 11V9h-3V6h-2v3H8v2h3v3h2v-3h3z"/></svg>,
                 color: 'green' as any,
-                action: () => handleAddToCart(item.productId, item.product.name),
-                disabled: addingToCartItems.has(item.productId)
+                action: () => handleAddToCart(item),
+                disabled: addingToCartItems.has(item.id)
               }
             ]}
           >
@@ -130,7 +130,7 @@ export function FavoriteItems({ items }: FavoriteItemsProps) {
 
               {/* Remove from Favorites Button */}
               <button
-                onClick={() => handleRemoveFromFavorites(item.productId)}
+                onClick={() => handleRemoveFromFavorites(item)}
                 disabled={isLoading}
                 className="absolute top-3 right-3 p-2 bg-white rounded-full shadow-md hover:bg-gray-50 transition-colors disabled:opacity-50"
                 title="Favorilerden Çıkar"
@@ -160,6 +160,16 @@ export function FavoriteItems({ items }: FavoriteItemsProps) {
                 </h3>
               </Link>
 
+              {item.variant && item.variant.optionValues && item.variant.optionValues.length > 0 && (
+                <div className="mb-2 flex flex-wrap gap-2 text-xs text-gray-600">
+                  {item.variant.optionValues.map((value) => (
+                    <span key={`${value.optionId}-${value.valueId}`} className="rounded-full bg-gray-100 px-2 py-1">
+                      {value.optionLabel}: {value.valueLabel}
+                    </span>
+                  ))}
+                </div>
+              )}
+
               {/* Price */}
               <p className="text-lg font-bold text-gray-900 mb-4">
                 {formatCurrency(item.product.price)}
@@ -168,7 +178,7 @@ export function FavoriteItems({ items }: FavoriteItemsProps) {
               {/* Action Buttons */}
               <div className="space-y-2">
                 <button
-                  onClick={() => handleAddToCart(item.productId, item.product.name)}
+                  onClick={() => handleAddToCart(item)}
                   disabled={isLoading}
                   className="w-full bg-blue-600 text-white py-2 px-4 rounded-md text-sm font-medium hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                 >

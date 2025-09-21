@@ -1,195 +1,317 @@
-'use client';
+'use client'
 
-import { useEffect, useMemo, useState } from 'react';
-import Link from 'next/link';
-import { HeartIcon, ShoppingCartIcon, ShareIcon } from '@heroicons/react/24/outline';
-import { HeartIcon as HeartSolidIcon } from '@heroicons/react/24/solid';
-import { ProductWithCategory } from '@/types/product';
-import { addToCart, addToFavorites, removeFromFavorites, isProductInFavorites } from '@/lib/api/cartClient';
-import { formatCurrency } from '@/lib/utils';
-import { Button } from '@/components/ui/button';
-import { toast } from 'sonner';
-
-import { MicroFeedback } from '@/components/motion/MicroFeedback';
-import { LoadingSpinner } from '@/components/motion/LoadingStates';
-import { ProductMediaCarousel, type ProductMediaItem } from '@/components/products/ProductMediaCarousel';
+import { useCallback, useEffect, useMemo, useState } from 'react'
+import Link from 'next/link'
+import { HeartIcon, ShoppingCartIcon, ShareIcon } from '@heroicons/react/24/outline'
+import { HeartIcon as HeartSolidIcon } from '@heroicons/react/24/solid'
+import { Badge } from '@/components/ui/badge'
+import { Button } from '@/components/ui/button'
+import { MicroFeedback } from '@/components/motion/MicroFeedback'
+import { LoadingSpinner } from '@/components/motion/LoadingStates'
+import { ProductMediaCarousel, type ProductMediaItem } from '@/components/products/ProductMediaCarousel'
+import { VariantSelector } from '@/components/products/VariantSelector'
+import type { ProductWithVariants, ProductOption, ProductVariant } from '@/types/product'
+import { addToCart, addToFavorites, removeFromFavorites, isProductInFavorites } from '@/lib/api/cartClient'
+import { formatCurrency } from '@/lib/utils'
+import {
+  buildSelectionMap,
+  findMatchingVariant,
+  getValueAvailability,
+  getVariantLabel,
+  toNumeric,
+  type VariantSelectionMap,
+} from '@/lib/products/variant-utils'
+import { toast } from 'sonner'
 
 interface ProductDetailProps {
-  product: ProductWithCategory;
+  product: ProductWithVariants
+}
+
+const getVariantImages = (
+  selectedVariant: ProductVariant | null,
+  sharedImages: ProductMediaItem[],
+): ProductMediaItem[] => {
+  const variantImages = (selectedVariant?.images || []).map((image, index) => ({
+    id: image.id || `${selectedVariant?.id}-img-${index}`,
+    url: image.url,
+    alt: image.alt ?? selectedVariant?.title ?? 'Varyant görseli',
+    sortOrder: image.sortOrder ?? index,
+  }))
+
+  if (variantImages.length > 0) {
+    return [...variantImages, ...sharedImages]
+  }
+
+  return sharedImages
 }
 
 export function ProductDetail({ product }: ProductDetailProps) {
+  const [quantity, setQuantity] = useState(1)
+  const [isFavorite, setIsFavorite] = useState(false)
+  const [isLoading, setIsLoading] = useState(false)
+  const [isFavoriteLoading, setIsFavoriteLoading] = useState(false)
+  const [selectedVariantId, setSelectedVariantId] = useState<string | null>(product.defaultVariantId ?? null)
+  const hasVariants = Boolean(product.hasVariants && (product.variants?.length ?? 0) > 0)
 
+  const options = useMemo<ProductOption[]>(() => (product.options ?? []).slice().sort((a, b) => (a.sortOrder ?? 0) - (b.sortOrder ?? 0)), [product.options])
+  const variants = useMemo<ProductVariant[]>(() => (product.variants ?? []).slice().sort((a, b) => (a.sortOrder ?? 0) - (b.sortOrder ?? 0)), [product.variants])
 
-  const [isFavorite, setIsFavorite] = useState(false);
-  const [quantity, setQuantity] = useState(1);
-  const [isLoading, setIsLoading] = useState(false);
-  const [isFavoriteLoading, setIsFavoriteLoading] = useState(false);
+  const initialVariant = useMemo(() => {
+    if (!hasVariants) return null
+    const byDefault = variants.find((variant) => variant.id === selectedVariantId)
+    return byDefault ?? variants[0] ?? null
+  }, [hasVariants, variants, selectedVariantId])
 
-  const mediaItems = useMemo<ProductMediaItem[]>(() => (
-    (product.product_images ?? []).map((image, index) => ({
-      id: image?.id ?? index,
-      url: image?.url || '/placeholder-product.svg',
-      alt: image?.alt ?? product.name,
-      sortOrder: image?.sortOrder ?? index,
-    }))
-  ), [product.product_images, product.name])
+  const [selectedValues, setSelectedValues] = useState<VariantSelectionMap>(() => buildSelectionMap(initialVariant ?? undefined))
 
+  const selectedVariant = useMemo<ProductVariant | null>(() => {
+    if (!hasVariants) return null
+    const variant = variants.find((item) => item.id === selectedVariantId)
+    if (variant) return variant
+    return variants[0] ?? null
+  }, [hasVariants, variants, selectedVariantId])
 
+  const sharedImages = useMemo<ProductMediaItem[]>(() => {
+    return (product.product_images ?? [])
+      .filter((image) => !image.variantId)
+      .map((image, index) => ({
+        id: image.id || `${product.id}-shared-${index}`,
+        url: image.url,
+        alt: image.alt ?? product.name,
+        sortOrder: image.sortOrder ?? index,
+      }))
+  }, [product.product_images, product.id, product.name])
 
+  const mediaItems = useMemo<ProductMediaItem[]>(() => getVariantImages(selectedVariant, sharedImages), [selectedVariant, sharedImages])
 
-  // Check if product is in favorites on component mount
+  const activeVariantLabel = useMemo(() => getVariantLabel(selectedVariant), [selectedVariant])
+  const activeVariantBadgeColor = selectedVariant?.badgeHex
+  const activeVariantStock = toNumeric(selectedVariant?.stock ?? product.stock ?? 0)
+
   useEffect(() => {
+    if (!hasVariants) return
+    const fallbackMap = buildSelectionMap(selectedVariant ?? undefined)
+    setSelectedValues(fallbackMap)
+  }, [hasVariants, selectedVariant])
+
+  useEffect(() => {
+    let cancelled = false
+    const variantKey = hasVariants ? selectedVariant?.id ?? null : null
+
     const checkFavoriteStatus = async () => {
       try {
-        const favoriteStatus = await isProductInFavorites(product.id);
-        setIsFavorite(favoriteStatus);
+        const favoriteStatus = await isProductInFavorites(product.id, variantKey)
+        if (!cancelled) {
+          setIsFavorite(favoriteStatus)
+        }
       } catch (error) {
-        console.error('Error checking favorite status:', error);
+        console.error('Favori kontrolü sırasında hata:', error)
       }
-    };
+    }
 
-    checkFavoriteStatus();
-  }, [product.id]);
+    checkFavoriteStatus()
 
-  const toggleFavorite = async () => {
-    setIsFavoriteLoading(true);
-    
+    return () => {
+      cancelled = true
+    }
+  }, [product.id, hasVariants, selectedVariant?.id])
+
+  const handleSelectVariantValue = useCallback(
+    (optionId: string, valueId: string) => {
+      if (!hasVariants) return
+
+      setSelectedValues((prev) => {
+        const nextSelections: VariantSelectionMap = { ...prev, [optionId]: valueId }
+        const nextVariant = findMatchingVariant(variants, nextSelections, optionId, valueId)
+
+        if (nextVariant) {
+          setSelectedVariantId(nextVariant.id)
+          return buildSelectionMap(nextVariant)
+        }
+
+        return nextSelections
+      })
+    },
+    [hasVariants, variants],
+  )
+
+  const isValueAvailable = useCallback(
+    (optionId: string, valueId: string) => {
+      if (!hasVariants) return true
+      return getValueAvailability(variants, selectedValues, optionId, valueId)
+    },
+    [hasVariants, selectedValues, variants],
+  )
+
+  const toggleFavorite = useCallback(async () => {
+    setIsFavoriteLoading(true)
+
     try {
+      const variantKey = hasVariants ? selectedVariant?.id ?? null : null
+
       if (isFavorite) {
-        const result = await removeFromFavorites(product.id);
+        const result = await removeFromFavorites(product.id, variantKey)
         if (result.success) {
-          setIsFavorite(false);
-          toast.success('�r�n favorilerden ��kar�ld�');
-          // Trigger favorite update event
-          window.dispatchEvent(new Event('favoriteUpdated'));
+          setIsFavorite(false)
+          toast.success('Ürün favorilerden çıkarıldı')
+          window.dispatchEvent(new Event('favoriteUpdated'))
         } else {
-          toast.error(result.error || 'Bir hata olu�tu');
+          toast.error(result.error || 'Bir hata oluştu')
         }
       } else {
-        const result = await addToFavorites(product.id);
+        const result = await addToFavorites(product.id, variantKey)
         if (result.success) {
-          setIsFavorite(true);
-          toast.success('�r�n favorilere eklendi');
-          // Trigger favorite update event
-          window.dispatchEvent(new Event('favoriteUpdated'));
+          setIsFavorite(true)
+          toast.success('Ürün favorilere eklendi')
+          window.dispatchEvent(new Event('favoriteUpdated'))
         } else {
-          toast.error(result.error || 'Bir hata olu�tu');
+          toast.error(result.error || 'Bir hata oluştu')
         }
       }
-    } catch (_) {
-      toast.error('Bir hata olu�tu');
+    } catch (error) {
+      console.error('Favori işlemi sırasında hata:', error)
+      toast.error('Bir hata oluştu')
     } finally {
-      setIsFavoriteLoading(false);
+      setIsFavoriteLoading(false)
     }
-  };
+  }, [hasVariants, isFavorite, product.id, selectedVariant?.id])
 
-  const handleAddToCart = async () => {
-    setIsLoading(true);
-    
+  const handleAddToCart = useCallback(async () => {
+    const variantKey = hasVariants ? selectedVariant?.id ?? null : null
+
+    if (hasVariants && !selectedVariant) {
+      toast.error('Lütfen bir varyant seçin')
+      return
+    }
+
+    if ((hasVariants && activeVariantStock <= 0) || (!hasVariants && toNumeric(product.stock ?? 0) <= 0)) {
+      toast.error('Seçtiğiniz varyant stokta yok')
+      return
+    }
+
+    setIsLoading(true)
+
     try {
-      const result = await addToCart(product.id, quantity);
+      const result = await addToCart(product.id, quantity, variantKey)
       if (result.success) {
-        toast.success('�r�n sepete eklendi');
-        // Trigger cart update event
-        window.dispatchEvent(new Event('cartUpdated'));
+        toast.success('Ürün sepete eklendi')
+        window.dispatchEvent(new Event('cartUpdated'))
       } else {
-        toast.error(result.error || 'Bir hata olu�tu');
+        toast.error(result.error || 'Bir hata oluştu')
       }
-    } catch (_) {
-      toast.error('Bir hata olu�tu');
+    } catch (error) {
+      console.error('Sepete ekleme sırasında hata:', error)
+      toast.error('Bir hata oluştu')
     } finally {
-      setIsLoading(false);
+      setIsLoading(false)
     }
-  };
+  }, [activeVariantStock, hasVariants, product.id, product.stock, quantity, selectedVariant])
 
-  const shareProduct = async () => {
+  const shareProduct = useCallback(async () => {
+    if (typeof window === 'undefined') return
+
     if (navigator.share) {
       try {
         await navigator.share({
           title: product.name,
           text: product.description || product.name,
           url: window.location.href,
-        });
-      } catch (_) {
-        console.log('Payla��m iptal edildi');
+        })
+      } catch (error) {
+        console.debug('Paylaşım iptal edildi', error)
       }
     } else {
-      // Fallback: copy to clipboard
-      navigator.clipboard.writeText(window.location.href);
-      // TODO: Show toast notification
+      try {
+        await navigator.clipboard.writeText(window.location.href)
+        toast.success('Ürün bağlantısı kopyalandı')
+      } catch (error) {
+        console.error('Bağlantı kopyalanamadı', error)
+      }
     }
-  };
+  }, [product.description, product.name])
 
   return (
-    <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 lg:gap-12">
-      {/* Product Images */}
+    <div className="grid grid-cols-1 gap-6 lg:grid-cols-2 lg:gap-12">
       <ProductMediaCarousel items={mediaItems} />
 
-      {/* Product Info */}
-      <div className="space-y-5 pb-28 lg:pb-0">
-        {/* Category */}
-        <Link 
-          href={`/categories/${product.category.slug}`}
-          className="text-sm text-rose-600 hover:text-rose-700 font-medium"
-        >
+      <div className="space-y-6 pb-28 lg:pb-0">
+        <Link href={`/categories/${product.category.slug}`} className="text-sm font-medium text-rose-600 hover:text-rose-700">
           {product.category.name}
         </Link>
 
-        {/* Product Name */}
-        <h1 className="text-2xl lg:text-3xl font-bold text-gray-900">
-          {product.name}
-        </h1>
-
-        {/* Price */}
-        <div className="text-2xl lg:text-3xl font-bold text-rose-600">
-          {formatCurrency(typeof product.price === 'number' ? product.price : product.price.toNumber())}
+        <div className="space-y-2">
+          <h1 className="text-2xl font-bold text-gray-900 lg:text-3xl">{product.name}</h1>
+          {hasVariants && activeVariantLabel && (
+            <div className="flex flex-wrap items-center gap-2 text-sm text-gray-600">
+              <span>Seçili varyant:</span>
+              <Badge
+                style={activeVariantBadgeColor ? { backgroundColor: activeVariantBadgeColor, color: '#fff' } : undefined}
+                className={activeVariantBadgeColor ? 'border-transparent' : ''}
+              >
+                {activeVariantLabel}
+              </Badge>
+            </div>
+          )}
         </div>
 
-        {/* Description */}
+        <div className="flex items-baseline gap-3">
+          <span className="text-2xl font-bold text-rose-600 lg:text-3xl">
+            {formatCurrency(toNumeric(product.price))}
+          </span>
+          {product.oldPrice && toNumeric(product.oldPrice) > toNumeric(product.price) && (
+            <span className="text-sm text-gray-400 line-through">
+              {formatCurrency(toNumeric(product.oldPrice))}
+            </span>
+          )}
+        </div>
+
         {product.description && (
-          <div className="prose prose-sm max-w-none">
-            <p className="text-gray-600 leading-relaxed">
-              {product.description}
-            </p>
+          <div className="prose prose-sm max-w-none text-gray-600">
+            <p>{product.description}</p>
           </div>
         )}
 
-        {/* Quantity Selector */}
+        {hasVariants && (
+          <div className="rounded-2xl border border-gray-100 bg-white/60 p-4 shadow-sm">
+            <VariantSelector
+              options={options}
+              selectedValues={selectedValues}
+              onSelect={handleSelectVariantValue}
+              isValueAvailable={isValueAvailable}
+            />
+          </div>
+        )}
+
         <div className="space-y-3 hidden lg:block">
-          <label className="text-sm font-medium text-gray-900">
-            Adet
-          </label>
-          <div className="flex items-center space-x-3">
+          <label className="text-sm font-medium text-gray-900">Adet</label>
+          <div className="flex items-center gap-3">
             <button
-              onClick={() => setQuantity(Math.max(1, quantity - 1))}
-              className="w-10 h-10 rounded-md border border-gray-300 flex items-center justify-center hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-rose-500"
+              type="button"
+              onClick={() => setQuantity((prev) => Math.max(1, prev - 1))}
+              className="flex h-10 w-10 items-center justify-center rounded-md border border-gray-300 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-rose-500"
+              aria-label="Adet azalt"
             >
               -
             </button>
             <span className="w-12 text-center font-medium">{quantity}</span>
             <button
-              onClick={() => setQuantity(quantity + 1)}
-              className="w-10 h-10 rounded-md border border-gray-300 flex items-center justify-center hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-rose-500"
+              type="button"
+              onClick={() => setQuantity((prev) => prev + 1)}
+              className="flex h-10 w-10 items-center justify-center rounded-md border border-gray-300 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-rose-500"
+              aria-label="Adet arttır"
             >
               +
             </button>
           </div>
         </div>
 
-        {/* Action Buttons */}
-        <div className="space-y-4 hidden lg:block">
-          {/* Add to Cart */}
-          <MicroFeedback
-            hapticType="success"
-            hapticMessage="�r�n sepete eklendi"
-            disabled={isLoading}
-            onClick={handleAddToCart}
-            className="w-full"
-          >
+        <div className="hidden space-y-4 lg:block">
+          <MicroFeedback hapticType="success" hapticMessage="Ürün sepete eklendi" disabled={isLoading} onClick={handleAddToCart} className="w-full">
             <Button
-              disabled={isLoading}
-              className="w-full bg-rose-600 hover:bg-rose-700 text-white py-3 text-lg font-medium disabled:opacity-50"
+              type="button"
+              data-add-to-cart
+              disabled={isLoading || (hasVariants && activeVariantStock <= 0)}
+              className="flex w-full items-center justify-center gap-2 bg-rose-600 py-3 text-lg font-medium text-white hover:bg-rose-700 disabled:opacity-50"
               size="lg"
             >
               {isLoading ? (
@@ -199,139 +321,129 @@ export function ProductDetail({ product }: ProductDetailProps) {
                 </>
               ) : (
                 <>
-                  <ShoppingCartIcon className="h-5 w-5 mr-2" />
+                  <ShoppingCartIcon className="h-5 w-5" />
                   Sepete Ekle
                 </>
               )}
             </Button>
           </MicroFeedback>
 
-          {/* Secondary Actions */}
-          <div className="flex space-x-3">
+          <div className="flex gap-3">
             <MicroFeedback
-              hapticType={isFavorite ? "warning" : "success"}
-              hapticMessage={isFavorite ? "Favorilerden ��kar�ld�" : "Favorilere eklendi"}
+              hapticType={isFavorite ? 'warning' : 'success'}
+              hapticMessage={isFavorite ? 'Favorilerden çıkarıldı' : 'Favorilere eklendi'}
               disabled={isFavoriteLoading}
               onClick={toggleFavorite}
               className="flex-1"
             >
               <Button
+                type="button"
+                data-favorite-btn
                 disabled={isFavoriteLoading}
                 variant="outline"
-                className="flex-1 disabled:opacity-50"
+                className="flex w-full items-center justify-center gap-2 disabled:opacity-50"
               >
                 {isFavoriteLoading ? (
                   <>
-                    <LoadingSpinner size="sm" color="gray" className="mr-2" />
-                    ��leniyor...
+                    <LoadingSpinner size="sm" color="gray" />
+                    İşleniyor...
                   </>
                 ) : (
                   <>
-                    {isFavorite ? (
-                      <HeartSolidIcon className="h-5 w-5 mr-2 text-red-500" />
-                    ) : (
-                      <HeartIcon className="h-5 w-5 mr-2" />
-                    )}
-                    {isFavorite ? 'Favorilerden ��kar' : 'Favorilere Ekle'}
+                    {isFavorite ? <HeartSolidIcon className="h-5 w-5 text-red-500" /> : <HeartIcon className="h-5 w-5" />}
+                    {isFavorite ? 'Favorilerden çıkar' : 'Favorilere ekle'}
                   </>
                 )}
               </Button>
             </MicroFeedback>
-            
-            <Button
-              onClick={shareProduct}
-              variant="outline"
-              className="flex-1"
-            >
-              <ShareIcon className="h-5 w-5 mr-2" />
-              Payla�
+
+            <Button type="button" onClick={shareProduct} variant="outline" className="flex-1">
+              <ShareIcon className="h-5 w-5" />
+              Paylaş
             </Button>
           </div>
         </div>
 
-        {/* Product Features */}
-        <div className="border-t pt-6">
-          <h3 className="text-lg font-medium text-gray-900 mb-4">
-            �r�n �zellikleri
-          </h3>
+        <div className="rounded-2xl border border-gray-100 bg-white/70 p-5 shadow-sm">
+          <h3 className="mb-4 text-lg font-semibold text-gray-900">Ürün Özellikleri</h3>
           <ul className="space-y-2 text-sm text-gray-600">
             <li className="flex items-center">
-              <span className="w-2 h-2 bg-rose-500 rounded-full mr-3"></span>
-              �cretsiz kargo (150 TL �zeri)
+              <span className="mr-3 h-2 w-2 rounded-full bg-rose-500" />
+              Ücretsiz kargo (150 TL üzeri)
             </li>
             <li className="flex items-center">
-              <span className="w-2 h-2 bg-rose-500 rounded-full mr-3"></span>
-              30 g�n iade garantisi
+              <span className="mr-3 h-2 w-2 rounded-full bg-rose-500" />
+              30 gün iade garantisi
             </li>
             <li className="flex items-center">
-              <span className="w-2 h-2 bg-rose-500 rounded-full mr-3"></span>
-              G�venli �deme
+              <span className="mr-3 h-2 w-2 rounded-full bg-rose-500" />
+              Güvenli ödeme
             </li>
             <li className="flex items-center">
-              <span className="w-2 h-2 bg-rose-500 rounded-full mr-3"></span>
-              H�zl� teslimat
+              <span className="mr-3 h-2 w-2 rounded-full bg-rose-500" />
+              Hızlı teslimat
             </li>
           </ul>
         </div>
       </div>
 
-      {/* Sticky Bottom CTA (Mobile) */}
-      <div className="lg:hidden fixed bottom-0 left-0 right-0 z-[999] bg-white/95 backdrop-blur supports-[padding:max(0px)]:pb-[env(safe-area-inset-bottom)] border-t">
-        <div className="max-w-7xl mx-auto px-4 py-3 space-y-3">
+      <div className="fixed inset-x-0 bottom-0 z-[999] bg-white/95 shadow-[0_-12px_40px_-18px_rgba(15,23,42,0.18)] backdrop-blur supports-[padding:max(0px)]:pb-[env(safe-area-inset-bottom)] lg:hidden">
+        <div className="mx-auto max-w-7xl space-y-3 px-4 py-3">
           <div className="flex items-center justify-between">
-            <div className="text-lg font-semibold text-rose-600">
-              {formatCurrency(typeof product.price === 'number' ? product.price : product.price.toNumber())}
+            <div>
+              <div className="text-lg font-semibold text-rose-600">
+                {formatCurrency(toNumeric(product.price))}
+              </div>
+              {hasVariants && activeVariantLabel && (
+                <div className="text-xs text-gray-500">{activeVariantLabel}</div>
+              )}
             </div>
-            <div className="flex items-center space-x-2">
+            <div className="flex items-center gap-2">
               <button
-                onClick={() => setQuantity(Math.max(1, quantity - 1))}
-                className="w-10 h-10 rounded-md border border-gray-300 flex items-center justify-center"
+                type="button"
+                onClick={() => setQuantity((prev) => Math.max(1, prev - 1))}
+                className="flex h-10 w-10 items-center justify-center rounded-md border border-gray-300"
                 aria-label="Adet azalt"
               >
                 -
               </button>
-              <span className="w-10 text-center">{quantity}</span>
+              <span className="w-10 text-center font-medium">{quantity}</span>
               <button
-                onClick={() => setQuantity(quantity + 1)}
-                className="w-10 h-10 rounded-md border border-gray-300 flex items-center justify-center"
-                aria-label="Adet art�r"
+                type="button"
+                onClick={() => setQuantity((prev) => prev + 1)}
+                className="flex h-10 w-10 items-center justify-center rounded-md border border-gray-300"
+                aria-label="Adet arttır"
               >
                 +
               </button>
             </div>
           </div>
+
           <div className="flex gap-2">
             <MicroFeedback
-              hapticType={isFavorite ? "warning" : "success"}
-              hapticMessage={isFavorite ? "Favorilerden ��kar�ld�" : "Favorilere eklendi"}
+              hapticType={isFavorite ? 'warning' : 'success'}
+              hapticMessage={isFavorite ? 'Favorilerden çıkarıldı' : 'Favorilere eklendi'}
               disabled={isFavoriteLoading}
               onClick={toggleFavorite}
               className="shrink-0"
             >
               <button
+                type="button"
+                data-favorite-btn
                 disabled={isFavoriteLoading}
-                className="shrink-0 w-12 h-12 rounded-lg border border-gray-300 flex items-center justify-center disabled:opacity-50"
-                aria-label={isFavorite ? 'Favorilerden ��kar' : 'Favorilere ekle'}
+                className="flex h-12 w-12 items-center justify-center rounded-lg border border-gray-300 disabled:opacity-50"
+                aria-label={isFavorite ? 'Favorilerden çıkar' : 'Favorilere ekle'}
               >
-                {isFavoriteLoading ? (
-                  <LoadingSpinner size="sm" color="gray" />
-                ) : isFavorite ? (
-                  <HeartSolidIcon className="h-6 w-6 text-red-500" />
-                ) : (
-                  <HeartIcon className="h-6 w-6" />
-                )}
+                {isFavoriteLoading ? <LoadingSpinner size="sm" color="gray" /> : isFavorite ? <HeartSolidIcon className="h-6 w-6 text-red-500" /> : <HeartIcon className="h-6 w-6" />}
               </button>
             </MicroFeedback>
-            <MicroFeedback
-              hapticType="success"
-              hapticMessage="�r�n sepete eklendi"
-              disabled={isLoading}
-              onClick={handleAddToCart}
-              className="flex-1"
-            >
+
+            <MicroFeedback hapticType="success" hapticMessage="Ürün sepete eklendi" disabled={isLoading} onClick={handleAddToCart} className="flex-1">
               <button
-                disabled={isLoading}
-                className="flex-1 h-12 rounded-lg bg-rose-600 text-white font-semibold disabled:opacity-50 flex items-center justify-center"
+                type="button"
+                data-add-to-cart
+                disabled={isLoading || (hasVariants && activeVariantStock <= 0)}
+                className="flex h-12 w-full items-center justify-center rounded-lg bg-rose-600 font-semibold text-white disabled:opacity-50"
                 aria-label="Sepete ekle"
               >
                 {isLoading ? (
@@ -348,8 +460,5 @@ export function ProductDetail({ product }: ProductDetailProps) {
         </div>
       </div>
     </div>
-  );
+  )
 }
-
-
-
