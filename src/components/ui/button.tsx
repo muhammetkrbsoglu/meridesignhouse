@@ -54,12 +54,17 @@ function Button({
 
   // Prevent non-DOM props from leaking to the element
   const { contextLevel: _contextLevel, animated: _animated, ...domProps } = props as any
+  const componentProps = { ...domProps }
+
+  if (!asChild) {
+    componentProps.type = componentProps.type ?? "button"
+  }
 
   return (
     <Comp
       data-slot="button"
       className={cn(buttonVariants({ variant, size, className }))}
-      {...domProps}
+      {...componentProps}
     />
   )
 }
