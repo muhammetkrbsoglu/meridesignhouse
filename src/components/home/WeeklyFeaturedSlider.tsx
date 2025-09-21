@@ -212,7 +212,7 @@ export function WeeklyFeaturedSlider() {
                 transition={{ duration: 0.5, ease: "easeInOut" }}
                 className="aspect-[4/5] md:aspect-[16/7]"
               >
-                <div className="grid grid-cols-1 lg:grid-cols-2 h-full gap-0.5">
+                <div className="grid grid-cols-1 lg:grid-cols-2 h-full">
                   {/* Image Section */}
                   <div className="relative overflow-hidden">
                     <Image

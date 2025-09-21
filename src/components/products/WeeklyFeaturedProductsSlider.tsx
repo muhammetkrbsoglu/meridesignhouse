@@ -242,7 +242,7 @@ export function WeeklyFeaturedProductsSlider({ categoryId }: WeeklyFeaturedProdu
           onTouchEnd={handleTouchEnd}
         >
           {/* Main Slider */}
-          <div className="relative overflow-hidden rounded-2xl bg-white shadow-xl border border-gray-100 max-h-[2700px] sm:max-h-[450px]">
+          <div className="relative overflow-hidden rounded-2xl bg-white shadow-xl border border-gray-100">
             <AnimatePresence mode="wait">
               <motion.div
                 key={categoryId ? currentProduct.id : currentIndex}
@@ -250,16 +250,16 @@ export function WeeklyFeaturedProductsSlider({ categoryId }: WeeklyFeaturedProdu
                 animate={{ opacity: 1, x: 0 }}
                 exit={{ opacity: 0, x: -300 }}
                 transition={{ duration: 0.5, ease: "easeInOut" }}
-                className="aspect-[4/5] md:aspect-[16/7]"
+                className="flex flex-col md:aspect-[16/7]"
               >
-                <div className="grid grid-cols-1 lg:grid-cols-2 h-full gap-0.5">
+                <div className="grid flex-1 grid-cols-1 md:grid-cols-[1.05fr_1fr] h-full gap-3 md:gap-0">
                   {/* Image Section */}
-                  <div className="relative overflow-hidden">
+                  <div className="relative overflow-hidden h-[220px] sm:h-[260px] md:h-full bg-rose-50">
                     <Image
                       src={currentProduct.images[0] || '/placeholder-product.svg'}
                       alt={currentProduct.name}
                       fill
-                      className="object-cover"
+                      className="object-contain md:object-cover transition-transform duration-500 md:group-hover:scale-105"
                       sizes="(min-width:1024px) 50vw, 100vw"
                     />
 
@@ -299,7 +299,7 @@ export function WeeklyFeaturedProductsSlider({ categoryId }: WeeklyFeaturedProdu
                   </div>
 
                   {/* Content Section */}
-                  <div className="flex flex-col justify-center p-4 lg:p-6 bg-gradient-to-br from-white via-rose-50 to-pink-50 relative overflow-hidden">
+                  <div className="flex flex-col justify-center gap-3 md:gap-4 p-4 sm:p-5 md:p-6 bg-gradient-to-br from-white via-rose-50 to-pink-50 relative overflow-hidden">
                     {/* Background decorative elements */}
                     <div className="absolute top-3 right-3 w-6 h-6 bg-rose-200/30 rounded-full blur-sm animate-pulse"></div>
                     <div className="absolute bottom-6 left-6 w-5 h-5 bg-pink-200/40 rounded-full blur-sm animate-pulse delay-1000"></div>
@@ -307,7 +307,7 @@ export function WeeklyFeaturedProductsSlider({ categoryId }: WeeklyFeaturedProdu
 
                     <div className="relative z-10">
                       {/* Rating Stars */}
-                      <div className="flex items-center gap-1 mb-2">
+                      <div className="flex items-center gap-1.5 text-gray-700">
                         {[...Array(5)].map((_, i) => (
                           <motion.div
                             key={i}
@@ -322,7 +322,7 @@ export function WeeklyFeaturedProductsSlider({ categoryId }: WeeklyFeaturedProdu
                       </div>
 
                       {/* Campaign badges - Desktop */}
-                      <div className="hidden md:flex flex-wrap gap-2 mb-4">
+                      <div className="hidden md:flex flex-wrap gap-2">
                         <motion.span
                           initial={{ opacity: 0, y: 20 }}
                           animate={{ opacity: 1, y: 0 }}
@@ -364,7 +364,7 @@ export function WeeklyFeaturedProductsSlider({ categoryId }: WeeklyFeaturedProdu
 
                       {/* Product Name */}
                       <motion.h3
-                        className="text-base md:text-lg lg:text-xl font-bold text-gray-900 mb-1 md:mb-2 leading-tight"
+                        className="text-base md:text-lg lg:text-xl font-semibold text-gray-900 leading-snug"
                         initial={{ opacity: 0, x: -20 }}
                         animate={{ opacity: 1, x: 0 }}
                         transition={{ delay: 0.3, duration: 0.5 }}
@@ -374,7 +374,7 @@ export function WeeklyFeaturedProductsSlider({ categoryId }: WeeklyFeaturedProdu
 
                       {/* Product Description */}
                       <motion.p
-                        className="text-gray-600 text-xs md:text-sm mb-1 md:mb-2 leading-relaxed"
+                        className="text-gray-600 text-xs md:text-sm leading-relaxed"
                         initial={{ opacity: 0, x: -20 }}
                         animate={{ opacity: 1, x: 0 }}
                         transition={{ delay: 0.5, duration: 0.5 }}
@@ -384,13 +384,13 @@ export function WeeklyFeaturedProductsSlider({ categoryId }: WeeklyFeaturedProdu
 
                       {/* Special campaign highlight with price */}
                       <motion.div
-                        className="bg-gradient-to-r from-rose-100 to-pink-100 border-2 border-rose-300 rounded-xl p-3 mb-4"
+                        className="bg-gradient-to-r from-rose-100 to-pink-100 border border-rose-200 rounded-xl p-2.5 sm:p-3 md:p-4"
                         initial={{ opacity: 0, scale: 0.9 }}
                         animate={{ opacity: 1, scale: 1 }}
                         transition={{ delay: 0.7, duration: 0.4 }}
                       >
-                        <div className="flex items-center justify-between">
-                          <div className="flex items-center gap-2 text-rose-700 font-semibold text-xs md:text-sm">
+                        <div className="flex flex-col gap-2 md:flex-row md:items-center md:justify-between">
+                          <div className="flex items-center gap-1.5 text-rose-700 font-medium text-xs md:text-sm">
                             <span className="text-lg">💝</span>
                             <span>Özel El Yapımı Tasarım</span>
                           </div>
