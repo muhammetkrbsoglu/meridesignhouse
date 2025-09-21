@@ -845,52 +845,40 @@ export function Navbar() {
 
 // Back to Top Buttons - Separate component outside navbar
 export function BackToTopButtons() {
-  const [showDesktopBackToTop, setShowDesktopBackToTop] = useState(false)
-  const [showMobileBackToTop, setShowMobileBackToTop] = useState(false)
+  const [isVisible, setIsVisible] = useState(false)
 
   useEffect(() => {
     if (typeof window === 'undefined') return
 
-    const handleScroll = () => {
+    const updateVisibility = () => {
       const currentY = window.scrollY || 0
-      const mobileThreshold = Math.max(window.innerHeight * 0.8, 500)
-      setShowDesktopBackToTop(currentY > 600)
-      setShowMobileBackToTop(currentY > mobileThreshold)
+      const threshold = window.innerWidth < 768 ? 200 : 600
+      setIsVisible(currentY > threshold)
     }
 
-    handleScroll()
-    window.addEventListener('scroll', handleScroll, { passive: true })
-    return () => window.removeEventListener('scroll', handleScroll)
+    updateVisibility()
+    window.addEventListener('scroll', updateVisibility, { passive: true })
+    window.addEventListener('resize', updateVisibility)
+    return () => {
+      window.removeEventListener('scroll', updateVisibility)
+      window.removeEventListener('resize', updateVisibility)
+    }
   }, [])
 
   return (
     <AnimatePresence>
-      {showDesktopBackToTop && (
+      {isVisible && (
         <motion.button
-          key="desktop-back-to-top"
+          key="back-to-top"
           type="button"
-          className="hidden md:flex fixed bottom-8 right-8 z-[9999] h-12 w-12 items-center justify-center rounded-full bg-gradient-to-r from-rose-500 to-pink-500 text-white shadow-xl shadow-rose-500/30 ring-1 ring-white/40 transition-transform duration-200 hover:-translate-y-1 hover:shadow-2xl focus:outline-none focus:ring-2 focus:ring-rose-200"
+          className="fixed bottom-24 right-4 md:bottom-8 md:right-8 z-[9999] flex items-center justify-center rounded-full bg-gradient-to-r from-rose-500 to-pink-500 text-white shadow-xl shadow-rose-500/30 ring-1 ring-white/40 transition-transform duration-200 hover:-translate-y-1 hover:shadow-2xl focus:outline-none focus:ring-2 focus:ring-rose-200 md:h-12 md:w-12 h-[30px] w-[30px]"
           onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
           initial={{ opacity: 0, y: 24 }}
           animate={{ opacity: 1, y: 0 }}
           exit={{ opacity: 0, y: 24 }}
-          aria-label="Yukarı dön"
+          aria-label="Yukari don"
         >
-          <ChevronUpIcon className="h-6 w-6" />
-        </motion.button>
-      )}
-      {showMobileBackToTop && (
-        <motion.button
-          key="mobile-back-to-top"
-          type="button"
-          className="md:hidden fixed bottom-24 right-4 z-[9999] h-10 w-10 items-center justify-center rounded-full border border-white/70 bg-white/80 text-rose-600 shadow-lg shadow-rose-500/25 backdrop-blur-md transition-transform duration-200 hover:-translate-y-1 focus:outline-none focus:ring-2 focus:ring-rose-200/80"
-          onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
-          initial={{ opacity: 0, y: 16 }}
-          animate={{ opacity: 1, y: 0 }}
-          exit={{ opacity: 0, y: 16 }}
-          aria-label="Yukarı dön"
-        >
-          <ChevronUpIcon className="h-5 w-5" />
+          <ChevronUpIcon className="md:h-6 md:w-6 h-5 w-5" />
         </motion.button>
       )}
     </AnimatePresence>

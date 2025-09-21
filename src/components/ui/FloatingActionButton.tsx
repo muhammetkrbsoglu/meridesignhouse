@@ -17,8 +17,8 @@ interface FloatingActionButtonProps {
   label: string
   onClick: () => void
   position?: 'bottom-right' | 'bottom-left' | 'top-right' | 'top-left'
-  size?: 'sm' | 'md' | 'lg'
-  color?: 'primary' | 'secondary' | 'accent' | 'success' | 'warning' | 'error'
+  size?: 'xs' | 'sm' | 'md' | 'lg'
+  color?: 'primary' | 'secondary' | 'accent' | 'success' | 'warning' | 'error' | 'minimal'
   glassEffect?: boolean
   haptic?: boolean
   showOnScroll?: boolean
@@ -45,24 +45,41 @@ const getPositionClasses = (position: string, bottomTabBarHeight: number) => {
 }
 
 const sizeClasses = {
+  xs: 'w-6 h-6',
   sm: 'w-12 h-12',
   md: 'w-14 h-14',
   lg: 'w-16 h-16'
 }
 
 const colorClasses = {
-  primary: 'bg-rose-500 hover:bg-rose-600 text-white',
-  secondary: 'bg-gray-500 hover:bg-gray-600 text-white',
-  accent: 'bg-blue-500 hover:bg-blue-600 text-white',
-  success: 'bg-green-500 hover:bg-green-600 text-white',
-  warning: 'bg-yellow-500 hover:bg-yellow-600 text-white',
-  error: 'bg-red-500 hover:bg-red-600 text-white'
+  primary: 'bg-gradient-to-br from-rose-500 via-rose-500 to-pink-500 text-white shadow-[0_12px_30px_rgba(244,114,182,0.45)]',
+  secondary: 'bg-gradient-to-br from-slate-600 to-slate-800 text-white shadow-[0_12px_30px_rgba(71,85,105,0.35)]',
+  accent: 'bg-gradient-to-br from-sky-500 to-indigo-500 text-white shadow-[0_12px_30px_rgba(56,189,248,0.35)]',
+  success: 'bg-gradient-to-br from-emerald-500 to-green-600 text-white shadow-[0_12px_30px_rgba(16,185,129,0.35)]',
+  warning: 'bg-gradient-to-br from-amber-400 to-orange-500 text-white shadow-[0_12px_30px_rgba(245,158,11,0.35)]',
+  error: 'bg-gradient-to-br from-rose-500 to-red-500 text-white shadow-[0_12px_30px_rgba(239,68,68,0.35)]',
+  minimal: 'bg-white text-slate-950 shadow-[0_10px_24px_rgba(15,23,42,0.12)] ring-1 ring-slate-200/70'
 }
 
 const iconSizes = {
+  xs: 'w-4 h-4',
   sm: 'w-5 h-5',
   md: 'w-6 h-6',
   lg: 'w-7 h-7'
+}
+
+const iconPadding = {
+  xs: 'p-1.5',
+  sm: 'p-2',
+  md: 'p-2.5',
+  lg: 'p-3'
+}
+
+const iconOffset = {
+  xs: 'transform translate-x-[1.5px] translate-y-[0.5px]',
+  sm: 'transform translate-x-[1.5px] translate-y-[0.5px]',
+  md: 'transform translate-x-[1.5px] translate-y-[0.5px]',
+  lg: 'transform translate-x-[1.5px] translate-y-[0.5px]'
 }
 
 export function FloatingActionButton({
@@ -177,10 +194,10 @@ export function FloatingActionButton({
             hapticMessage: label
           })}
           className={cn(
-            'fixed z-40 rounded-full shadow-lg transition-all duration-200',
-            'flex items-center justify-center',
-            'focus:outline-none focus:ring-2 focus:ring-offset-2',
-            'active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed',
+            'fixed z-40 rounded-full transition-transform duration-200 ease-out',
+            'relative flex items-center justify-center overflow-hidden',
+            'focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-white/60',
+            'hover:-translate-y-1 active:translate-y-0 active:scale-95 disabled:opacity-55 disabled:cursor-not-allowed',
             getPositionClasses(position, bottomTabBarHeight),
             sizeClasses[size],
             colorClasses[color],
@@ -192,13 +209,19 @@ export function FloatingActionButton({
           disabled={disabled}
           aria-label={label}
         >
-          <Icon
+          <span
             className={cn(
-              iconSizes[size],
-              'flex-shrink-0',
-              'absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2' // Perfect centering
+              'pointer-events-none grid h-full w-full place-items-center rounded-full transition-all duration-300',
+              glassEffect
+                ? 'bg-white/15 shadow-inner backdrop-blur-sm ring-1 ring-white/20'
+                : 'bg-black/10 shadow-inner',
+              iconPadding[size]
             )}
-          />
+          >
+            <Icon
+              className={cn(iconSizes[size], iconOffset[size], 'pointer-events-none text-current')}
+            />
+          </span>
         </motion.button>
       )}
     </AnimatePresence>
@@ -312,57 +335,6 @@ export function FilterFAB({ onClick }: { onClick: () => void }) {
       size="sm"
       color="accent"
       showOnScroll={false}
-    />
-  )
-}
-
-export function BackToTopFAB() {
-  const [isVisible, setIsVisible] = useState(false)
-
-  useEffect(() => {
-    const handleScroll = () => {
-      setIsVisible(window.scrollY > 300)
-    }
-
-    window.addEventListener('scroll', handleScroll, { passive: true })
-    return () => window.removeEventListener('scroll', handleScroll)
-  }, [])
-
-  const scrollToTop = () => {
-    window.scrollTo({ top: 0, behavior: 'smooth' })
-  }
-
-  // Custom ArrowUp icon for perfect centering
-  const CustomArrowUp = ({ className }: { className?: string }) => (
-    <svg
-      className={className}
-      fill="none"
-      stroke="currentColor"
-      viewBox="0 0 24 24"
-      xmlns="http://www.w3.org/2000/svg"
-    >
-      <path
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        strokeWidth={2}
-        d="M5 10l7-7m0 0l7 7m-7-7v18"
-      />
-    </svg>
-  )
-
-  return (
-    <FloatingActionButton
-      icon={CustomArrowUp}
-      label="Yukari"
-      onClick={scrollToTop}
-      position="bottom-right"
-      size="sm"
-      color="secondary"
-      showOnScroll={false}
-      className={cn(
-        isVisible ? 'block' : 'hidden',
-        'z-[950]' // Higher z-index to appear above bottom tab bar
-      )}
     />
   )
 }

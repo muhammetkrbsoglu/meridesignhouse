@@ -2,9 +2,10 @@
 
 import { useState, useEffect, useRef, useCallback } from 'react'
 import { motion, AnimatePresence, useReducedMotion, PanInfo } from 'framer-motion'
-import { XMarkIcon } from '@heroicons/react/24/outline'
+import { XMarkIcon, MagnifyingGlassIcon } from '@heroicons/react/24/outline'
 import { cn } from '@/lib/utils'
 import { SearchAutocomplete } from './SearchAutocomplete'
+import { formatPrice } from '@/lib/utils'
 
 interface SearchSheetModalProps {
   isOpen: boolean
@@ -14,6 +15,9 @@ interface SearchSheetModalProps {
 
 export function SearchSheetModal({ isOpen, onClose, initialQuery }: SearchSheetModalProps) {
   const [searchQuery, setSearchQuery] = useState(initialQuery || '')
+  const [viewportHeight, setViewportHeight] = useState('100vh')
+  const [realTimeResults, setRealTimeResults] = useState<any[]>([])
+  const [isLoadingResults, setIsLoadingResults] = useState(false)
   const shouldReduceMotion = useReducedMotion()
   const sheetRef = useRef<HTMLDivElement>(null)
   const overlayRef = useRef<HTMLDivElement>(null)
@@ -47,16 +51,66 @@ export function SearchSheetModal({ isOpen, onClose, initialQuery }: SearchSheetM
     }
   }, [onClose])
 
+  // Handle navigation
+  const handleNavigate = useCallback(() => {
+    onClose()
+  }, [onClose])
+
+  // Handle real-time search results
+  const handleRealTimeResults = useCallback((results: any[]) => {
+    setRealTimeResults(results)
+    setIsLoadingResults(false)
+  }, [])
+
+  // Handle search query change for mobile real-time results
+  const handleQueryChange = useCallback((query: string) => {
+    setSearchQuery(query)
+    if (query.length >= 2) {
+      setIsLoadingResults(true)
+    }
+  }, [])
+
   // Handle search completion
   const handleSearch = useCallback((query: string) => {
     setSearchQuery(query)
     onClose()
   }, [onClose])
 
-  // Handle navigation
-  const handleNavigate = useCallback(() => {
-    onClose()
-  }, [onClose])
+  // Handle viewport height changes for keyboard
+  useEffect(() => {
+    const updateViewportHeight = () => {
+      // Use visual viewport if available (accounts for keyboard)
+      if (typeof window !== 'undefined' && window.visualViewport) {
+        const height = window.visualViewport.height
+        setViewportHeight(`${height}px`)
+      } else {
+        // Fallback for browsers without visual viewport support
+        setViewportHeight('100vh')
+      }
+    }
+
+    if (typeof window !== 'undefined') {
+      // Initial height
+      updateViewportHeight()
+
+      // Listen for viewport changes
+      if (window.visualViewport) {
+        window.visualViewport.addEventListener('resize', updateViewportHeight)
+        window.visualViewport.addEventListener('scroll', updateViewportHeight)
+      } else {
+        window.addEventListener('resize', updateViewportHeight)
+      }
+
+      return () => {
+        if (window.visualViewport) {
+          window.visualViewport.removeEventListener('resize', updateViewportHeight)
+          window.visualViewport.removeEventListener('scroll', updateViewportHeight)
+        } else {
+          window.removeEventListener('resize', updateViewportHeight)
+        }
+      }
+    }
+  }, [])
 
   // Focus management for accessibility
   useEffect(() => {
@@ -66,7 +120,10 @@ export function SearchSheetModal({ isOpen, onClose, initialQuery }: SearchSheetM
       ) as HTMLElement
 
       if (firstFocusableElement) {
-        firstFocusableElement.focus()
+        // 100ms delay to allow keyboard to appear on mobile
+        setTimeout(() => {
+          firstFocusableElement.focus()
+        }, 100)
       }
     }
   }, [isOpen])
@@ -93,6 +150,7 @@ export function SearchSheetModal({ isOpen, onClose, initialQuery }: SearchSheetM
               'supports-[backdrop-filter]:bg-black/20',
               'bg-black/20'
             )}
+            style={{ height: viewportHeight }}
             onClick={handleBackdropClick}
             aria-hidden="true"
             role="presentation"
@@ -116,7 +174,7 @@ export function SearchSheetModal({ isOpen, onClose, initialQuery }: SearchSheetM
             }}
             className={cn(
               'fixed bottom-0 left-0 right-0 z-[1201] md:hidden',
-              'max-h-[85vh] rounded-t-3xl',
+              'rounded-t-3xl',
               'cursor-grab active:cursor-grabbing',
               // Modern glassmorphism effect
               'bg-white/95 backdrop-blur-xl',
@@ -124,6 +182,7 @@ export function SearchSheetModal({ isOpen, onClose, initialQuery }: SearchSheetM
               'supports-[backdrop-filter]:bg-white/90',
               'shadow-2xl'
             )}
+            style={{ height: viewportHeight }}
             role="dialog"
             aria-modal="true"
             aria-labelledby="search-modal-title"
@@ -137,12 +196,15 @@ export function SearchSheetModal({ isOpen, onClose, initialQuery }: SearchSheetM
             {/* Search Header */}
             <div className="px-4 pb-3 border-b border-gray-100/50">
               <div className="flex items-center justify-between">
-                <h2
-                  id="search-modal-title"
-                  className="text-lg font-semibold text-gray-900"
-                >
-                  Arama
-                </h2>
+                <div className="flex items-center gap-2">
+                  <MagnifyingGlassIcon className="h-5 w-5 text-gray-600" />
+                  <h2
+                    id="search-modal-title"
+                    className="text-lg font-semibold text-gray-900"
+                  >
+                    Arama
+                  </h2>
+                </div>
                 <button
                   onClick={onClose}
                   className={cn(
@@ -166,16 +228,90 @@ export function SearchSheetModal({ isOpen, onClose, initialQuery }: SearchSheetM
             </div>
 
             {/* Search Content */}
-            <div className="flex-1 overflow-hidden">
-              <SearchAutocomplete
-                placeholder="Ürün, kategori veya set ara..."
-                className="h-full"
-                autoFocus
-                maxSuggestions={6}
-                onSearch={handleSearch}
-                onNavigate={handleNavigate}
-                isOpen={true}
-              />
+            <div className="flex flex-col h-full">
+              {/* Fixed Search Bar */}
+              <div className="flex-shrink-0 px-4 py-3 border-b border-gray-100/50">
+                <SearchAutocomplete
+                  placeholder="Ürün, kategori veya set ara..."
+                  className="w-full"
+                  autoFocus
+                  maxSuggestions={6}
+                  onSearch={handleSearch}
+                  onNavigate={handleNavigate}
+                  isOpen={true}
+                  showRealTimeResults={true}
+                  onRealTimeResults={handleRealTimeResults}
+                  onQueryChange={handleQueryChange}
+                />
+              </div>
+
+              {/* Real-time Results Grid */}
+              <div className="flex-1 overflow-y-auto pb-safe">
+                {isLoadingResults && searchQuery.length >= 2 && (
+                  <div className="p-4 text-center text-gray-500">
+                    <div className="mx-auto h-6 w-6 animate-spin rounded-full border-b-2 border-blue-500" />
+                    <span className="sr-only">Arama yapılıyor</span>
+                  </div>
+                )}
+
+                {!isLoadingResults && realTimeResults.length > 0 && (
+                  <div className="p-4">
+                    <div className="grid grid-cols-2 gap-3">
+                      {realTimeResults.slice(0, 4).map((result, index) => (
+                        <div
+                          key={`${result.type}-${result.id}-${index}`}
+                          className="bg-white rounded-lg border border-gray-200 p-3 hover:border-rose-300 transition-colors"
+                        >
+                          {result.image && (
+                            <div className="aspect-square mb-2 overflow-hidden rounded-md bg-gray-100">
+                              <Image
+                                src={result.image}
+                                alt={result.name}
+                                width={100}
+                                height={100}
+                                className="w-full h-full object-cover"
+                              />
+                            </div>
+                          )}
+                          <h3 className="text-sm font-medium text-gray-900 line-clamp-2 mb-1">
+                            {result.name}
+                          </h3>
+                          <div className="flex items-center justify-between">
+                            <span className="text-xs bg-blue-100 text-blue-800 px-2 py-0.5 rounded-full">
+                              {result.type === 'product' ? 'Ürün' : result.type === 'category' ? 'Kategori' : 'Set'}
+                            </span>
+                            {result.price && (
+                              <span className="text-sm font-bold text-rose-600">
+                                {formatPrice(result.price)}
+                              </span>
+                            )}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                    {realTimeResults.length > 4 && (
+                      <div className="text-center mt-4">
+                        <button
+                          onClick={() => handleSearch(searchQuery)}
+                          className="text-sm text-rose-600 hover:text-rose-800 font-medium"
+                        >
+                          +{realTimeResults.length - 4} sonuç daha göster
+                        </button>
+                      </div>
+                    )}
+                  </div>
+                )}
+
+                {!isLoadingResults && searchQuery.length >= 2 && realTimeResults.length === 0 && (
+                  <div className="p-8 text-center text-gray-500">
+                    <div className="mx-auto mb-2 h-8 w-8 text-gray-300" />
+                    <p className="text-sm">
+                      &ldquo;<span className="font-medium">{searchQuery}</span>&rdquo; için sonuç bulunamadı
+                    </p>
+                    <p className="mt-1 text-xs">Farklı anahtar kelimeler deneyebilirsiniz</p>
+                  </div>
+                )}
+              </div>
             </div>
           </motion.div>
         </>

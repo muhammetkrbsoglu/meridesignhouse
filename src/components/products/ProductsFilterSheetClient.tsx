@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import { BottomSheet } from '@/components/motion/BottomSheet'
-import { FilterFAB, BackToTopFAB } from '@/components/ui/FloatingActionButton'
+import { FilterFAB } from '@/components/ui/FloatingActionButton'
 import { useReducedMotion } from 'framer-motion'
 
 export function ProductsFilterSheetClient({ children }: { children?: React.ReactNode }) {
@@ -16,7 +16,6 @@ export function ProductsFilterSheetClient({ children }: { children?: React.React
     <>
       {/* Mobile FABs */}
       <FilterFAB onClick={openSheet} />
-      <BackToTopFAB />
 
       {/* BottomSheet for Filters (mobile-first) */}
       <BottomSheet

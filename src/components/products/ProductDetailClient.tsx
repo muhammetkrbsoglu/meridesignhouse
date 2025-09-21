@@ -5,7 +5,6 @@ import dynamic from 'next/dynamic'
 import { ProductCTABar } from '@/components/motion/StickyCTA'
 
 const CartFAB = dynamic(() => import('@/components/ui/FloatingActionButton').then(m => m.CartFAB), { ssr: false })
-const BackToTopFAB = dynamic(() => import('@/components/ui/FloatingActionButton').then(m => m.BackToTopFAB), { ssr: false })
 
 interface ProductDetailClientProps {
   product: any
@@ -37,7 +36,6 @@ export function ProductDetailClient({ product, relatedProducts }: ProductDetailC
 
       {/* Mobile FABs */}
       <CartFAB itemCount={0} onClick={() => window.location.href = '/cart'} />
-      <BackToTopFAB />
     </>
   )
 }

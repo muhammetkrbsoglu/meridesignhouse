@@ -53,24 +53,37 @@ const actionMap = {
 
 export async function POST(req: NextRequest) {
   try {
-    const body = await req.json()
+    let body
+    try {
+      body = await req.json()
+    } catch (jsonError) {
+      console.error('RPC: JSON parsing failed:', jsonError)
+      return NextResponse.json({ success: false, error: 'Geçersiz JSON formatı' }, { status: 400 })
+    }
+
     const { action, args } = body ?? {}
 
     if (typeof action !== 'string') {
+      console.error('RPC: Invalid action type:', typeof action, 'Action:', action)
       return NextResponse.json({ success: false, error: 'Geçersiz istek' }, { status: 400 })
     }
 
+    console.log('RPC: Calling action:', action, 'with args:', args)
     const handler = actionMap[action]
 
     if (!handler) {
+      console.error('RPC: Unsupported action:', action)
       return NextResponse.json({ success: false, error: 'Desteklenmeyen işlem' }, { status: 400 })
     }
 
     if (args !== undefined && !Array.isArray(args)) {
+      console.error('RPC: Args must be array:', typeof args, 'Args:', args)
       return NextResponse.json({ success: false, error: 'Argümanlar dizi olmalı' }, { status: 400 })
     }
 
+    console.log('RPC: Executing handler for action:', action)
     const result = await handler(...(args ?? []))
+    console.log('RPC: Handler result for action:', action, ':', result)
 
     return NextResponse.json({ success: true, data: result })
   } catch (error) {
