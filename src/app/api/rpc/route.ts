@@ -64,30 +64,27 @@ export async function POST(req: NextRequest) {
     const { action, args } = body ?? {}
 
     if (typeof action !== 'string') {
-      console.error('RPC: Invalid action type:', typeof action, 'Action:', action)
+      console.error(`RPC Error: Invalid action type '${typeof action}'`)
       return NextResponse.json({ success: false, error: 'Geçersiz istek' }, { status: 400 })
     }
 
-    console.log('RPC: Calling action:', action, 'with args:', args)
     const handler = actionMap[action]
 
     if (!handler) {
-      console.error('RPC: Unsupported action:', action)
+      console.error(`RPC Error: Unsupported action '${action}'`)
       return NextResponse.json({ success: false, error: 'Desteklenmeyen işlem' }, { status: 400 })
     }
 
     if (args !== undefined && !Array.isArray(args)) {
-      console.error('RPC: Args must be array:', typeof args, 'Args:', args)
+      console.error(`RPC Error: Invalid args type '${typeof args}' for action '${action}'`, args)
       return NextResponse.json({ success: false, error: 'Argümanlar dizi olmalı' }, { status: 400 })
     }
 
-    console.log('RPC: Executing handler for action:', action)
     const result = await handler(...(args ?? []))
-    console.log('RPC: Handler result for action:', action, ':', result)
 
     return NextResponse.json({ success: true, data: result })
   } catch (error) {
-    console.error('[rpc] error', error)
+    console.error(`RPC Error: Handler execution failed for action '${action}':`, error)
     return NextResponse.json({ success: false, error: 'Beklenmeyen hata' }, { status: 500 })
   }
 }

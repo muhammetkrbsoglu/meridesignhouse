@@ -10,7 +10,7 @@ import { motion, AnimatePresence, useReducedMotion } from 'framer-motion'
 import { useMicroAnimations } from '@/hooks/useMicroAnimations'
 import { getOptimalGlassConfig } from '@/lib/glassmorphism'
 import { cn } from '@/lib/utils'
-import { LucideIcon, LucideProps } from 'lucide-react'
+import { LucideIcon, LucideProps, ChevronUp } from 'lucide-react'
 
 interface FloatingActionButtonProps {
   icon: LucideIcon | React.ComponentType<LucideProps>
@@ -339,3 +339,23 @@ export function FilterFAB({ onClick }: { onClick: () => void }) {
   )
 }
 
+export function BackToTopFAB() {
+  const handleBackToTop = () => {
+    if (typeof window === 'undefined') return
+    window.scrollTo({ top: 0, behavior: 'smooth' })
+  }
+
+  return (
+    <FloatingActionButton
+      icon={ChevronUp}
+      label="Yukarı çık"
+      onClick={handleBackToTop}
+      position="bottom-right"
+      size="xs"
+      color="primary"
+      showOnScroll={true}
+      scrollThreshold={160}
+      className="shadow-lg shadow-rose-500/25 ring-1 ring-white/50"
+    />
+  )
+}
