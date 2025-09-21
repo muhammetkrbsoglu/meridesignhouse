@@ -10,6 +10,7 @@ import { Separator } from '@/components/ui/separator'
 import { ShoppingCartIcon, TrashIcon, PlusIcon, MinusIcon, HeartIcon } from '@heroicons/react/24/outline'
 import { getCartItems, removeFromCart, updateCartItemQuantity, clearCart, addToCart, getCartBundles, updateCartBundleQuantity, removeCartBundle, addToFavorites } from '@/lib/api/cartClient'
 import type { CartItem, CartBundleLine } from '@/types/cart'
+import type { PersonalizationAnswer } from '@/types/personalization'
 import { formatCurrency } from '@/lib/utils'
 import { toast } from '@/hooks/use-toast'
 import { ToastAction } from '@/components/ui/toast'
@@ -24,6 +25,26 @@ import { useRouter } from 'next/navigation'
 import { Modal } from '@/components/motion/Modal'
 
 const BLUR_DATA_URL = 'data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///ywAAAAAAQABAAACAUwAOw=='
+
+const formatPersonalizationValue = (answer: PersonalizationAnswer) => {
+  if (answer.metadata && typeof answer.metadata === 'object' && 'title' in answer.metadata) {
+    return String(answer.metadata.title)
+  }
+
+  if (answer.displayValue && answer.displayValue.trim().length > 0) {
+    return answer.displayValue
+  }
+
+  if (Array.isArray(answer.value)) {
+    return answer.value.join(', ')
+  }
+
+  if (typeof answer.value === 'string' && answer.value.trim().length > 0) {
+    return answer.value
+  }
+
+  return '—'
+}
 
 export function CartContent() {
   const router = useRouter()
@@ -482,6 +503,16 @@ export function CartContent() {
                               <span key={`${value.optionId}-${value.valueId}`} className="rounded-full bg-gray-100 px-2 py-1">
                                 {value.optionLabel}: {value.valueLabel}
                               </span>
+                            ))}
+                          </div>
+                        )}
+                        {item.personalization && item.personalization.answers && item.personalization.answers.length > 0 && (
+                          <div className="mt-3 space-y-1 text-xs text-gray-600">
+                            {item.personalization.answers.map((answer) => (
+                              <div key={answer.fieldKey} className="flex items-start gap-1">
+                                <span className="font-medium text-gray-500">{answer.fieldLabel}:</span>
+                                <span className="text-gray-700 break-words">{formatPersonalizationValue(answer)}</span>
+                              </div>
                             ))}
                           </div>
                         )}

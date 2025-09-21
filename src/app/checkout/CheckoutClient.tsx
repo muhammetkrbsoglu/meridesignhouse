@@ -14,6 +14,7 @@ import { listUserAddresses } from '@/lib/actions/profile';
 import { supabase } from '@/lib/supabase-browser';
 import { Loader2, ArrowLeft, ShoppingCart } from 'lucide-react';
 import type { CartItem } from '@/types/cart';
+import type { PersonalizationAnswer } from '@/types/personalization';
 import Link from 'next/link';
 import { toast } from 'sonner';
 
@@ -21,6 +22,25 @@ interface CheckoutClientProps {
   initialAddresses: any[];
 }
 
+const formatPersonalizationValue = (answer: PersonalizationAnswer) => {
+  if (answer.metadata && typeof answer.metadata === 'object' && 'title' in answer.metadata) {
+    return String(answer.metadata.title)
+  }
+
+  if (answer.displayValue && answer.displayValue.trim().length > 0) {
+    return answer.displayValue
+  }
+
+  if (Array.isArray(answer.value)) {
+    return answer.value.join(', ')
+  }
+
+  if (typeof answer.value === 'string' && answer.value.trim().length > 0) {
+    return answer.value
+  }
+
+  return '—'
+}
 
 interface CheckoutFormData {
   shippingFullName: string;
@@ -288,15 +308,27 @@ export default function CheckoutClient({ initialAddresses }: CheckoutClientProps
               <CardTitle>Sipariş Özeti</CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="space-y-2">
+              <div className="space-y-3">
                 {cartItems.map((item) => (
-                  <div key={item.id} className="flex items-center justify-between">
-                    <span className="text-sm">{item.product.name} × {item.quantity}</span>
-                    <span className="text-sm font-medium">₺{(item.product.price * item.quantity).toLocaleString('tr-TR')}</span>
+                  <div key={item.id} className="rounded-lg border border-gray-200 p-3">
+                    <div className="flex items-center justify-between text-sm">
+                      <span className="font-medium text-gray-900">{item.product.name} × {item.quantity}</span>
+                      <span className="font-semibold text-gray-900">₺{(item.product.price * item.quantity).toLocaleString('tr-TR')}</span>
+                    </div>
+                    {item.personalization && item.personalization.answers && item.personalization.answers.length > 0 && (
+                      <div className="mt-2 space-y-1 text-xs text-gray-600">
+                        {item.personalization.answers.map((answer) => (
+                          <div key={answer.fieldKey} className="flex items-start gap-1">
+                            <span className="font-medium text-gray-500">{answer.fieldLabel}:</span>
+                            <span className="text-gray-700 break-words">{formatPersonalizationValue(answer)}</span>
+                          </div>
+                        ))}
+                      </div>
+                    )}
                   </div>
                 ))}
-                <Separator className="my-2" />
-                <div className="flex justify-between text-sm"><span>Toplam</span><span>₺{total.toLocaleString('tr-TR')}</span></div>
+                <Separator className="my-3" />
+                <div className="flex justify-between text-sm font-medium"><span>Toplam</span><span>₺{total.toLocaleString('tr-TR')}</span></div>
               </div>
             </CardContent>
           </Card>

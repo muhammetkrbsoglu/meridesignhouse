@@ -22,6 +22,27 @@ import { format } from 'date-fns';
 import { tr } from 'date-fns/locale';
 import { getWhatsAppHref } from '@/lib/whatsapp-utils';
 import { SUPPORT_WHATSAPP_PHONE } from '@/lib/constants';
+import type { PersonalizationAnswer } from '@/types/personalization';
+
+const formatPersonalizationValue = (answer: PersonalizationAnswer) => {
+  if (answer.metadata && typeof answer.metadata === 'object' && 'title' in answer.metadata) {
+    return String((answer.metadata as any).title)
+  }
+
+  if (answer.displayValue && answer.displayValue.trim().length > 0) {
+    return answer.displayValue
+  }
+
+  if (Array.isArray(answer.value)) {
+    return answer.value.join(', ')
+  }
+
+  if (typeof answer.value === 'string' && answer.value.trim().length > 0) {
+    return answer.value
+  }
+
+  return '—'
+};
 
 const statusConfig = {
   PENDING: {
@@ -355,6 +376,16 @@ export default function OrderDetailPage() {
                               ₺{item.price.toLocaleString('tr-TR')}
                             </span>
                           </div>
+                          {item.personalization && item.personalization.answers && item.personalization.answers.length > 0 && (
+                            <div className="mt-3 space-y-1 text-xs text-gray-600">
+                              {item.personalization.answers.map((answer) => (
+                                <div key={answer.fieldKey} className="flex items-start gap-1">
+                                  <span className="font-medium text-gray-500">{answer.fieldLabel}:</span>
+                                  <span className="text-gray-700 break-words">{formatPersonalizationValue(answer)}</span>
+                                </div>
+                              ))}
+                            </div>
+                          )}
                         </div>
                         <div className="text-right">
                           <p className="text-lg font-bold text-gray-900">

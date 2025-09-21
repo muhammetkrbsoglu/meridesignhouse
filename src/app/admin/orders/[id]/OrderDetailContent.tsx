@@ -35,6 +35,7 @@ import {
   Order,
   OrderItem
 } from '@/lib/actions/orders';
+import type { PersonalizationAnswer } from '@/types/personalization';
 import { createShipmentAction } from '@/lib/actions/shipping';
 
 function getStatusColor(status: string) {
@@ -103,6 +104,26 @@ function getStatusText(status: string) {
     default:
       return status;
   }
+}
+
+function formatPersonalizationValue(answer: PersonalizationAnswer) {
+  if (answer.metadata && typeof answer.metadata === 'object' && 'title' in answer.metadata) {
+    return String((answer.metadata as any).title)
+  }
+
+  if (answer.displayValue && answer.displayValue.trim().length > 0) {
+    return answer.displayValue
+  }
+
+  if (Array.isArray(answer.value)) {
+    return answer.value.join(', ')
+  }
+
+  if (typeof answer.value === 'string' && answer.value.trim().length > 0) {
+    return answer.value
+  }
+
+  return '—'
 }
 
 function getNextStatusOptions(current: string): { value: string; label: string }[] {

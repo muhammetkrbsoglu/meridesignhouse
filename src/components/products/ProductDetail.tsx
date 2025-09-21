@@ -559,187 +559,114 @@ export function ProductDetail({ product }: ProductDetailProps) {
   }, [product.description, product.name])
 
   return (
-    <div className="grid grid-cols-1 gap-6 lg:grid-cols-2 lg:gap-12">
-      <ProductMediaCarousel items={mediaItems} />
+    <>
+      <div className="grid grid-cols-1 gap-6 lg:grid-cols-2 lg:gap-12">
+        <ProductMediaCarousel items={mediaItems} />
 
-      <div className="space-y-6 pb-28 lg:pb-0">
-        <Link href={`/categories/${product.category.slug}`} className="text-sm font-medium text-rose-600 hover:text-rose-700">
-          {product.category.name}
-        </Link>
+        <div className="space-y-6 pb-28 lg:pb-0">
+          <Link href={`/categories/${product.category.slug}`} className="text-sm font-medium text-rose-600 hover:text-rose-700">
+            {product.category.name}
+          </Link>
 
-        <div className="space-y-2">
-          <h1 className="text-2xl font-bold text-gray-900 lg:text-3xl">{product.name}</h1>
-          {hasVariants && activeVariantLabel && (
-            <div className="flex flex-wrap items-center gap-2 text-sm text-gray-600">
-              <span>Seçili varyant:</span>
-              <Badge
-                style={activeVariantBadgeColor ? { backgroundColor: activeVariantBadgeColor, color: '#fff' } : undefined}
-                className={activeVariantBadgeColor ? 'border-transparent' : ''}
-              >
-                {activeVariantLabel}
-              </Badge>
+          <div className="space-y-2">
+            <h1 className="text-2xl font-bold text-gray-900 lg:text-3xl">{product.name}</h1>
+            {hasVariants && activeVariantLabel && (
+              <div className="flex flex-wrap items-center gap-2 text-sm text-gray-600">
+                <span>Seçili varyant:</span>
+                <Badge
+                  style={activeVariantBadgeColor ? { backgroundColor: activeVariantBadgeColor, color: '#fff' } : undefined}
+                  className={activeVariantBadgeColor ? 'border-transparent' : ''}
+                >
+                  {activeVariantLabel}
+                </Badge>
+              </div>
+            )}
+          </div>
+
+          <div className="flex items-baseline gap-3">
+            <span className="text-2xl font-bold text-rose-600 lg:text-3xl">
+              {formatCurrency(toNumeric(product.price))}
+            </span>
+            {product.oldPrice && toNumeric(product.oldPrice) > toNumeric(product.price) && (
+              <span className="text-sm text-gray-400 line-through">
+                {formatCurrency(toNumeric(product.oldPrice))}
+              </span>
+            )}
+          </div>
+
+          {personalizationEnabled && (
+            <div className="space-y-3">
+              {stepIndicator}
+              <p className="text-xs text-muted-foreground">
+                Önce varyasyonunuzu seçin, ardından kişiselleştirme bilgilerini doldurun.
+              </p>
             </div>
           )}
-        </div>
 
-        <div className="flex items-baseline gap-3">
-          <span className="text-2xl font-bold text-rose-600 lg:text-3xl">
-            {formatCurrency(toNumeric(product.price))}
-          </span>
-          {product.oldPrice && toNumeric(product.oldPrice) > toNumeric(product.price) && (
-            <span className="text-sm text-gray-400 line-through">
-              {formatCurrency(toNumeric(product.oldPrice))}
-            </span>
-          )}
-        </div>
+          <div className={cn(personalizationEnabled && currentStep !== 'overview' && 'hidden', 'space-y-6')}>
+            {product.description && (
+              <div className="prose prose-sm max-w-none text-gray-600">
+                <p>{product.description}</p>
+              </div>
+            )}
 
-        {product.description && (
-          <div className="prose prose-sm max-w-none text-gray-600">
-            <p>{product.description}</p>
-          </div>
-        )}
+            {hasVariants && (
+              <div className="rounded-2xl border border-gray-100 bg-white/60 p-4 shadow-sm">
+                <VariantSelector
+                  options={options}
+                  selectedValues={selectedValues}
+                  onSelect={handleSelectVariantValue}
+                  isValueAvailable={isValueAvailable}
+                />
+              </div>
+            )}
 
-        {hasVariants && (
-          <div className="rounded-2xl border border-gray-100 bg-white/60 p-4 shadow-sm">
-            <VariantSelector
-              options={options}
-              selectedValues={selectedValues}
-              onSelect={handleSelectVariantValue}
-              isValueAvailable={isValueAvailable}
-            />
-          </div>
-        )}
-
-        <div className="space-y-3 hidden lg:block">
-          <label className="text-sm font-medium text-gray-900">Adet</label>
-          <div className="flex items-center gap-3">
-            <button
-              type="button"
-              onClick={() => setQuantity((prev) => Math.max(1, prev - 1))}
-              className="flex h-10 w-10 items-center justify-center rounded-md border border-gray-300 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-rose-500"
-              aria-label="Adet azalt"
-            >
-              -
-            </button>
-            <span className="w-12 text-center font-medium">{quantity}</span>
-            <button
-              type="button"
-              onClick={() => setQuantity((prev) => prev + 1)}
-              className="flex h-10 w-10 items-center justify-center rounded-md border border-gray-300 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-rose-500"
-              aria-label="Adet arttır"
-            >
-              +
-            </button>
-          </div>
-        </div>
-
-        <div className="hidden space-y-4 lg:block">
-          <MicroFeedback hapticType="success" hapticMessage="Ürün sepete eklendi" disabled={isLoading} onClick={handleAddToCart} className="w-full">
-            <Button
-              type="button"
-              data-add-to-cart
-              disabled={isLoading || (hasVariants && activeVariantStock <= 0)}
-              className="flex w-full items-center justify-center gap-2 bg-rose-600 py-3 text-lg font-medium text-white hover:bg-rose-700 disabled:opacity-50"
-              size="lg"
-            >
-              {isLoading ? (
-                <>
-                  <LoadingSpinner size="sm" color="white" className="mr-2" />
-                  Ekleniyor...
-                </>
-              ) : (
-                <>
-                  <ShoppingCartIcon className="h-5 w-5" />
-                  Sepete Ekle
-                </>
-              )}
-            </Button>
-          </MicroFeedback>
-
-          <div className="flex gap-3">
-            <MicroFeedback
-              hapticType={isFavorite ? 'warning' : 'success'}
-              hapticMessage={isFavorite ? 'Favorilerden çıkarıldı' : 'Favorilere eklendi'}
-              disabled={isFavoriteLoading}
-              onClick={toggleFavorite}
-              className="flex-1"
-            >
+            {personalizationEnabled && (
               <Button
                 type="button"
-                data-favorite-btn
-                disabled={isFavoriteLoading}
                 variant="outline"
-                className="flex w-full items-center justify-center gap-2 disabled:opacity-50"
+                onClick={() => setCurrentStep('personalization')}
+                className="w-full border-rose-200 text-rose-600 hover:bg-rose-50"
               >
-                {isFavoriteLoading ? (
-                  <>
-                    <LoadingSpinner size="sm" color="gray" />
-                    İşleniyor...
-                  </>
-                ) : (
-                  <>
-                    {isFavorite ? <HeartSolidIcon className="h-5 w-5 text-red-500" /> : <HeartIcon className="h-5 w-5" />}
-                    {isFavorite ? 'Favorilerden çıkar' : 'Favorilere ekle'}
-                  </>
-                )}
+                Ürünü kişiselleştirme alanına git
               </Button>
-            </MicroFeedback>
-
-            <Button type="button" onClick={shareProduct} variant="outline" className="flex-1">
-              <ShareIcon className="h-5 w-5" />
-              Paylaş
-            </Button>
+            )}
           </div>
-        </div>
 
-        <div className="rounded-2xl border border-gray-100 bg-white/70 p-5 shadow-sm">
-          <h3 className="mb-4 text-lg font-semibold text-gray-900">Ürün Özellikleri</h3>
-          <ul className="space-y-2 text-sm text-gray-600">
-            <li className="flex items-center">
-              <span className="mr-3 h-2 w-2 rounded-full bg-rose-500" />
-              Ücretsiz kargo (150 TL üzeri)
-            </li>
-            <li className="flex items-center">
-              <span className="mr-3 h-2 w-2 rounded-full bg-rose-500" />
-              30 gün iade garantisi
-            </li>
-            <li className="flex items-center">
-              <span className="mr-3 h-2 w-2 rounded-full bg-rose-500" />
-              Güvenli ödeme
-            </li>
-            <li className="flex items-center">
-              <span className="mr-3 h-2 w-2 rounded-full bg-rose-500" />
-              Hızlı teslimat
-            </li>
-          </ul>
-        </div>
-      </div>
-
-      <div className="fixed inset-x-0 bottom-0 z-[999] bg-white/95 shadow-[0_-12px_40px_-18px_rgba(15,23,42,0.18)] backdrop-blur supports-[padding:max(0px)]:pb-[env(safe-area-inset-bottom)] lg:hidden">
-        <div className="mx-auto max-w-7xl space-y-3 px-4 py-3">
-          <div className="flex items-center justify-between">
-            <div>
-              <div className="text-lg font-semibold text-rose-600">
-                {formatCurrency(toNumeric(product.price))}
+          {personalizationEnabled && (
+            <div className={cn(currentStep !== 'personalization' && 'hidden', 'space-y-6')}>
+              <div className="flex items-center justify-between">
+                <h2 className="text-lg font-semibold text-gray-900">Kişiselleştirme Bilgileri</h2>
+                <Button type="button" variant="ghost" size="sm" onClick={() => setCurrentStep('overview')}>
+                  Ürün bilgilerine dön
+                </Button>
               </div>
-              {hasVariants && activeVariantLabel && (
-                <div className="text-xs text-gray-500">{activeVariantLabel}</div>
-              )}
+              <div className="space-y-4">
+                {personalizationFields.length === 0 ? (
+                  <p className="text-sm text-muted-foreground">Bu ürün için kişiselleştirme alanı tanımlanmamış.</p>
+                ) : (
+                  personalizationFields.map(renderPersonalizationField)
+                )}
+              </div>
             </div>
-            <div className="flex items-center gap-2">
+          )}
+
+          <div className="space-y-3 hidden lg:block">
+            <label className="text-sm font-medium text-gray-900">Adet</label>
+            <div className="flex items-center gap-3">
               <button
                 type="button"
                 onClick={() => setQuantity((prev) => Math.max(1, prev - 1))}
-                className="flex h-10 w-10 items-center justify-center rounded-md border border-gray-300"
+                className="flex h-10 w-10 items-center justify-center rounded-md border border-gray-300 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-rose-500"
                 aria-label="Adet azalt"
               >
                 -
               </button>
-              <span className="w-10 text-center font-medium">{quantity}</span>
+              <span className="w-12 text-center font-medium">{quantity}</span>
               <button
                 type="button"
                 onClick={() => setQuantity((prev) => prev + 1)}
-                className="flex h-10 w-10 items-center justify-center rounded-md border border-gray-300"
+                className="flex h-10 w-10 items-center justify-center rounded-md border border-gray-300 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-rose-500"
                 aria-label="Adet arttır"
               >
                 +
@@ -747,32 +674,14 @@ export function ProductDetail({ product }: ProductDetailProps) {
             </div>
           </div>
 
-          <div className="flex gap-2">
-            <MicroFeedback
-              hapticType={isFavorite ? 'warning' : 'success'}
-              hapticMessage={isFavorite ? 'Favorilerden çıkarıldı' : 'Favorilere eklendi'}
-              disabled={isFavoriteLoading}
-              onClick={toggleFavorite}
-              className="shrink-0"
-            >
-              <button
-                type="button"
-                data-favorite-btn
-                disabled={isFavoriteLoading}
-                className="flex h-12 w-12 items-center justify-center rounded-lg border border-gray-300 disabled:opacity-50"
-                aria-label={isFavorite ? 'Favorilerden çıkar' : 'Favorilere ekle'}
-              >
-                {isFavoriteLoading ? <LoadingSpinner size="sm" color="gray" /> : isFavorite ? <HeartSolidIcon className="h-6 w-6 text-red-500" /> : <HeartIcon className="h-6 w-6" />}
-              </button>
-            </MicroFeedback>
-
-            <MicroFeedback hapticType="success" hapticMessage="Ürün sepete eklendi" disabled={isLoading} onClick={handleAddToCart} className="flex-1">
-              <button
+          <div className="hidden space-y-4 lg:block">
+            <MicroFeedback hapticType="success" hapticMessage="Ürün sepete eklendi" disabled={isLoading} onClick={handleAddToCart} className="w-full">
+              <Button
                 type="button"
                 data-add-to-cart
                 disabled={isLoading || (hasVariants && activeVariantStock <= 0)}
-                className="flex h-12 w-full items-center justify-center rounded-lg bg-rose-600 font-semibold text-white disabled:opacity-50"
-                aria-label="Sepete ekle"
+                className="flex w-full items-center justify-center gap-2 bg-rose-600 py-3 text-lg font-medium text-white hover:bg-rose-700 disabled:opacity-50"
+                size="lg"
               >
                 {isLoading ? (
                   <>
@@ -780,13 +689,200 @@ export function ProductDetail({ product }: ProductDetailProps) {
                     Ekleniyor...
                   </>
                 ) : (
-                  'Sepete Ekle'
+                  <>
+                    <ShoppingCartIcon className="h-5 w-5" />
+                    Sepete Ekle
+                  </>
                 )}
-              </button>
+              </Button>
             </MicroFeedback>
+            {personalizationEnabled && showPersonalizationErrors && !isPersonalizationComplete && (
+              <p className="text-xs text-rose-600">Kişiselleştirme alanları tamamlanmadan sepete ekleyemezsiniz.</p>
+            )}
+
+            <div className="flex gap-3">
+              <MicroFeedback
+                hapticType={isFavorite ? 'warning' : 'success'}
+                hapticMessage={isFavorite ? 'Favorilerden çıkarıldı' : 'Favorilere eklendi'}
+                disabled={isFavoriteLoading}
+                onClick={toggleFavorite}
+                className="flex-1"
+              >
+                <Button
+                  type="button"
+                  data-favorite-btn
+                  disabled={isFavoriteLoading}
+                  variant="outline"
+                  className="flex w-full items-center justify-center gap-2 disabled:opacity-50"
+                >
+                  {isFavoriteLoading ? (
+                    <>
+                      <LoadingSpinner size="sm" color="gray" />
+                      İşleniyor...
+                    </>
+                  ) : (
+                    <>
+                      {isFavorite ? <HeartSolidIcon className="h-5 w-5 text-red-500" /> : <HeartIcon className="h-5 w-5" />}
+                      {isFavorite ? 'Favorilerden çıkar' : 'Favorilere ekle'}
+                    </>
+                  )}
+                </Button>
+              </MicroFeedback>
+
+              <Button type="button" onClick={shareProduct} variant="outline" className="flex-1">
+                <ShareIcon className="h-5 w-5" />
+                Paylaş
+              </Button>
+            </div>
+          </div>
+
+          <div className="rounded-2xl border border-gray-100 bg-white/70 p-5 shadow-sm">
+            <h3 className="mb-4 text-lg font-semibold text-gray-900">Ürün Özellikleri</h3>
+            <ul className="space-y-2 text-sm text-gray-600">
+              <li className="flex items-center">
+                <span className="mr-3 h-2 w-2 rounded-full bg-rose-500" />
+                Ücretsiz kargo (150 TL üzeri)
+              </li>
+              <li className="flex items-center">
+                <span className="mr-3 h-2 w-2 rounded-full bg-rose-500" />
+                30 gün iade garantisi
+              </li>
+              <li className="flex items-center">
+                <span className="mr-3 h-2 w-2 rounded-full bg-rose-500" />
+                Güvenli ödeme
+              </li>
+              <li className="flex items-center">
+                <span className="mr-3 h-2 w-2 rounded-full bg-rose-500" />
+                Hızlı teslimat
+              </li>
+            </ul>
+          </div>
+        </div>
+
+        <div className="fixed inset-x-0 bottom-0 z-[999] bg-white/95 shadow-[0_-12px_40px_-18px_rgba(15,23,42,0.18)] backdrop-blur supports-[padding:max(0px)]:pb-[env(safe-area-inset-bottom)] lg:hidden">
+          <div className="mx-auto max-w-7xl space-y-3 px-4 py-3">
+            <div className="flex items-center justify-between">
+              <div>
+                <div className="text-lg font-semibold text-rose-600">
+                  {formatCurrency(toNumeric(product.price))}
+                </div>
+                {hasVariants && activeVariantLabel && (
+                  <div className="text-xs text-gray-500">{activeVariantLabel}</div>
+                )}
+              </div>
+              <div className="flex items-center gap-2">
+                <button
+                  type="button"
+                  onClick={() => setQuantity((prev) => Math.max(1, prev - 1))}
+                  className="flex h-10 w-10 items-center justify-center rounded-md border border-gray-300"
+                  aria-label="Adet azalt"
+                >
+                  -
+                </button>
+                <span className="w-10 text-center font-medium">{quantity}</span>
+                <button
+                  type="button"
+                  onClick={() => setQuantity((prev) => prev + 1)}
+                  className="flex h-10 w-10 items-center justify-center rounded-md border border-gray-300"
+                  aria-label="Adet arttır"
+                >
+                  +
+                </button>
+              </div>
+            </div>
+
+            {personalizationEnabled && !isPersonalizationComplete && (
+              <p className="text-xs text-rose-600">Kişiselleştirme bilgileri tamamlanmadan sepete ekleyemezsiniz.</p>
+            )}
+
+            <div className="flex gap-2">
+              <MicroFeedback
+                hapticType={isFavorite ? 'warning' : 'success'}
+                hapticMessage={isFavorite ? 'Favorilerden çıkarıldı' : 'Favorilere eklendi'}
+                disabled={isFavoriteLoading}
+                onClick={toggleFavorite}
+                className="shrink-0"
+              >
+                <button
+                  type="button"
+                  data-favorite-btn
+                  disabled={isFavoriteLoading}
+                  className="flex h-12 w-12 items-center justify-center rounded-lg border border-gray-300 disabled:opacity-50"
+                  aria-label={isFavorite ? 'Favorilerden çıkar' : 'Favorilere ekle'}
+                >
+                  {isFavoriteLoading ? <LoadingSpinner size="sm" color="gray" /> : isFavorite ? <HeartSolidIcon className="h-6 w-6 text-red-500" /> : <HeartIcon className="h-6 w-6" />}
+                </button>
+              </MicroFeedback>
+
+              <MicroFeedback hapticType="success" hapticMessage="Ürün sepete eklendi" disabled={isLoading} onClick={handleAddToCart} className="flex-1">
+                <button
+                  type="button"
+                  data-add-to-cart
+                  disabled={isLoading || (hasVariants && activeVariantStock <= 0)}
+                  className="flex h-12 w-full items-center justify-center rounded-lg bg-rose-600 font-semibold text-white disabled:opacity-50"
+                  aria-label="Sepete ekle"
+                >
+                  {isLoading ? (
+                    <>
+                      <LoadingSpinner size="sm" color="white" className="mr-2" />
+                      Ekleniyor...
+                    </>
+                  ) : (
+                    'Sepete Ekle'
+                  )}
+                </button>
+              </MicroFeedback>
+            </div>
           </div>
         </div>
       </div>
-    </div>
+
+      {personalizationEnabled && (
+        <Modal isOpen={showCatalogModal} onClose={() => setShowCatalogModal(false)} title="Etiket Tasarımları">
+          <div className="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-2">
+            {catalogTemplates.map((template) => {
+              const isSelected =
+                activeCatalogField &&
+                (personalizationValues[activeCatalogField]?.value ?? null) === template.id
+              return (
+                <button
+                  key={template.id}
+                  type="button"
+                  onClick={() => handleCatalogTemplateSelect(template)}
+                  className={cn(
+                    'flex h-full flex-col overflow-hidden rounded-lg border text-left transition',
+                    isSelected ? 'border-rose-500 shadow-lg' : 'border-muted hover:border-rose-300',
+                  )}
+                >
+                  <div className="relative h-28 w-full bg-muted">
+                    <span className="absolute inset-0 flex items-center justify-center text-[11px] text-muted-foreground">
+                      {template.imageUrl ? 'Önizleme' : 'Görsel bulunamadı'}
+                    </span>
+                  </div>
+                  <div className="flex flex-1 flex-col gap-1 p-3">
+                    <div className="flex items-center justify-between">
+                      <span className="text-sm font-semibold text-gray-900">{template.title}</span>
+                      {isSelected && <Badge variant="default" className="text-[10px] uppercase">Seçili</Badge>}
+                    </div>
+                    {template.description && (
+                      <p className="text-xs text-muted-foreground line-clamp-2">{template.description}</p>
+                    )}
+                    {template.recommendedSizes && template.recommendedSizes.length > 0 && (
+                      <div className="flex flex-wrap gap-1 pt-1">
+                        {template.recommendedSizes.map((size) => (
+                          <Badge key={size} variant="secondary" className="text-[10px]">
+                            {size}
+                          </Badge>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                </button>
+              )
+            })}
+          </div>
+        </Modal>
+      )}
+    </>
   )
 }
