@@ -254,26 +254,32 @@ export function WeeklyFeaturedProductsSlider({ categoryId }: WeeklyFeaturedProdu
               >
                 <div className="grid flex-1 grid-cols-1 md:grid-cols-[1.05fr_1fr] h-full gap-3 md:gap-0">
                   {/* Image Section */}
-                  <div className="relative overflow-hidden h-[220px] sm:h-[260px] md:h-full bg-rose-50">
+                  <div className="relative overflow-hidden h-[240px] sm:h-[260px] md:h-full bg-rose-50">
                     <Image
                       src={currentProduct.images[0] || '/placeholder-product.svg'}
                       alt={currentProduct.name}
                       fill
-                      className="object-contain md:object-cover transition-transform duration-500 md:group-hover:scale-105"
+                      className="object-cover md:object-cover transition-transform duration-500 md:group-hover:scale-105"
                       sizes="(min-width:1024px) 50vw, 100vw"
                     />
 
                     {/* Category Badge */}
-                    <div className="absolute top-4 left-4">
-                      <span className="bg-white/90 backdrop-blur-sm text-rose-700 px-3 py-1.5 rounded-full text-xs font-semibold shadow-lg">
+                    <div className="absolute top-3 left-3">
+                      <span className="bg-white/90 backdrop-blur-sm text-rose-700 px-2.5 py-1 rounded-full text-[11px] sm:text-xs md:text-sm font-semibold shadow-lg">
                         {categoryName}
                       </span>
                     </div>
 
-                    {/* "Bu Hafta Özel" Badge */}
-                    <div className="absolute top-4 right-4">
-                      <span className="bg-gradient-to-r from-rose-500 to-pink-500 text-white px-3 py-1.5 rounded-full text-xs font-bold shadow-lg">
-                        Bu Hafta Özel
+                    {/* Campaign badges - Mobile (on image) */}
+                    <div className="md:hidden absolute bottom-3 right-3 flex flex-col items-end gap-1">
+                      <span className="bg-gradient-to-r from-orange-400 to-red-500 text-white px-2 py-0.5 rounded-full text-[11px] font-bold shadow-lg">
+                        🎉 En Popüler
+                      </span>
+                      <span className="bg-gradient-to-r from-purple-500 to-pink-500 text-white px-2 py-0.5 rounded-full text-[11px] font-bold shadow-lg">
+                        ✨ Özenle Seçildi
+                      </span>
+                      <span className="bg-gradient-to-r from-green-500 to-emerald-600 text-white px-2 py-0.5 rounded-full text-[11px] font-bold shadow-lg animate-pulse">
+                        🔥 Sınırlı Stok
                       </span>
                     </div>
 
@@ -349,19 +355,6 @@ export function WeeklyFeaturedProductsSlider({ categoryId }: WeeklyFeaturedProdu
                         </motion.span>
                       </div>
 
-                      {/* Campaign badges - Mobile (on image) */}
-                      <div className="md:hidden absolute top-4 left-4 flex flex-col gap-1">
-                        <span className="bg-gradient-to-r from-orange-400 to-red-500 text-white px-2 py-0.5 rounded-full text-xs font-bold shadow-lg">
-                          🎉 En Popüler
-                        </span>
-                        <span className="bg-gradient-to-r from-purple-500 to-pink-500 text-white px-2 py-0.5 rounded-full text-xs font-bold shadow-lg">
-                          ✨ Özenle Seçildi
-                        </span>
-                        <span className="bg-gradient-to-r from-green-500 to-emerald-600 text-white px-2 py-0.5 rounded-full text-xs font-bold shadow-lg animate-pulse">
-                          🔥 Sınırlı Stok
-                        </span>
-                      </div>
-
                       {/* Product Name */}
                       <motion.h3
                         className="text-base md:text-lg lg:text-xl font-semibold text-gray-900 leading-snug"
@@ -389,7 +382,7 @@ export function WeeklyFeaturedProductsSlider({ categoryId }: WeeklyFeaturedProdu
                         animate={{ opacity: 1, scale: 1 }}
                         transition={{ delay: 0.7, duration: 0.4 }}
                       >
-                        <div className="flex flex-col gap-2 md:flex-row md:items-center md:justify-between">
+                        <div className="flex flex-wrap items-center justify-between gap-2 md:flex-nowrap md:items-center">
                           <div className="flex items-center gap-1.5 text-rose-700 font-medium text-xs md:text-sm">
                             <span className="text-lg">💝</span>
                             <span>Özel El Yapımı Tasarım</span>

@@ -202,7 +202,7 @@ export function WeeklyFeaturedSlider() {
           onTouchEnd={handleTouchEnd}
         >
           {/* Main Slider */}
-          <div className="relative overflow-hidden rounded-2xl bg-white shadow-2xl max-h-[3000px] sm:max-h-[500px]">
+          <div className="relative overflow-hidden rounded-2xl bg-white shadow-2xl">
             <AnimatePresence mode="wait">
               <motion.div
                 key={currentIndex}
@@ -210,30 +210,36 @@ export function WeeklyFeaturedSlider() {
                 animate={{ opacity: 1, x: 0 }}
                 exit={{ opacity: 0, x: -300 }}
                 transition={{ duration: 0.5, ease: "easeInOut" }}
-                className="aspect-[4/5] md:aspect-[16/7]"
+                className="flex flex-col md:aspect-[16/7]"
               >
-                <div className="grid grid-cols-1 lg:grid-cols-2 h-full">
+                <div className="grid flex-1 grid-cols-1 md:grid-cols-[1.05fr_1fr] h-full gap-3 md:gap-0">
                   {/* Image Section */}
-                  <div className="relative overflow-hidden">
+                  <div className="relative overflow-hidden h-[240px] sm:h-[260px] md:h-full bg-rose-50">
                     <Image
                       src={currentProduct.images[0] || '/placeholder-product.svg'}
                       alt={currentProduct.name}
                       fill
-                      className="object-cover"
+                      className="object-cover md:object-cover transition-transform duration-500 md:group-hover:scale-105"
                       sizes="(min-width:1024px) 50vw, 100vw"
                     />
 
                     {/* Category Badge */}
-                    <div className="absolute top-6 left-6">
-                      <span className="bg-white/90 backdrop-blur-sm text-rose-700 px-4 py-2 rounded-full text-sm font-semibold shadow-lg">
+                    <div className="absolute top-3 left-3">
+                      <span className="bg-white/90 backdrop-blur-sm text-rose-700 px-2.5 py-1 rounded-full text-[11px] sm:text-xs md:text-sm font-semibold shadow-lg">
                         {categoryName}
                       </span>
                     </div>
 
-                    {/* "Bu Hafta Özel" Badge */}
-                    <div className="absolute top-6 right-6">
-                      <span className="bg-gradient-to-r from-rose-500 to-pink-500 text-white px-4 py-2 rounded-full text-sm font-bold shadow-lg">
-                        Bu Hafta Özel
+                    {/* Campaign badges - Mobile (on image) */}
+                    <div className="md:hidden absolute bottom-3 right-3 flex flex-col items-end gap-1">
+                      <span className="bg-gradient-to-r from-orange-400 to-red-500 text-white px-2 py-0.5 rounded-full text-[11px] font-bold shadow-lg">
+                        🎉 En Popüler
+                      </span>
+                      <span className="bg-gradient-to-r from-purple-500 to-pink-500 text-white px-2 py-0.5 rounded-full text-[11px] font-bold shadow-lg">
+                        ✨ Özenle Seçildi
+                      </span>
+                      <span className="bg-gradient-to-r from-green-500 to-emerald-600 text-white px-2 py-0.5 rounded-full text-[11px] font-bold shadow-lg animate-pulse">
+                        🔥 Sınırlı Stok
                       </span>
                     </div>
 
@@ -259,7 +265,7 @@ export function WeeklyFeaturedSlider() {
                   </div>
 
                   {/* Content Section */}
-                  <div className="flex flex-col justify-center p-4 lg:p-8 bg-gradient-to-br from-white via-rose-50 to-pink-50 relative overflow-hidden">
+                  <div className="flex flex-col justify-center gap-3 md:gap-4 p-4 sm:p-5 md:p-6 lg:p-8 bg-gradient-to-br from-white via-rose-50 to-pink-50 relative overflow-hidden">
                     {/* Background decorative elements */}
                     <div className="absolute top-4 right-4 w-8 h-8 bg-rose-200/30 rounded-full blur-sm animate-pulse"></div>
                     <div className="absolute bottom-8 left-8 w-6 h-6 bg-pink-200/40 rounded-full blur-sm animate-pulse delay-1000"></div>
@@ -267,7 +273,7 @@ export function WeeklyFeaturedSlider() {
 
                     <div className="relative z-10">
                       {/* Rating Stars */}
-                      <div className="flex items-center gap-1 mb-3">
+                      <div className="flex items-center gap-1.5 text-gray-700">
                         {[...Array(5)].map((_, i) => (
                           <motion.div
                             key={i}
@@ -309,22 +315,10 @@ export function WeeklyFeaturedSlider() {
                         </motion.span>
                       </div>
 
-                      {/* Campaign badges - Mobile (on image) */}
-                      <div className="md:hidden absolute top-4 left-4 flex flex-col gap-1">
-                        <span className="bg-gradient-to-r from-orange-400 to-red-500 text-white px-2 py-0.5 rounded-full text-xs font-bold shadow-lg">
-                          🎉 En Popüler
-                        </span>
-                        <span className="bg-gradient-to-r from-purple-500 to-pink-500 text-white px-2 py-0.5 rounded-full text-xs font-bold shadow-lg">
-                          ✨ Özenle Seçildi
-                        </span>
-                        <span className="bg-gradient-to-r from-green-500 to-emerald-600 text-white px-2 py-0.5 rounded-full text-xs font-bold shadow-lg animate-pulse">
-                          🔥 Sınırlı Stok
-                        </span>
-                      </div>
 
                       {/* Product Name */}
                       <motion.h3
-                        className="text-lg md:text-xl lg:text-2xl font-bold text-gray-900 mb-1 md:mb-3 leading-tight"
+                        className="text-base md:text-lg lg:text-2xl font-semibold text-gray-900 leading-snug"
                         initial={{ opacity: 0, x: -20 }}
                         animate={{ opacity: 1, x: 0 }}
                         transition={{ delay: 0.3, duration: 0.5 }}
@@ -334,7 +328,7 @@ export function WeeklyFeaturedSlider() {
 
                       {/* Product Description */}
                       <motion.p
-                        className="text-gray-600 text-xs md:text-sm mb-1 md:mb-4 leading-relaxed"
+                        className="text-gray-600 text-xs md:text-sm leading-relaxed"
                         initial={{ opacity: 0, x: -20 }}
                         animate={{ opacity: 1, x: 0 }}
                         transition={{ delay: 0.5, duration: 0.5 }}
@@ -344,17 +338,17 @@ export function WeeklyFeaturedSlider() {
 
                       {/* Special campaign highlight with price */}
                       <motion.div
-                        className="bg-gradient-to-r from-rose-100 to-pink-100 border-2 border-rose-300 rounded-xl p-2 md:p-3 mb-1 md:mb-4"
+                        className="bg-gradient-to-r from-rose-100 to-pink-100 border border-rose-200 rounded-xl p-2.5 sm:p-3 md:p-4"
                         initial={{ opacity: 0, scale: 0.9 }}
                         animate={{ opacity: 1, scale: 1 }}
                         transition={{ delay: 0.7, duration: 0.4 }}
                       >
-                        <div className="flex items-center justify-between">
-                          <div className="flex items-center gap-2 text-rose-700 font-semibold text-xs md:text-sm">
+                        <div className="flex flex-wrap items-center justify-between gap-2 md:flex-nowrap md:items-center">
+                          <div className="flex items-center gap-1.5 text-rose-700 font-medium text-xs md:text-sm">
                             <span className="text-lg">💝</span>
                             <span>Özel El Yapımı Tasarım</span>
                           </div>
-                          <div className="text-lg md:text-2xl lg:text-3xl font-bold bg-gradient-to-r from-rose-600 to-purple-600 bg-clip-text text-transparent">
+                          <div className="text-base md:text-2xl lg:text-3xl font-bold bg-gradient-to-r from-rose-600 to-purple-600 bg-clip-text text-transparent">
                             {formatCurrency(currentProduct.price)}
                           </div>
                         </div>
