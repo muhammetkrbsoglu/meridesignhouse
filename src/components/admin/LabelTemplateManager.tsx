@@ -13,6 +13,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Plus, Edit, Trash2, Upload, Image as ImageIcon } from 'lucide-react'
 import { toast } from 'sonner'
 import Image from 'next/image'
+import { ImageKitUpload, SimpleImageKitUpload } from '@/components/ui/imagekit-upload'
 import {
   type LabelCategory,
   type LabelSize,
@@ -859,7 +860,7 @@ export function LabelTemplateManager() {
 
       {/* Template Dialog */}
       <Dialog open={templateDialogOpen} onOpenChange={setTemplateDialogOpen}>
-        <DialogContent className="max-w-2xl">
+        <DialogContent className="max-w-7xl w-[96vw]">
           <DialogHeader>
             <DialogTitle>
               {editingTemplate ? 'Şablon Düzenle' : 'Yeni Şablon'}
@@ -869,70 +870,85 @@ export function LabelTemplateManager() {
             </DialogDescription>
           </DialogHeader>
           <form onSubmit={handleTemplateSubmit}>
-            <div className="space-y-4">
-              <div>
-                <Label htmlFor="template-title">Şablon Başlığı</Label>
-                <Input
-                  id="template-title"
-                  value={templateForm.title}
-                  onChange={(e) => setTemplateForm(prev => ({ ...prev, title: e.target.value }))}
-                  placeholder="Şablon 01"
-                  required
-                />
-              </div>
-              <div>
-                <Label htmlFor="template-description">Açıklama</Label>
-                <Input
-                  id="template-description"
-                  value={templateForm.description}
-                  onChange={(e) => setTemplateForm(prev => ({ ...prev, description: e.target.value }))}
-                  placeholder="Minimal tipografi, modern görünüm"
-                />
-              </div>
-              <div>
-                <Label htmlFor="template-image">Görsel URL</Label>
-                <Input
-                  id="template-image"
-                  value={templateForm.image_url}
-                  onChange={(e) => setTemplateForm(prev => ({ ...prev, image_url: e.target.value }))}
-                  placeholder="https://example.com/image.jpg"
-                  required
-                />
-              </div>
-              <div>
-                <Label htmlFor="template-thumbnail">Küçük Görsel URL (Opsiyonel)</Label>
-                <Input
-                  id="template-thumbnail"
-                  value={templateForm.thumbnail_url}
-                  onChange={(e) => setTemplateForm(prev => ({ ...prev, thumbnail_url: e.target.value }))}
-                  placeholder="https://example.com/thumbnail.jpg"
-                />
-              </div>
-              <div>
-                <Label htmlFor="template-tags">Etiketler (virgülle ayırın)</Label>
-                <Input
-                  id="template-tags"
-                  value={templateForm.tags}
-                  onChange={(e) => setTemplateForm(prev => ({ ...prev, tags: e.target.value }))}
-                  placeholder="minimal, modern, klasik"
-                />
-              </div>
-              
-              {templateForm.image_url && (
-                <div>
-                  <Label>Önizleme</Label>
-                  <div className="mt-2 border rounded-lg p-4">
-                    <div className="aspect-square w-32 relative bg-gray-100 rounded">
-                      <Image
-                        src={templateForm.image_url}
-                        alt="Önizleme"
-                        fill
-                        className="object-cover rounded"
-                      />
-                    </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              {/* Left: text fields */}
+              <div className="space-y-3">
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                  <div>
+                    <Label htmlFor="template-title">Şablon Başlığı</Label>
+                    <Input
+                      id="template-title"
+                      value={templateForm.title}
+                      onChange={(e) => setTemplateForm(prev => ({ ...prev, title: e.target.value }))}
+                      placeholder="Şablon 01"
+                      required
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="template-tags">Etiketler (virgülle ayırın)</Label>
+                    <Input
+                      id="template-tags"
+                      value={templateForm.tags}
+                      onChange={(e) => setTemplateForm(prev => ({ ...prev, tags: e.target.value }))}
+                      placeholder="minimal, modern, klasik"
+                    />
+                  </div>
+                  <div className="lg:col-span-2">
+                    <Label htmlFor="template-description">Açıklama</Label>
+                    <Input
+                      id="template-description"
+                      value={templateForm.description}
+                      onChange={(e) => setTemplateForm(prev => ({ ...prev, description: e.target.value }))}
+                      placeholder="Minimal tipografi, modern görünüm"
+                    />
                   </div>
                 </div>
-              )}
+              </div>
+
+              {/* Right: uploads and previews */}
+              <div className="space-y-3">
+                <div className="space-y-2">
+                  <Label>Şablon Görseli</Label>
+                  <ImageKitUpload
+                    folder="label-templates"
+                    multiple={false}
+                    maxFiles={1}
+                    showPreview={false}
+                    onUploadSuccess={(res) => {
+                      setTemplateForm(prev => ({ ...prev, image_url: res.url }))
+                      toast.success('Görsel yüklendi')
+                    }}
+                    onUploadError={(err) => toast.error(err)}
+                  />
+                  {templateForm.image_url && (
+                    <div className="mt-2">
+                      <div className="aspect-square relative w-28 rounded border overflow-hidden bg-gray-100">
+                        <Image src={templateForm.image_url} alt="Önizleme" fill className="object-cover" />
+                      </div>
+                    </div>
+                  )}
+                </div>
+
+                <div className="space-y-2">
+                  <Label>Küçük Görsel (Opsiyonel)</Label>
+                  <SimpleImageKitUpload
+                    folder="label-templates/thumbnails"
+                    buttonText="Küçük Görsel Yükle"
+                    onUploadSuccess={(res) => {
+                      setTemplateForm(prev => ({ ...prev, thumbnail_url: res.url }))
+                      toast.success('Küçük görsel yüklendi')
+                    }}
+                    onUploadError={(err) => toast.error(err)}
+                  />
+                  {templateForm.thumbnail_url && (
+                    <div className="mt-2">
+                      <div className="aspect-square relative w-16 rounded border overflow-hidden bg-gray-100">
+                        <Image src={templateForm.thumbnail_url} alt="Küçük Önizleme" fill className="object-cover" />
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </div>
             </div>
             <DialogFooter className="mt-6">
               <Button type="button" variant="outline" onClick={() => setTemplateDialogOpen(false)}>

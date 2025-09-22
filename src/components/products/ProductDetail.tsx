@@ -7,6 +7,7 @@ import { HeartIcon as HeartSolidIcon } from '@heroicons/react/24/solid'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Label } from '@/components/ui/label'
+import { Input } from '@/components/ui/input'
 import { MicroFeedback } from '@/components/motion/MicroFeedback'
 import { LoadingSpinner } from '@/components/motion/LoadingStates'
 import { Modal } from '@/components/motion/Modal'
@@ -35,6 +36,7 @@ import {
   type VariantSelectionMap,
 } from '@/lib/products/variant-utils'
 import { toast } from 'sonner'
+import { FullscreenImageModal } from '@/components/ui/FullscreenImageModal'
 
 interface ProductDetailProps {
   product: ProductWithVariants
@@ -122,6 +124,7 @@ export function ProductDetail({ product }: ProductDetailProps) {
   const [showPersonalizationErrors, setShowPersonalizationErrors] = useState(false)
   const [showCatalogModal, setShowCatalogModal] = useState(false)
   const [activeCatalogField, setActiveCatalogField] = useState<string | null>(null)
+  const [fullscreenImage, setFullscreenImage] = useState<{ url: string; title: string } | null>(null)
 
   const catalogTemplates: PersonalizationCatalogTemplate[] = personalizationConfig?.settings?.catalogTemplates?.length
     ? personalizationConfig.settings.catalogTemplates
@@ -573,12 +576,16 @@ export function ProductDetail({ product }: ProductDetailProps) {
             {hasVariants && activeVariantLabel && (
               <div className="flex flex-wrap items-center gap-2 text-sm text-gray-600">
                 <span>Seçili varyant:</span>
-                <Badge
-                  style={activeVariantBadgeColor ? { backgroundColor: activeVariantBadgeColor, color: '#fff' } : undefined}
-                  className={activeVariantBadgeColor ? 'border-transparent' : ''}
-                >
-                  {activeVariantLabel}
-                </Badge>
+                {activeVariantBadgeColor ? (
+                  <span
+                    className="inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium"
+                    style={{ backgroundColor: activeVariantBadgeColor, color: '#fff' }}
+                  >
+                    {activeVariantLabel}
+                  </span>
+                ) : (
+                  <Badge>{activeVariantLabel}</Badge>
+                )}
               </div>
             )}
           </div>
@@ -838,26 +845,84 @@ export function ProductDetail({ product }: ProductDetailProps) {
       </div>
 
       {personalizationEnabled && (
-        <Modal isOpen={showCatalogModal} onClose={() => setShowCatalogModal(false)} title="Etiket Tasarımları">
-          <div className="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-2">
+        <Modal
+          isOpen={showCatalogModal}
+          onClose={() => setShowCatalogModal(false)}
+          title="Etiket Tasarımları"
+          size="xl"
+          className="max-w-6xl"
+        >
+          <div className="mt-4 grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
             {catalogTemplates.map((template) => {
               const isSelected =
                 activeCatalogField &&
                 (personalizationValues[activeCatalogField]?.value ?? null) === template.id
               return (
-                <button
+                <div
                   key={template.id}
-                  type="button"
+                  role="button"
+                  tabIndex={0}
                   onClick={() => handleCatalogTemplateSelect(template)}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter' || e.key === ' ') {
+                      e.preventDefault()
+                      handleCatalogTemplateSelect(template)
+                    }
+                  }}
                   className={cn(
-                    'flex h-full flex-col overflow-hidden rounded-lg border text-left transition',
+                    'flex h-full flex-col overflow-hidden rounded-lg border text-left transition cursor-pointer',
                     isSelected ? 'border-rose-500 shadow-lg' : 'border-muted hover:border-rose-300',
                   )}
                 >
-                  <div className="relative h-28 w-full bg-muted">
-                    <span className="absolute inset-0 flex items-center justify-center text-[11px] text-muted-foreground">
-                      {template.imageUrl ? 'Önizleme' : 'Görsel bulunamadı'}
-                    </span>
+                  <div className="relative h-56 w-full bg-white overflow-hidden rounded-md group">
+                    {template.imageUrl ? (
+                      <>
+                        <img
+                          src={template.imageUrl}
+                          alt={template.title}
+                          className="h-full w-full object-contain"
+                        />
+                        {/* Tam Ekran Butonu (button değil, span) */}
+                        <span
+                          onClick={(e) => {
+                            e.stopPropagation()
+                            setFullscreenImage({
+                              url: template.imageUrl!,
+                              title: template.title
+                            })
+                          }}
+                          className="absolute top-2 right-2 flex items-center gap-1 bg-black/55 hover:bg-black/70 text-white px-2.5 py-1.5 rounded-full opacity-0 group-hover:opacity-100 transition-all duration-200 backdrop-blur-sm"
+                          title="Tam ekran görüntüle"
+                          role="button"
+                          tabIndex={0}
+                          onKeyDown={(e) => {
+                            if (e.key === 'Enter' || e.key === ' ') {
+                              e.preventDefault()
+                              setFullscreenImage({ url: template.imageUrl!, title: template.title })
+                            }
+                          }}
+                        >
+                          <svg
+                            className="w-4 h-4"
+                            fill="none"
+                            stroke="currentColor"
+                            viewBox="0 0 24 24"
+                          >
+                            <path
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              strokeWidth={2}
+                              d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0zM10 7v3m0 0v3m0-3h3m-3 0H7"
+                            />
+                          </svg>
+                          <span className="text-xs font-medium">Tam ekran</span>
+                        </span>
+                      </>
+                    ) : (
+                      <span className="absolute inset-0 flex items-center justify-center text-[11px] text-muted-foreground">
+                        Görsel bulunamadı
+                      </span>
+                    )}
                   </div>
                   <div className="flex flex-1 flex-col gap-1 p-3">
                     <div className="flex items-center justify-between">
@@ -877,11 +942,21 @@ export function ProductDetail({ product }: ProductDetailProps) {
                       </div>
                     )}
                   </div>
-                </button>
+                </div>
               )
             })}
           </div>
         </Modal>
+      )}
+
+      {/* Tam Ekran Görsel Modalı */}
+      {fullscreenImage && (
+        <FullscreenImageModal
+          isOpen={!!fullscreenImage}
+          onClose={() => setFullscreenImage(null)}
+          imageUrl={fullscreenImage.url}
+          title={fullscreenImage.title}
+        />
       )}
     </>
   )
