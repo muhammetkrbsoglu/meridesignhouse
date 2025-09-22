@@ -289,7 +289,7 @@ interface PersistVariantResult {
 }
 
 interface PersistPersonalizationResult {
-  isPersonalizable: boolean
+  is_personalizable: boolean
   configId: string | null
 }
 
@@ -541,7 +541,7 @@ const hydrateProductWithVariants = async (
     options,
     variants,
     personalizationConfig,
-    isPersonalizable: Boolean(product.isPersonalizable ?? personalizationConfig),
+    isPersonalizable: Boolean(product.is_personalizable ?? personalizationConfig),
   }
 }
 
@@ -738,7 +738,7 @@ const persistPersonalizationGraph = async (
   if (!state || !state.enabled || (state.fields?.length ?? 0) === 0) {
     await supabase.from('product_personalization_configs').delete().eq('productId', productId)
     return {
-      isPersonalizable: false,
+      is_personalizable: false,
       configId: null,
     }
   }
@@ -795,7 +795,7 @@ const persistPersonalizationGraph = async (
   }
 
   return {
-    isPersonalizable: true,
+    is_personalizable: true,
     configId,
   }
 }
@@ -930,7 +930,7 @@ export async function createProduct(prevState: State, formData: FormData): Promi
       productOfWeekCategoryId: base.productOfWeekCategoryId || null,
       colors: Array.from(colorHexSet),
       hasVariants,
-      isPersonalizable: personalizationEnabled,
+      is_personalizable: personalizationEnabled,
       defaultVariantId: null,
       createdAt: now,
       updatedAt: now,
@@ -1026,7 +1026,7 @@ export async function createProduct(prevState: State, formData: FormData): Promi
   }
 
   let personalizationResult: PersistPersonalizationResult = {
-    isPersonalizable: personalizationEnabled,
+    is_personalizable: personalizationEnabled,
     configId: null,
   }
 
@@ -1048,7 +1048,7 @@ export async function createProduct(prevState: State, formData: FormData): Promi
       hasVariants,
       stock: totalStock,
       colors: Array.from(colorHexSet),
-      isPersonalizable: personalizationResult.isPersonalizable,
+      is_personalizable: personalizationResult.is_personalizable,
       updatedAt: new Date().toISOString(),
     })
     .eq('id', productId)
@@ -1176,7 +1176,7 @@ export async function updateProduct(
       isProductOfWeek: base.isProductOfWeek,
       productOfWeekCategoryId: base.productOfWeekCategoryId || null,
       hasVariants,
-      isPersonalizable: personalizationEnabled,
+      is_personalizable: personalizationEnabled,
       colors: Array.from(colorHexSet),
       updatedAt: now,
     })
@@ -1272,7 +1272,7 @@ export async function updateProduct(
   }
 
   let personalizationResult: PersistPersonalizationResult = {
-    isPersonalizable: personalizationEnabled,
+    is_personalizable: personalizationEnabled,
     configId: null,
   }
 
@@ -1294,7 +1294,7 @@ export async function updateProduct(
       hasVariants,
       stock: totalStock,
       colors: Array.from(colorHexSet),
-      isPersonalizable: personalizationResult.isPersonalizable,
+      is_personalizable: personalizationResult.is_personalizable,
       updatedAt: new Date().toISOString(),
     })
     .eq('id', id)

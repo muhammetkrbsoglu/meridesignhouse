@@ -17,7 +17,8 @@ import {
   Calendar,
   Palette,
   Link2,
-  Layers
+  Layers,
+  Tags
 } from 'lucide-react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
@@ -43,6 +44,11 @@ const navigation = [
     name: 'Kategoriler',
     href: '/admin/categories',
     icon: FolderTree,
+  },
+  {
+    name: 'Etiket Şablonları',
+    href: '/admin/label-templates',
+    icon: Tags,
   },
   {
     name: 'Etkinlik Türleri',

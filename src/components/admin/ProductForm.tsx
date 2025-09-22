@@ -26,6 +26,15 @@ import { ImageKitImage } from '@/components/ui/imagekit-image'
 import { PRODUCT_TEMPLATES, type ProductTemplate, type ProductOptionTemplate } from '@/config/productTemplates'
 import { PERSONALIZATION_CATALOG_TEMPLATES } from '@/config/personalizationCatalog'
 import { createProduct, updateProduct } from '@/lib/actions/products'
+import { 
+  type LabelCategory, 
+  type LabelSize, 
+  type LabelTemplate, 
+  type LabelCategoryWithSizes,
+  getLabelCategories,
+  getLabelSizesByCategory,
+  getLabelTemplatesBySize
+} from '@/lib/actions/label-templates'
 import type { ProductWithVariants, ProductVariant } from '@/types/product'
 import type { PersonalizationFieldType, PersonalizationFieldOption, PersonalizationCatalogTemplate } from '@/types/personalization'
 import { cn } from '@/lib/utils'
@@ -532,6 +541,14 @@ export function ProductForm({ categories, colors, product }: ProductFormProps) {
   const initialPersonalizationState = useMemo(() => derivePersonalizationStateFromProduct(product), [product])
   const [builderState, setBuilderState] = useState<VariantBuilderState>(initialBuilderState)
   const [personalizationState, setPersonalizationState] = useState<PersonalizationBuilderState>(initialPersonalizationState)
+  
+  // Label template states
+  const [labelCategories, setLabelCategories] = useState<LabelCategoryWithSizes[]>([])
+  const [selectedLabelCategory, setSelectedLabelCategory] = useState<string>('')
+  const [selectedLabelSize, setSelectedLabelSize] = useState<string>('')
+  const [availableLabelTemplates, setAvailableLabelTemplates] = useState<LabelTemplate[]>([])
+  const [selectedLabelTemplates, setSelectedLabelTemplates] = useState<LabelTemplate[]>([])
+  const [labelTemplatesLoading, setLabelTemplatesLoading] = useState(false)
 
   const colorPalette = useMemo(() => {
     const seen = new Set<string>()
@@ -564,6 +581,48 @@ export function ProductForm({ categories, colors, product }: ProductFormProps) {
   useEffect(() => {
     setPersonalizationState(initialPersonalizationState)
   }, [initialPersonalizationState])
+
+  // Load label categories on mount
+  useEffect(() => {
+    const loadLabelCategories = async () => {
+      setLabelTemplatesLoading(true)
+      try {
+        const result = await getLabelCategories()
+        if (result.success) {
+          setLabelCategories(result.data)
+        }
+      } catch (error) {
+        console.error('Error loading label categories:', error)
+      } finally {
+        setLabelTemplatesLoading(false)
+      }
+    }
+    loadLabelCategories()
+  }, [])
+
+  // Load templates when size changes
+  useEffect(() => {
+    const loadTemplates = async () => {
+      if (!selectedLabelSize) {
+        setAvailableLabelTemplates([])
+        return
+      }
+      
+      setLabelTemplatesLoading(true)
+      try {
+        const result = await getLabelTemplatesBySize(selectedLabelSize)
+        if (result.success) {
+          setAvailableLabelTemplates(result.data)
+        }
+      } catch (error) {
+        console.error('Error loading label templates:', error)
+      } finally {
+        setLabelTemplatesLoading(false)
+      }
+    }
+    loadTemplates()
+  }, [selectedLabelSize])
+
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [success, setSuccess] = useState<string | null>(null)
@@ -745,6 +804,61 @@ export function ProductForm({ categories, colors, product }: ProductFormProps) {
       },
     }))
   }, [])
+
+  // New label template handlers
+  const handleLabelCategoryChange = useCallback((categoryId: string) => {
+    setSelectedLabelCategory(categoryId)
+    setSelectedLabelSize('')
+    setSelectedLabelTemplates([])
+    setAvailableLabelTemplates([])
+  }, [])
+
+  const handleLabelSizeChange = useCallback((sizeId: string) => {
+    setSelectedLabelSize(sizeId)
+    setSelectedLabelTemplates([])
+  }, [])
+
+  const handleToggleLabelTemplate = useCallback((template: LabelTemplate) => {
+    setSelectedLabelTemplates(prev => {
+      const exists = prev.some(t => t.id === template.id)
+      if (exists) {
+        return prev.filter(t => t.id !== template.id)
+      } else {
+        if (prev.length >= 40) {
+          return prev // Max 40 template limit
+        }
+        return [...prev, template]
+      }
+    })
+  }, [])
+
+  const handleSelectAllLabelTemplates = useCallback(() => {
+    setSelectedLabelTemplates(availableLabelTemplates.slice(0, 40))
+  }, [availableLabelTemplates])
+
+  const handleClearLabelTemplates = useCallback(() => {
+    setSelectedLabelTemplates([])
+  }, [])
+
+  const handleApplyLabelTemplates = useCallback(() => {
+    // Convert LabelTemplate[] to PersonalizationCatalogTemplate[]
+    const catalogTemplates: PersonalizationCatalogTemplate[] = selectedLabelTemplates.map(template => ({
+      id: template.id,
+      title: template.title,
+      description: template.description,
+      imageUrl: template.image_url,
+      recommendedSizes: [], // We'll handle this differently now
+      tags: template.tags || []
+    }))
+
+    setPersonalizationState((prev) => ({
+      ...prev,
+      settings: {
+        ...prev.settings,
+        catalogTemplates,
+      },
+    }))
+  }, [selectedLabelTemplates])
 
   const applyTemplate = useCallback((template: ProductTemplate) => {
     const optionDrafts: BuilderOption[] = template.optionGroups.map((group, index) => {
@@ -1827,69 +1941,194 @@ export function ProductForm({ categories, colors, product }: ProductFormProps) {
 
             {catalogFieldEnabled && (
               <Card className="border shadow-sm">
-                <CardHeader className="flex flex-col gap-3 space-y-0 md:flex-row md:items-center md:justify-between">
+                <CardHeader className="flex flex-col gap-3 space-y-0">
                   <div>
-                    <CardTitle className="text-sm font-semibold">Etiket Tasarım Kataloğu</CardTitle>
+                    <CardTitle className="text-sm font-semibold">Etiket Tasarım Kataloğu (Yeni Sistem)</CardTitle>
                     <p className="text-xs text-muted-foreground">
-                      Müşteriye göstermek istediğiniz hazır tasarımları seçin. En az bir şablon seçili olmalıdır.
+                      Kategori ve boyut seçerek müşteriye gösterilecek şablonları belirleyin. Maks. 40 şablon seçilebilir.
                     </p>
                   </div>
-                  <div className="flex flex-wrap items-center gap-2">
-                    <Button type="button" variant="outline" size="sm" onClick={handleSelectAllCatalogTemplates}>
-                      Tümünü Seç
-                    </Button>
-                    <Button type="button" variant="ghost" size="sm" onClick={handleClearCatalogTemplates}>
-                      En Popülerle Başla
-                    </Button>
-                  </div>
                 </CardHeader>
-                <CardContent className="space-y-4">
-                  <div className="grid grid-cols-1 gap-3 md:grid-cols-3 xl:grid-cols-4">
-                    {PERSONALIZATION_CATALOG_TEMPLATES.map((template) => {
-                      const isSelected = selectedTemplateIds.has(template.id)
-                      return (
-                        <button
-                          key={template.id}
-                          type="button"
-                          onClick={() => handleToggleCatalogTemplate(template)}
-                          className={cn(
-                            'group flex h-full flex-col overflow-hidden rounded-lg border text-left transition',
-                            isSelected ? 'border-rose-500 shadow-md' : 'border-muted hover:border-rose-300',
-                          )}
-                        >
-                          <div className="relative h-32 w-full bg-muted">
-                            <span className="absolute inset-0 flex items-center justify-center text-[11px] text-muted-foreground">
-                              {template.imageUrl ? 'Önizleme' : 'Görsel bulunamadı'}
-                            </span>
-                          </div>
-                          <div className="flex flex-1 flex-col gap-1 p-3">
-                            <div className="flex items-center justify-between">
-                              <span className="text-sm font-medium">{template.title}</span>
-                              <Badge variant={isSelected ? 'default' : 'outline'} className="text-[10px] uppercase">
-                                {isSelected ? 'Seçili' : 'Pasif'}
-                              </Badge>
-                            </div>
-                            {template.description && (
-                              <p className="text-xs text-muted-foreground line-clamp-2">{template.description}</p>
-                            )}
-                            {template.recommendedSizes && template.recommendedSizes.length > 0 && (
-                              <div className="flex flex-wrap gap-1 pt-1">
-                                {template.recommendedSizes.map((size) => (
-                                  <Badge key={size} variant="secondary" className="text-[10px]">
-                                    {size}
-                                  </Badge>
-                                ))}
-                              </div>
-                            )}
-                          </div>
-                        </button>
-                      )
-                    })}
+                <CardContent className="space-y-6">
+                  {/* Category Selection */}
+                  <div className="space-y-2">
+                    <Label className="text-sm font-medium">1. Şablon Kategorisi Seçin</Label>
+                    <Select value={selectedLabelCategory} onValueChange={handleLabelCategoryChange}>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Kategori seçin (örn: Söz-Nişan-Kına)" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {labelCategories.map((category) => (
+                          <SelectItem key={category.id} value={category.id}>
+                            {category.name}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    {labelCategories.length === 0 && (
+                      <p className="text-xs text-muted-foreground">
+                        Henüz kategori yok. <a href="/admin/label-templates" className="text-blue-600 hover:underline">Etiket Şablonları</a> sayfasından kategori oluşturun.
+                      </p>
+                    )}
                   </div>
-                  <p className="text-xs text-muted-foreground">
-                    Seçili şablon sayısı: {selectedTemplateIds.size} / {PERSONALIZATION_CATALOG_TEMPLATES.length}
-                    {!allTemplatesSelected && '  - Dilerseniz kalan şablonları da etkinleştirebilirsiniz.'}
-                  </p>
+
+                  {/* Size Selection */}
+                  {selectedLabelCategory && (
+                    <div className="space-y-2">
+                      <Label className="text-sm font-medium">2. Etiket/Kart Boyutu Seçin</Label>
+                      <Select value={selectedLabelSize} onValueChange={handleLabelSizeChange}>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Boyut seçin (örn: 10x15 cm)" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {labelCategories
+                            .find(cat => cat.id === selectedLabelCategory)
+                            ?.label_sizes.map((size) => (
+                              <SelectItem key={size.id} value={size.id}>
+                                {size.name} ({size.value})
+                              </SelectItem>
+                            ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  )}
+
+                  {/* Template Selection */}
+                  {selectedLabelSize && (
+                    <div className="space-y-4">
+                      <div className="flex items-center justify-between">
+                        <Label className="text-sm font-medium">3. Şablonları Seçin</Label>
+                        <div className="flex items-center gap-2">
+                          <Button 
+                            type="button" 
+                            variant="outline" 
+                            size="sm" 
+                            onClick={handleSelectAllLabelTemplates}
+                            disabled={availableLabelTemplates.length === 0}
+                          >
+                            Tümünü Seç
+                          </Button>
+                          <Button 
+                            type="button" 
+                            variant="ghost" 
+                            size="sm" 
+                            onClick={handleClearLabelTemplates}
+                          >
+                            Temizle
+                          </Button>
+                          <Button 
+                            type="button" 
+                            variant="default" 
+                            size="sm" 
+                            onClick={handleApplyLabelTemplates}
+                            disabled={selectedLabelTemplates.length === 0}
+                          >
+                            Uygula ({selectedLabelTemplates.length})
+                          </Button>
+                        </div>
+                      </div>
+
+                      {labelTemplatesLoading ? (
+                        <div className="flex justify-center py-8">
+                          <div className="text-sm text-muted-foreground">Şablonlar yükleniyor...</div>
+                        </div>
+                      ) : availableLabelTemplates.length > 0 ? (
+                        <div className="grid grid-cols-1 gap-3 md:grid-cols-3 xl:grid-cols-4">
+                          {availableLabelTemplates.map((template) => {
+                            const isSelected = selectedLabelTemplates.some(t => t.id === template.id)
+                            return (
+                              <button
+                                key={template.id}
+                                type="button"
+                                onClick={() => handleToggleLabelTemplate(template)}
+                                className={cn(
+                                  'group flex h-full flex-col overflow-hidden rounded-lg border text-left transition',
+                                  isSelected ? 'border-rose-500 shadow-md' : 'border-muted hover:border-rose-300',
+                                )}
+                                disabled={!isSelected && selectedLabelTemplates.length >= 40}
+                              >
+                                <div className="relative h-32 w-full bg-muted">
+                                  {template.image_url ? (
+                                    <img 
+                                      src={template.image_url} 
+                                      alt={template.title}
+                                      className="h-full w-full object-cover"
+                                    />
+                                  ) : (
+                                    <span className="absolute inset-0 flex items-center justify-center text-[11px] text-muted-foreground">
+                                      Görsel bulunamadı
+                                    </span>
+                                  )}
+                                </div>
+                                <div className="flex flex-1 flex-col gap-1 p-3">
+                                  <div className="flex items-center justify-between">
+                                    <span className="text-sm font-medium">{template.title}</span>
+                                    <Badge variant={isSelected ? 'default' : 'outline'} className="text-[10px] uppercase">
+                                      {isSelected ? 'Seçili' : 'Pasif'}
+                                    </Badge>
+                                  </div>
+                                  {template.description && (
+                                    <p className="text-xs text-muted-foreground line-clamp-2">{template.description}</p>
+                                  )}
+                                  {template.tags && template.tags.length > 0 && (
+                                    <div className="flex flex-wrap gap-1 pt-1">
+                                      {template.tags.slice(0, 2).map((tag) => (
+                                        <Badge key={tag} variant="secondary" className="text-[10px]">
+                                          {tag}
+                                        </Badge>
+                                      ))}
+                                      {template.tags.length > 2 && (
+                                        <Badge variant="secondary" className="text-[10px]">
+                                          +{template.tags.length - 2}
+                                        </Badge>
+                                      )}
+                                    </div>
+                                  )}
+                                </div>
+                              </button>
+                            )
+                          })}
+                        </div>
+                      ) : (
+                        <div className="text-center py-8 text-muted-foreground text-sm">
+                          Bu boyut için henüz şablon yok.
+                        </div>
+                      )}
+
+                      <p className="text-xs text-muted-foreground">
+                        Seçili şablon sayısı: {selectedLabelTemplates.length} / 40
+                        {selectedLabelTemplates.length >= 40 && ' (Maksimum limite ulaştınız)'}
+                      </p>
+                    </div>
+                  )}
+
+                  {/* Current Templates Display */}
+                  {personalizationState.settings.catalogTemplates.length > 0 && (
+                    <div className="space-y-2 pt-4 border-t">
+                      <Label className="text-sm font-medium">Mevcut Aktif Şablonlar</Label>
+                      <div className="grid grid-cols-2 gap-2 md:grid-cols-4">
+                        {personalizationState.settings.catalogTemplates.slice(0, 8).map((template) => (
+                          <div key={template.id} className="flex items-center gap-2 p-2 border rounded text-xs">
+                            <div className="w-8 h-8 bg-muted rounded flex-shrink-0">
+                              {template.imageUrl && (
+                                <img 
+                                  src={template.imageUrl} 
+                                  alt={template.title}
+                                  className="w-full h-full object-cover rounded"
+                                />
+                              )}
+                            </div>
+                            <span className="truncate">{template.title}</span>
+                          </div>
+                        ))}
+                        {personalizationState.settings.catalogTemplates.length > 8 && (
+                          <div className="flex items-center justify-center p-2 border rounded text-xs text-muted-foreground">
+                            +{personalizationState.settings.catalogTemplates.length - 8} daha
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  )}
                 </CardContent>
               </Card>
             )}
