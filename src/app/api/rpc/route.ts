@@ -61,7 +61,8 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ success: false, error: 'Geçersiz JSON formatı' }, { status: 400 })
     }
 
-    const { action, args } = body ?? {}
+    // Accept both JSON body and form submissions that might send empty body
+    const { action, args } = (body && typeof body === 'object') ? body : { action: undefined, args: undefined }
 
     if (typeof action !== 'string') {
       console.error(`RPC Error: Invalid action type '${typeof action}'`)
@@ -84,7 +85,7 @@ export async function POST(req: NextRequest) {
 
     return NextResponse.json({ success: true, data: result })
   } catch (error) {
-    console.error(`RPC Error: Handler execution failed for action '${action}':`, error)
+    console.error('RPC Error: Handler execution failed:', error)
     return NextResponse.json({ success: false, error: 'Beklenmeyen hata' }, { status: 500 })
   }
 }

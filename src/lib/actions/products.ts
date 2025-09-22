@@ -298,7 +298,7 @@ const hydrateProductWithVariants = async (
   supabase: SupabaseClient,
   product: any,
 ): Promise<ProductWithVariants> => {
-  const [optionsRes, variantsRes, personalizationRes] = await Promise.all([
+  const [optionsRes, variantsRes] = await Promise.all([
     supabase
       .from('product_options')
       .select(`
@@ -329,7 +329,15 @@ const hydrateProductWithVariants = async (
       `)
       .eq('productId', product.id)
       .order('sortOrder', { ascending: true }),
-    supabase
+  ])
+
+  const optionsData = optionsRes.data ?? []
+  const variantsData = variantsRes.data ?? []
+
+  // Fetch personalization config gracefully (table may not exist in some deployments)
+  let personalizationRow: any = null
+  try {
+    const personalizationRes = await supabase
       .from('product_personalization_configs')
       .select(`
         id,
@@ -356,17 +364,23 @@ const hydrateProductWithVariants = async (
         )
       `)
       .eq('productId', product.id)
-      .maybeSingle(),
-  ])
+      .maybeSingle()
 
-  const optionsData = optionsRes.data ?? []
-  const variantsData = variantsRes.data ?? []
-
-  if (personalizationRes.error) {
-    logger.error('[products.hydrateProductWithVariants] personalization fetch error', personalizationRes.error)
+    if (personalizationRes.error) {
+      // Ignore missing table errors silently; otherwise log as warning
+      if (personalizationRes.error.code === 'PGRST205') {
+        // table not found → treat as no personalization config
+        personalizationRow = null
+      } else {
+        logger.warn('[products.hydrateProductWithVariants] personalization fetch warning', personalizationRes.error)
+      }
+    } else {
+      personalizationRow = personalizationRes.data ?? null
+    }
+  } catch (_e) {
+    // Non-fatal: treat as not personalizable
+    personalizationRow = null
   }
-
-  const personalizationRow = personalizationRes.data ?? null
   let personalizationConfig: PersonalizationConfig | null = null
 
   if (personalizationRow) {

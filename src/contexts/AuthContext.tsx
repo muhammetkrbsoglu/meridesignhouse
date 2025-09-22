@@ -260,7 +260,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     try {
       console.debug('[Auth] signOut: calling supabase.auth.signOut')
       await Promise.race([
-        supabase.auth.signOut(),
+        supabase.auth.signOut({ scope: 'local' }),
         new Promise((resolve) => setTimeout(resolve, 1500)) // fallback timeout
       ])
     } finally {
@@ -274,6 +274,16 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           Object.keys(localStorage)
             .filter((k) => k.startsWith('sb-') || k.includes('supabase'))
             .forEach((k) => localStorage.removeItem(k))
+
+          // Also clear any sb- cookies set by @supabase/ssr/browser client
+          const cookies = document.cookie.split('; ')
+          cookies
+            .filter((c) => c.startsWith('sb-'))
+            .forEach((c) => {
+              const name = c.split('=')[0]
+              // expire cookie on current path and root
+              document.cookie = `${name}=; Path=/; Max-Age=0`
+            })
         }
       } catch (e) {
         console.error('[Auth] signOut: local cleanup error', e)

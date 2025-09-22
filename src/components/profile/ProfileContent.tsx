@@ -18,6 +18,7 @@ import { formatCurrency } from '@/lib/utils'
 import Link from 'next/link'
 import { MapPin, Package, MessageSquare, Edit3, Save, X, Plus, AlertCircle, LogOut } from 'lucide-react'
 import { supabase } from '@/lib/supabase-browser'
+import { useAuth } from '@/contexts/AuthContext'
 import { useRouter } from 'next/navigation'
 
 interface Address {
@@ -49,6 +50,7 @@ export default function ProfileContent({ userId }: ProfileContentProps) {
   const [saving, setSaving] = useState(false)
   const { toast } = useToast()
   const router = useRouter()
+  const { signOut } = useAuth()
 
   // Addresses state
   const [addresses, setAddresses] = useState<UserAddress[]>([])
@@ -241,10 +243,9 @@ export default function ProfileContent({ userId }: ProfileContentProps) {
   }
 
   const handleLogout = async () => {
-    const { error } = await supabase.auth.signOut()
-    if (!error) {
-      router.push('/auth/login')
-    } else {
+    try {
+      await signOut()
+    } catch (_e) {
       toast({
         title: 'Hata',
         description: 'Çıkış yapılırken bir hata oluştu',
