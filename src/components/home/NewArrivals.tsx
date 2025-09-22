@@ -12,6 +12,7 @@ import { toast } from '@/hooks/use-toast'
 import { SimpleProduct } from '@/types/product'
 import { useDesktopAnimations } from '@/hooks/useDesktopAnimations'
 import { formatCurrency } from '@/lib/utils'
+import { ColorSwatchStack } from '@/components/ui/ColorSwatchStack'
 
 interface NewArrivalsProps {
   products: SimpleProduct[]
@@ -177,7 +178,10 @@ export function NewArrivals({ products }: NewArrivalsProps) {
           className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 sm:gap-8 mb-12 sm:mb-16"
           {...createStaggerAnimation({ contextLevel: 'featured' })}
         >
-          {products.map((product, index) => (
+          {products.map((product, index) => {
+            const colorPalette = Array.isArray(product.colors) ? product.colors : []
+
+            return (
             <motion.div
               key={product.id}
               className="group bg-white rounded-2xl shadow-lg hover:shadow-2xl transition-all duration-500 transform hover:-translate-y-2 overflow-hidden"
@@ -242,6 +246,9 @@ export function NewArrivals({ products }: NewArrivalsProps) {
                   {product.name}
                 </h3>
                 <div className="flex flex-col gap-4">
+                  {colorPalette.length > 0 && (
+                    <ColorSwatchStack colors={colorPalette} size="sm" />
+                  )}
                   <div className="flex items-center justify-between">
                     <span className="text-xl font-bold bg-gradient-to-r from-rose-600 to-purple-600 bg-clip-text text-transparent">
                       {formatCurrency(product.price)}
@@ -269,7 +276,7 @@ export function NewArrivals({ products }: NewArrivalsProps) {
                 </div>
               </div>
             </motion.div>
-          ))}
+          )})
         </motion.div>
 
         {/* View All Button */}

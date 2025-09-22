@@ -17,6 +17,7 @@ import { useDesktopAnimations } from '@/hooks/useDesktopAnimations';
 import { useProductInfiniteScroll } from '@/hooks/useInfiniteScroll';
 import { cn } from '@/lib/utils';
 import { VariantQuickAddSheet } from '@/components/products/VariantQuickAddSheet';
+import { ColorSwatchStack } from '@/components/ui/ColorSwatchStack';
 
 interface ProductGridProps {
   products: ProductWithCategory[];
@@ -216,7 +217,10 @@ export function ProductGrid({ products, loading = false, skeletonCount = 8, enab
   return (
     <>
       <div ref={containerRef} className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 xl:grid-cols-5 gap-4 sm:gap-6 lg:gap-8">
-        {displayProducts.map((product, index) => (
+        {displayProducts.map((product, index) => {
+          const colorPalette = Array.isArray((product as any).colors) ? (product as any).colors : [];
+
+          return (
           <motion.div 
             key={product.id} 
             className="group relative bg-white rounded-2xl shadow-lg hover:shadow-2xl transition-shadow duration-300 ease-out overflow-hidden"
@@ -315,6 +319,10 @@ export function ProductGrid({ products, loading = false, skeletonCount = 8, enab
                 </p>
               )}
               
+              {colorPalette.length > 0 && (
+                <ColorSwatchStack colors={colorPalette} size="sm" className="mb-4" />
+              )}
+              
               <div className="flex items-center justify-between mb-4">
                 <div className="flex flex-col">
                   <span className="text-xl sm:text-2xl font-bold bg-gradient-to-r from-rose-600 to-purple-600 bg-clip-text text-transparent">
@@ -375,7 +383,7 @@ export function ProductGrid({ products, loading = false, skeletonCount = 8, enab
               </div>
             </div>
           </motion.div>
-        ))}
+          )})}
         
         {enableInfiniteScroll && (
           <>

@@ -18,5 +18,6 @@ export interface MenuProduct {
   slug: string
   price: number
   images: string[]
+  colors?: string[]
   categories: MenuProductCategory[]
 }

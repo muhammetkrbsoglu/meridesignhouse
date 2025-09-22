@@ -11,6 +11,8 @@ import { formatCurrency } from '@/lib/utils';
 import { SwipeActions } from '@/components/motion/SwipeActions';
 import { MicroFeedback } from '@/components/motion/MicroFeedback';
 import { LoadingSpinner } from '@/components/motion/LoadingStates';
+import { ColorSwatchStack } from '@/components/ui/ColorSwatchStack';
+import { mergeColorValues } from '@/lib/products/color-utils';
 
 interface FavoriteItemsProps {
   items: FavoriteItem[];
@@ -80,6 +82,9 @@ export function FavoriteItems({ items }: FavoriteItemsProps) {
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
       {items.map((item) => {
         const isLoading = removingItems.has(item.id) || addingToCartItems.has(item.id);
+        const productColors = Array.isArray(item.product.colors) ? item.product.colors : [];
+        const variantColors = (item.variant?.optionValues || []).map((value) => value.hexValue ?? null);
+        const colorPalette = mergeColorValues(productColors, variantColors);
         
         return (
           <SwipeActions
@@ -167,6 +172,12 @@ export function FavoriteItems({ items }: FavoriteItemsProps) {
                       {value.optionLabel}: {value.valueLabel}
                     </span>
                   ))}
+                </div>
+              )}
+
+              {colorPalette.length > 0 && (
+                <div className="mb-2">
+                  <ColorSwatchStack colors={colorPalette} size="sm" />
                 </div>
               )}
 

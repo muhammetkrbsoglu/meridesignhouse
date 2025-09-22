@@ -9,6 +9,7 @@ import { StarIcon as Star } from '@heroicons/react/24/solid'
 import { formatCurrency } from '@/lib/utils'
 import { fetchAllWeeklyFeaturedProducts, fetchWeeklyFeaturedProduct } from '@/lib/api/menuClient'
 import type { MenuProduct } from '@/types/menu'
+import { ColorSwatchStack } from '@/components/ui/ColorSwatchStack'
 
 interface WeeklyFeaturedProductsSliderProps {
   categoryId?: string
@@ -180,6 +181,7 @@ export function WeeklyFeaturedProductsSlider({ categoryId }: WeeklyFeaturedProdu
 
   const currentProduct = selectedCategoryProduct || products[currentIndex]
   const categoryName = currentProduct.categories[0]?.name || 'Genel'
+  const colorPalette = Array.isArray(currentProduct.colors) ? currentProduct.colors : []
   const showSliderControls = products.length > 1 && !categoryId
 
   return (
@@ -364,6 +366,17 @@ export function WeeklyFeaturedProductsSlider({ categoryId }: WeeklyFeaturedProdu
                       >
                         {currentProduct.name}
                       </motion.h3>
+
+                      {colorPalette.length > 0 && (
+                        <motion.div
+                          className="mt-3"
+                          initial={{ opacity: 0, y: -8 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          transition={{ delay: 0.35, duration: 0.4 }}
+                        >
+                          <ColorSwatchStack colors={colorPalette} size="sm" />
+                        </motion.div>
+                      )}
 
                       {/* Product Description */}
                       <motion.p

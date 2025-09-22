@@ -101,6 +101,7 @@ export interface BaseProduct {
   weight?: number | null;
   dimensions?: string | null;
   categoryId: string;
+  colors?: string[];
   createdAt?: Date | string;
   updatedAt?: Date | string;
 }
@@ -142,6 +143,7 @@ export interface SimpleProduct {
   slug: string;
   price: number;
   images: string[]; // Sadece URL'ler
+  colors?: string[];
   category: {
     id: string;
     name: string;
@@ -158,6 +160,7 @@ export interface FeaturedProduct {
   price: number;
   originalPrice?: number; // İndirim hesaplaması için
   imageUrl: string; // Tek resim URL'i
+  colors?: string[];
   category: {
     name: string;
   };
@@ -191,6 +194,7 @@ export interface MenuProduct {
   slug: string;
   price: number;
   images: string[];
+  colors?: string[];
   categories: {
     name: string;
     slug: string;
@@ -214,6 +218,7 @@ export interface SupabaseProductResult {
   description?: string | null;
   price: number | { toString(): string };
   gallery: string[]; // Supabase'deki gerçek field adı
+  colors?: string[] | null;
   is_active?: boolean; // Supabase'deki gerçek field adı
   is_personalizable?: boolean | null;
   created_at?: string; // Supabase'deki gerçek field adı
@@ -231,6 +236,7 @@ export function convertSupabaseToProductWithCategory(
     description: supabaseProduct.description,
     price: typeof supabaseProduct.price === 'object' ? parseFloat(supabaseProduct.price.toString()) : supabaseProduct.price,
     images: supabaseProduct.gallery?.map(url => ({ url, alt: null })) || [],
+    colors: Array.isArray(supabaseProduct.colors) ? supabaseProduct.colors : [],
     isActive: supabaseProduct.is_active,
     isPersonalizable: Boolean(supabaseProduct.is_personalizable),
     createdAt: supabaseProduct.created_at ? new Date(supabaseProduct.created_at) : undefined,
@@ -248,6 +254,7 @@ export function convertToSimpleProduct(
     slug: product.slug,
     price: typeof product.price === 'number' ? product.price : product.price.toNumber(),
     images: product.images.map(img => img.url),
+    colors: Array.isArray(product.colors) ? product.colors : [],
     category: {
       id: product.category?.id || '',
       name: product.category?.name || 'Kategori yok',
@@ -267,6 +274,7 @@ export function convertToFeaturedProduct(
     price: typeof product.price === 'number' ? product.price : product.price.toNumber(),
     originalPrice: product.oldPrice ? (typeof product.oldPrice === 'number' ? product.oldPrice : product.oldPrice.toNumber()) : undefined,
     imageUrl: product.images[0]?.url || '/placeholder-product.svg',
+    colors: Array.isArray(product.colors) ? product.colors : [],
     category: {
       name: product.category.name,
     },

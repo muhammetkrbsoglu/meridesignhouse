@@ -2191,6 +2191,7 @@ export async function fetchFeaturedProducts(limit: number = 8): Promise<Featured
         isActive,
         createdAt,
         categoryId,
+        colors,
         category:categories!inner(id, name, slug),
         product_images(url, alt, sortOrder)
       `)
@@ -2220,6 +2221,7 @@ export async function fetchFeaturedProducts(limit: number = 8): Promise<Featured
         description: product.description,
         price: typeof product.price === 'object' ? parseFloat(product.price.toString()) : product.price,
         gallery,
+        colors: Array.isArray(product.colors) ? product.colors : [],
         is_active: product.is_active,
         created_at: product.created_at,
         category: product.category
@@ -2253,6 +2255,7 @@ export async function fetchNewArrivals(limit: number = 8): Promise<SimpleProduct
       isNewArrival,
       createdAt,
       categoryId,
+      colors,
       category:categories!inner(id, name, slug),
       product_images(url, alt, sortOrder)
     `)
@@ -2282,6 +2285,7 @@ export async function fetchNewArrivals(limit: number = 8): Promise<SimpleProduct
         description: product.description,
         price: typeof product.price === 'object' ? parseFloat(product.price.toString()) : product.price,
         gallery,
+        colors: Array.isArray(product.colors) ? product.colors : [],
         is_active: product.is_active,
         created_at: product.created_at,
         category: product.category

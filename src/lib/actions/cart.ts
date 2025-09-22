@@ -621,6 +621,7 @@ export async function getCartItems(): Promise<CartItem[]> {
           name,
           slug,
           price,
+          colors,
           product_images!left(url, alt, "sortOrder", variantId),
           category:categories ( name ),
           options:product_options!left(
@@ -683,6 +684,7 @@ export async function getCartItems(): Promise<CartItem[]> {
             slug: rawProduct.slug,
             price: typeof rawProduct.price === 'number' ? rawProduct.price : Number(rawProduct.price),
             product_images: productImages,
+            colors: Array.isArray(rawProduct.colors) ? rawProduct.colors : [],
             category: rawProduct.category ?? null,
           }
         : null;
@@ -994,6 +996,7 @@ export async function getFavoriteItems(): Promise<FavoriteItem[]> {
           name,
           slug,
           price,
+          colors,
           product_images!left(url, alt, "sortOrder", variantId),
           category:categories ( name ),
           options:product_options!left(
@@ -1056,6 +1059,7 @@ export async function getFavoriteItems(): Promise<FavoriteItem[]> {
             slug: rawProduct.slug,
             price: typeof rawProduct.price === 'number' ? rawProduct.price : Number(rawProduct.price),
             product_images: productImages,
+            colors: Array.isArray(rawProduct.colors) ? rawProduct.colors : [],
             category: rawProduct.category ?? null,
           }
         : null;

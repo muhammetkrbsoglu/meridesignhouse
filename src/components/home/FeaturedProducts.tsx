@@ -12,6 +12,7 @@ import { toast } from '@/hooks/use-toast'
 import { FeaturedProduct } from '@/types/product'
 import { motion } from 'framer-motion'
 import { useDesktopAnimations } from '@/hooks/useDesktopAnimations'
+import { ColorSwatchStack } from '@/components/ui/ColorSwatchStack'
 
 interface FeaturedProductsProps {
   products: FeaturedProduct[]
@@ -144,7 +145,10 @@ export function FeaturedProducts({ products }: FeaturedProductsProps) {
           className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6 lg:gap-8"
           {...createStaggerAnimation({ contextLevel: 'featured' })}
         >
-          {products.map((product, index) => (
+          {products.map((product, index) => {
+            const colorPalette = Array.isArray(product.colors) ? product.colors : []
+
+            return (
             <motion.div 
               key={product.id} 
               className="group relative bg-white rounded-2xl shadow-lg hover:shadow-2xl transition-all duration-500 transform hover:-translate-y-2 overflow-hidden"
@@ -211,6 +215,9 @@ export function FeaturedProducts({ products }: FeaturedProductsProps) {
                 <p className="text-gray-600 text-xs sm:text-sm mb-4 line-clamp-2 leading-relaxed">
                   {product.description}
                 </p>
+                {colorPalette.length > 0 && (
+                  <ColorSwatchStack colors={colorPalette} size="sm" className="mb-3" />
+                )}
                 <div className="flex items-center justify-between mb-4">
                   <div className="flex flex-col">
                     <span className="text-xl sm:text-2xl font-bold bg-gradient-to-r from-rose-600 to-purple-600 bg-clip-text text-transparent">
@@ -248,7 +255,7 @@ export function FeaturedProducts({ products }: FeaturedProductsProps) {
                 </button>
               </div>
             </motion.div>
-          ))}
+          )})
         </motion.div>
 
         <div className="text-center mt-16">

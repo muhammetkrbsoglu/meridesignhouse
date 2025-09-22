@@ -23,6 +23,8 @@ import { LoadingSpinner } from '@/components/motion/LoadingStates'
 import Image from 'next/image'
 import { useRouter } from 'next/navigation'
 import { Modal } from '@/components/motion/Modal'
+import { ColorSwatchStack } from '@/components/ui/ColorSwatchStack'
+import { mergeColorValues } from '@/lib/products/color-utils'
 
 const BLUR_DATA_URL = 'data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///ywAAAAAAQABAAACAUwAOw=='
 
@@ -426,6 +428,9 @@ export function CartContent() {
           {cartItems.map((item, index) => {
             const itemKey = item.id
             const isUpdating = updatingItems.has(itemKey)
+            const productColors = Array.isArray(item.product.colors) ? item.product.colors : []
+            const variantColors = (item.variant?.optionValues || []).map((value) => value.hexValue ?? null)
+            const colorPalette = mergeColorValues(productColors, variantColors)
             return (
             <SwipeActions
               key={item.id}
@@ -504,6 +509,11 @@ export function CartContent() {
                                 {value.optionLabel}: {value.valueLabel}
                               </span>
                             ))}
+                          </div>
+                        )}
+                        {colorPalette.length > 0 && (
+                          <div className="mt-2">
+                            <ColorSwatchStack colors={colorPalette} size="sm" />
                           </div>
                         )}
                         {item.personalization && item.personalization.answers && item.personalization.answers.length > 0 && (

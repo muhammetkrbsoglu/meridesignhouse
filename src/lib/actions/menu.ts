@@ -123,6 +123,7 @@ export async function fetchFeaturedProductsForCategory(categoryId: string, limit
         name,
         slug,
         price,
+        colors,
         product_images(url, alt, sortOrder),
         category:categories!inner(
           id,
@@ -156,6 +157,7 @@ export async function fetchFeaturedProductsForCategory(categoryId: string, limit
         slug: product.slug,
         price: product.price,
         images: sortedImages,
+        colors: Array.isArray(product.colors) ? product.colors : [],
         categories: [product.category]
       };
     });
@@ -179,6 +181,7 @@ export async function fetchWeeklyFeaturedProduct(categoryId: string): Promise<Me
         name,
         slug,
         price,
+        colors,
         product_images(url, alt, sortOrder),
         category:categories!inner(
           id,
@@ -214,6 +217,7 @@ export async function fetchWeeklyFeaturedProduct(categoryId: string): Promise<Me
       slug: productData.slug,
       price: productData.price,
       images: sortedImages,
+      colors: Array.isArray(productData.colors) ? productData.colors : [],
       categories: [productData.category]
     };
 
@@ -238,6 +242,7 @@ export async function fetchAllWeeklyFeaturedProducts(): Promise<MenuProduct[]> {
         name,
         slug,
         price,
+        colors,
         product_images(url, alt, sortOrder),
         category:categories!inner(
           id,
@@ -270,6 +275,7 @@ export async function fetchAllWeeklyFeaturedProducts(): Promise<MenuProduct[]> {
         slug: product.slug,
         price: product.price,
         images: sortedImages,
+        colors: Array.isArray(product.colors) ? product.colors : [],
         categories: [product.category]
       };
     });
@@ -293,6 +299,7 @@ export async function fetchWeeklyFeaturedProductsForCategories(categoryIds: stri
         name,
         slug,
         price,
+        colors,
         product_images(url, alt, sortOrder),
         category:categories!inner(
           id,
@@ -326,6 +333,7 @@ export async function fetchWeeklyFeaturedProductsForCategories(categoryIds: stri
         slug: product.slug,
         price: product.price,
         images: sortedImages,
+        colors: Array.isArray(product.colors) ? product.colors : [],
         categories: [product.category]
       };
     });

@@ -14,6 +14,7 @@ export interface CartProduct {
     alt: string | null
     sortOrder: number | null
   }>
+  colors?: string[]
   category: CartProductCategory | null
 }
 

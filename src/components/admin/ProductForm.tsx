@@ -995,16 +995,27 @@ export function ProductForm({ categories, colors, product }: ProductFormProps) {
       return
     }
 
-    const tagName = target.tagName.toLowerCase()
-
-    if (tagName !== 'input') {
+    if (target instanceof HTMLTextAreaElement) {
       return
     }
 
-    const inputType = (target as HTMLInputElement).type?.toLowerCase()
-    const allowTypes = new Set(['submit', 'button', 'checkbox', 'radio'])
+    if (target instanceof HTMLButtonElement) {
+      if (target.type && target.type.toLowerCase() === 'submit') {
+        return
+      }
+      event.preventDefault()
+      event.stopPropagation()
+      return
+    }
 
-    if (allowTypes.has(inputType)) {
+    if (target instanceof HTMLInputElement) {
+      const inputType = target.type?.toLowerCase()
+      const allowTypes = new Set(['submit', 'button', 'checkbox', 'radio'])
+      if (allowTypes.has(inputType)) {
+        return
+      }
+      event.preventDefault()
+      event.stopPropagation()
       return
     }
 
@@ -1096,6 +1107,18 @@ export function ProductForm({ categories, colors, product }: ProductFormProps) {
       setIsSubmitting(false)
     }
   })
+
+  const handleFormSubmit = useCallback(
+    (event: React.FormEvent<HTMLFormElement>) => {
+      if (activeStep !== stepLabels.length - 1) {
+        event.preventDefault()
+        event.stopPropagation()
+        return
+      }
+      onSubmit(event)
+    },
+    [activeStep, onSubmit],
+  )
 
   const renderGeneralStep = () => (
     <div className="space-y-6">
@@ -1307,7 +1330,15 @@ export function ProductForm({ categories, colors, product }: ProductFormProps) {
                             <SelectContent>
                               {colorPalette.map(({ hex, name }) => (
                                 <SelectItem key={hex} value={hex}>
-                                  {name} ({hex})
+                                  <span className="inline-flex items-center gap-2">
+                                    <span
+                                      className="h-4 w-4 rounded-full border"
+                                      style={{ backgroundColor: hex }}
+                                    />
+                                    <span>
+                                      {name} ({hex})
+                                    </span>
+                                  </span>
                                 </SelectItem>
                               ))}
                               {selectValue === CUSTOM_COLOR_VALUE && (
@@ -1441,7 +1472,15 @@ export function ProductForm({ categories, colors, product }: ProductFormProps) {
                           <SelectContent>
                             {colorPalette.map(({ hex, name }) => (
                               <SelectItem key={hex} value={hex}>
-                                {name} ({hex})
+                                <span className="inline-flex items-center gap-2">
+                                  <span
+                                    className="h-4 w-4 rounded-full border"
+                                    style={{ backgroundColor: hex }}
+                                  />
+                                  <span>
+                                    {name} ({hex})
+                                  </span>
+                                </span>
                               </SelectItem>
                             ))}
                             {badgeSelectValue === CUSTOM_COLOR_VALUE && (
@@ -1956,7 +1995,7 @@ export function ProductForm({ categories, colors, product }: ProductFormProps) {
   )
 
   return (
-    <form onSubmit={onSubmit} onKeyDown={handleFormKeyDown} className="space-y-6">
+    <form onSubmit={handleFormSubmit} onKeyDown={handleFormKeyDown} className="space-y-6">
       {error && (
         <Alert variant="destructive">
           <AlertDescription>{error}</AlertDescription>
