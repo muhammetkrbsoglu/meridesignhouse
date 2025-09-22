@@ -1087,19 +1087,19 @@ export function ProductForm({ categories, colors, product }: ProductFormProps) {
 
       if (product) {
         const result = await updateProduct(product.id, {}, formData)
-        if (result.message && !result.errors) {
-          setSuccess('Ürün başarıyla güncellendi!')
-        } else {
-          setError(result.message || 'Bir hata oluştu')
+        if (!result?.ok) {
+          setError(result?.message || 'Ürün güncellenemedi.')
+          return
         }
+        setSuccess(result.message || 'Ürün başarıyla güncellendi!')
       } else {
         const result = await createProduct({}, formData)
-        if (result.message && !result.errors) {
-          setSuccess('Ürün başarıyla oluşturuldu!')
-          setTimeout(() => router.push('/admin/products'), 1500)
-        } else {
-          setError(result.message || 'Bir hata oluştu')
+        if (!result?.ok) {
+          setError(result?.message || 'Ürün oluşturulamadı.')
+          return
         }
+        setSuccess(result.message || 'Ürün başarıyla oluşturuldu!')
+        setTimeout(() => router.push('/admin/products'), 1500)
       }
     } catch (submitError) {
       setError(submitError instanceof Error ? submitError.message : 'Bir hata oluştu')
@@ -1108,17 +1108,15 @@ export function ProductForm({ categories, colors, product }: ProductFormProps) {
     }
   })
 
-  const handleFormSubmit = useCallback(
-    (event: React.FormEvent<HTMLFormElement>) => {
-      if (activeStep !== stepLabels.length - 1) {
-        event.preventDefault()
-        event.stopPropagation()
-        return
-      }
-      onSubmit(event)
-    },
-    [activeStep, onSubmit],
-  )
+  const handleFormSubmit = useCallback((event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault()
+    event.stopPropagation()
+  }, [])
+
+  const handleFinalSubmit = useCallback(async () => {
+    if (isSubmitting) return
+    await onSubmit()
+  }, [isSubmitting, onSubmit])
 
   const renderGeneralStep = () => (
     <div className="space-y-6">
@@ -2041,7 +2039,7 @@ export function ProductForm({ categories, colors, product }: ProductFormProps) {
               İleri
             </Button>
           ) : (
-            <Button type="submit" disabled={isSubmitting}>
+            <Button type="button" onClick={handleFinalSubmit} disabled={isSubmitting}>
               {isSubmitting ? 'Kaydediliyor...' : product ? 'Güncelle' : 'Oluştur'}
             </Button>
           )}

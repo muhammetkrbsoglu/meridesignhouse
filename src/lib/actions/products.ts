@@ -1,7 +1,6 @@
 ﻿'use server'
 
 import { revalidatePath } from 'next/cache'
-import { redirect } from 'next/navigation'
 import { z } from 'zod'
 import type { SupabaseClient } from '@supabase/supabase-js'
 import { getSupabaseAdmin } from '@/lib/supabase'
@@ -837,6 +836,8 @@ export type State = {
     productOfWeekCategoryId?: string[]
   }
   message?: string | null
+  ok?: boolean
+  productId?: string | null
 }
 
 // Create product action
@@ -861,6 +862,8 @@ export async function createProduct(prevState: State, formData: FormData): Promi
     return {
       errors: validationResult.error.flatten().fieldErrors,
       message: 'Eksik alanlar. Ürün oluşturulamadı.',
+      ok: false,
+      productId: null,
     }
   }
 
@@ -908,44 +911,42 @@ export async function createProduct(prevState: State, formData: FormData): Promi
   const productId = randomUUID()
   const supabase = getSupabaseAdmin()
 
-  try {
-    const { error: insertError } = await supabase
-      .from('products')
-      .insert({
-        id: productId,
-        name: productTitle,
-        cardTitle: base.cardTitle,
-        slug,
-        description: productDescription,
-        price: (base.price || 0).toString(),
-        oldPrice: base.oldPrice ? base.oldPrice.toString() : null,
-        categoryId: base.categoryId,
-        stock: hasVariants ? 0 : base.stock,
-        isActive: base.isActive,
-        isFeatured: base.isFeatured,
-        isNewArrival: base.isNewArrival,
-        isProductOfWeek: base.isProductOfWeek,
-        productOfWeekCategoryId: base.productOfWeekCategoryId || null,
-        colors: Array.from(colorHexSet),
-        hasVariants,
-        isPersonalizable: personalizationEnabled,
-        defaultVariantId: null,
-        createdAt: now,
-        updatedAt: now,
-      })
-      .select('id')
-      .single()
+  const { data: insertedProduct, error: insertError } = await supabase
+    .from('products')
+    .insert({
+      id: productId,
+      name: productTitle,
+      cardTitle: base.cardTitle,
+      slug,
+      description: productDescription,
+      price: (base.price || 0).toString(),
+      oldPrice: base.oldPrice ? base.oldPrice.toString() : null,
+      categoryId: base.categoryId,
+      stock: hasVariants ? 0 : base.stock,
+      isActive: base.isActive,
+      isFeatured: base.isFeatured,
+      isNewArrival: base.isNewArrival,
+      isProductOfWeek: base.isProductOfWeek,
+      productOfWeekCategoryId: base.productOfWeekCategoryId || null,
+      colors: Array.from(colorHexSet),
+      hasVariants,
+      isPersonalizable: personalizationEnabled,
+      defaultVariantId: null,
+      createdAt: now,
+      updatedAt: now,
+    })
+    .select('id')
+    .single()
 
-    if (insertError) {
-      logger.error('[products.createProduct] product insert failed', insertError)
-      return {
-        message: 'Database hatası: Ürün oluşturulamadı.',
-      }
-    }
-  } catch (error) {
-    logger.error('[products.createProduct] unexpected insert error', error)
+  if (insertError || !insertedProduct?.id) {
+    logger.error(
+      '[products.createProduct] product insert failed',
+      insertError ?? new Error('Insert succeeded but no product id returned'),
+    )
     return {
       message: 'Database hatası: Ürün oluşturulamadı.',
+      ok: false,
+      productId: null,
     }
   }
 
@@ -970,6 +971,8 @@ export async function createProduct(prevState: State, formData: FormData): Promi
       logger.error('[products.createProduct] variant persistence failed', error)
       return {
         message: 'Varyasyonlar kaydedilirken bir hata oluştu.',
+        ok: false,
+        productId,
       }
     }
   }
@@ -1014,6 +1017,11 @@ export async function createProduct(prevState: State, formData: FormData): Promi
     const { error: imagesError } = await supabase.from('product_images').insert(imageRecords)
     if (imagesError) {
       logger.error('[products.createProduct] product_images insert failed', imagesError)
+      return {
+        message: 'Görseller kaydedilirken bir hata oluştu.',
+        ok: false,
+        productId,
+      }
     }
   }
 
@@ -1028,27 +1036,53 @@ export async function createProduct(prevState: State, formData: FormData): Promi
     logger.error('[products.createProduct] personalization persistence failed', error)
     return {
       message: 'Kişiselleştirme alanları kaydedilirken bir hata oluştu.',
+      ok: false,
+      productId,
     }
   }
 
-  try {
-    await supabase
-      .from('products')
-      .update({
-        defaultVariantId,
-        hasVariants,
-        stock: totalStock,
-        colors: Array.from(colorHexSet),
-        isPersonalizable: personalizationResult.isPersonalizable,
-        updatedAt: new Date().toISOString(),
-      })
-      .eq('id', productId)
-  } catch (error) {
-    logger.error('[products.createProduct] post-update failed', error)
+  const { error: finalUpdateError } = await supabase
+    .from('products')
+    .update({
+      defaultVariantId,
+      hasVariants,
+      stock: totalStock,
+      colors: Array.from(colorHexSet),
+      isPersonalizable: personalizationResult.isPersonalizable,
+      updatedAt: new Date().toISOString(),
+    })
+    .eq('id', productId)
+
+  if (finalUpdateError) {
+    logger.error('[products.createProduct] post-update failed', finalUpdateError)
+    return {
+      message: 'Ürün verileri güncellenirken bir hata oluştu.',
+      ok: false,
+      productId,
+    }
+  }
+
+  const { data: verification, error: verificationError } = await supabase
+    .from('products')
+    .select('id')
+    .eq('id', productId)
+    .maybeSingle()
+
+  if (verificationError || !verification?.id) {
+    logger.error('[products.createProduct] verification failed', verificationError ?? new Error('Product not found after insert'))
+    return {
+      message: 'Ürün veritabanında doğrulanamadı.',
+      ok: false,
+      productId,
+    }
   }
 
   revalidatePath('/admin/products')
-  redirect('/admin/products')
+  return {
+    message: 'Ürün başarıyla oluşturuldu.',
+    ok: true,
+    productId,
+  }
 }
 
 // Update product action
@@ -1077,6 +1111,8 @@ export async function updateProduct(
     return {
       errors: validationResult.error.flatten().fieldErrors,
       message: 'Eksik alanlar. Ürün güncellenemedi.',
+      ok: false,
+      productId: id,
     }
   }
 
@@ -1123,40 +1159,35 @@ export async function updateProduct(
   const now = new Date().toISOString()
   const supabase = getSupabaseAdmin()
 
-  try {
-    const { error: updateError } = await supabase
-      .from('products')
-      .update({
-        name: productTitle,
-        cardTitle: base.cardTitle ?? null,
-        slug,
-        description: productDescription,
-        price: (base.price || 0).toString(),
-        oldPrice: base.oldPrice ? base.oldPrice.toString() : null,
-        categoryId: base.categoryId,
-        stock: hasVariants ? 0 : base.stock,
-        isActive: base.isActive,
-        isFeatured: base.isFeatured,
-        isNewArrival: base.isNewArrival,
-        isProductOfWeek: base.isProductOfWeek,
-        productOfWeekCategoryId: base.productOfWeekCategoryId || null,
-        hasVariants,
-        isPersonalizable: personalizationEnabled,
-        colors: Array.from(colorHexSet),
-        updatedAt: now,
-      })
-      .eq('id', id)
+  const { error: updateError } = await supabase
+    .from('products')
+    .update({
+      name: productTitle,
+      cardTitle: base.cardTitle ?? null,
+      slug,
+      description: productDescription,
+      price: (base.price || 0).toString(),
+      oldPrice: base.oldPrice ? base.oldPrice.toString() : null,
+      categoryId: base.categoryId,
+      stock: hasVariants ? 0 : base.stock,
+      isActive: base.isActive,
+      isFeatured: base.isFeatured,
+      isNewArrival: base.isNewArrival,
+      isProductOfWeek: base.isProductOfWeek,
+      productOfWeekCategoryId: base.productOfWeekCategoryId || null,
+      hasVariants,
+      isPersonalizable: personalizationEnabled,
+      colors: Array.from(colorHexSet),
+      updatedAt: now,
+    })
+    .eq('id', id)
 
-    if (updateError) {
-      logger.error('[products.updateProduct] product update failed', updateError)
-      return {
-        message: 'Database hatası: Ürün güncellenemedi.',
-      }
-    }
-  } catch (error) {
-    logger.error('[products.updateProduct] unexpected update error', error)
+  if (updateError) {
+    logger.error('[products.updateProduct] product update failed', updateError)
     return {
       message: 'Database hatası: Ürün güncellenemedi.',
+      ok: false,
+      productId: id,
     }
   }
 
@@ -1186,6 +1217,8 @@ export async function updateProduct(
       logger.error('[products.updateProduct] variant persistence failed', error)
       return {
         message: 'Varyasyonlar kaydedilirken bir hata oluştu.',
+        ok: false,
+        productId: id,
       }
     }
   }
@@ -1230,6 +1263,11 @@ export async function updateProduct(
     const { error: imagesError } = await supabase.from('product_images').insert(imageRecords)
     if (imagesError) {
       logger.error('[products.updateProduct] product_images insert failed', imagesError)
+      return {
+        message: 'Görseller kaydedilirken bir hata oluştu.',
+        ok: false,
+        productId: id,
+      }
     }
   }
 
@@ -1244,27 +1282,53 @@ export async function updateProduct(
     logger.error('[products.updateProduct] personalization persistence failed', error)
     return {
       message: 'Kişiselleştirme alanları kaydedilirken bir hata oluştu.',
+      ok: false,
+      productId: id,
     }
   }
 
-  try {
-    await supabase
-      .from('products')
-      .update({
-        defaultVariantId,
-        hasVariants,
-        stock: totalStock,
-        colors: Array.from(colorHexSet),
-        isPersonalizable: personalizationResult.isPersonalizable,
-        updatedAt: new Date().toISOString(),
-      })
-      .eq('id', id)
-  } catch (error) {
-    logger.error('[products.updateProduct] post-update failed', error)
+  const { error: finalUpdateError } = await supabase
+    .from('products')
+    .update({
+      defaultVariantId,
+      hasVariants,
+      stock: totalStock,
+      colors: Array.from(colorHexSet),
+      isPersonalizable: personalizationResult.isPersonalizable,
+      updatedAt: new Date().toISOString(),
+    })
+    .eq('id', id)
+
+  if (finalUpdateError) {
+    logger.error('[products.updateProduct] post-update failed', finalUpdateError)
+    return {
+      message: 'Ürün verileri güncellenirken bir hata oluştu.',
+      ok: false,
+      productId: id,
+    }
+  }
+
+  const { data: verification, error: verificationError } = await supabase
+    .from('products')
+    .select('id')
+    .eq('id', id)
+    .maybeSingle()
+
+  if (verificationError || !verification?.id) {
+    logger.error('[products.updateProduct] verification failed', verificationError ?? new Error('Product not found after update'))
+    return {
+      message: 'Ürün veritabanında doğrulanamadı.',
+      ok: false,
+      productId: id,
+    }
   }
 
   revalidatePath('/admin/products')
-  redirect('/admin/products')
+  return {
+    message: 'Ürün başarıyla güncellendi.',
+    ok: true,
+    productId: id,
+  }
 }
 
 // Delete product action
