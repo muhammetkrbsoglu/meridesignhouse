@@ -15,8 +15,7 @@ import { Checkbox } from '@/components/ui/checkbox'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Badge } from '@/components/ui/badge'
 
-import { fetchEventTypes, fetchThemeStyles, type EventType, type ThemeStyle } from '@/lib/actions/events'
-import { fetchProducts, fetchCategories } from '@/lib/actions/products'
+import { type EventType, type ThemeStyle } from '@/lib/actions/events'
 import { createBundle, updateBundle } from '@/lib/actions/bundles'
 import { useToast } from '@/hooks/use-toast'
 
@@ -80,11 +79,18 @@ export function BundleForm({ defaultValues, bundleId }: BundleFormProps) {
   useEffect(() => {
     const load = async () => {
       try {
+        const [etsResponse, tssResponse, catsResponse, prodsResponse] = await Promise.all([
+          fetch('/api/admin/events', { method: 'POST', headers: { 'Content-Type': 'application/json' } }),
+          fetch('/api/admin/themes', { method: 'POST', headers: { 'Content-Type': 'application/json' } }),
+          fetch('/api/admin/categories', { method: 'POST', headers: { 'Content-Type': 'application/json' } }),
+          fetch('/api/admin/products', { method: 'POST', headers: { 'Content-Type': 'application/json' } })
+        ])
+        
         const [ets, tss, cats, prods] = await Promise.all([
-          fetchEventTypes(),
-          fetchThemeStyles(),
-          fetchCategories(),
-          fetchProducts()
+          etsResponse.json(),
+          tssResponse.json(),
+          catsResponse.json(),
+          prodsResponse.json()
         ])
         setEventTypes(ets)
         setThemeStyles(tss)

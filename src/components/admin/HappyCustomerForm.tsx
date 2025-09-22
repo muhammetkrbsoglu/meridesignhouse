@@ -3,7 +3,6 @@
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { createWhatsAppMessage } from '@/lib/actions/whatsapp-messages'
-import { fetchProducts } from '@/lib/actions/products'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -53,7 +52,10 @@ export function HappyCustomerForm({ message, products: initialProducts }: HappyC
   // Load products if not provided
   useEffect(() => {
     if (!initialProducts) {
-      fetchProducts().then(products => {
+      fetch('/api/admin/products', { 
+        method: 'POST', 
+        headers: { 'Content-Type': 'application/json' } 
+      }).then(response => response.json()).then(products => {
         setProducts(products.map(p => ({ id: p.id, name: p.name })))
       })
     }

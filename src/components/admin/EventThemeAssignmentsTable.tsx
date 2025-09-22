@@ -20,7 +20,7 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
 import { MoreHorizontal, Trash2, Package } from 'lucide-react'
-import { fetchEventThemeAssignments, removeProductFromEventTheme, type ThemeStyle } from '@/lib/actions/events'
+import { removeProductFromEventTheme, type ThemeStyle } from '@/lib/actions/events'
 import { useToast } from '@/hooks/use-toast'
 import {
   AlertDialog,
@@ -59,7 +59,18 @@ export function EventThemeAssignmentsTable() {
   const loadAssignments = useCallback(async () => {
     try {
       setLoading(true)
-      const data = await fetchEventThemeAssignments()
+      const response = await fetch('/api/admin/event-themes', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      })
+      
+      if (!response.ok) {
+        throw new Error('Failed to fetch assignments')
+      }
+      
+      const data = await response.json()
       setAssignments(data)
     } catch (_error) {
       toast({

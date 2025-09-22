@@ -19,7 +19,7 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
 import { MoreHorizontal, Edit, Trash2, Eye, EyeOff } from 'lucide-react'
-import { fetchThemeStyles, updateThemeStyle, deleteThemeStyle, type ThemeStyle } from '@/lib/actions/events'
+import { updateThemeStyle, deleteThemeStyle, type ThemeStyle } from '@/lib/actions/events'
 import { useToast } from '@/hooks/use-toast'
 import {
   AlertDialog,
@@ -41,7 +41,18 @@ export function ThemeStylesTable() {
   const loadThemeStyles = useCallback(async () => {
     try {
       setLoading(true)
-      const data = await fetchThemeStyles()
+      const response = await fetch('/api/admin/themes', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      })
+      
+      if (!response.ok) {
+        throw new Error('Failed to fetch theme styles')
+      }
+      
+      const data = await response.json()
       setThemeStyles(data)
     } catch (_error) {
       toast({

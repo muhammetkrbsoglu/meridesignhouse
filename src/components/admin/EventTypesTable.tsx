@@ -19,7 +19,7 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
 import { MoreHorizontal, Edit, Trash2, Eye, EyeOff } from 'lucide-react'
-import { fetchEventTypes, updateEventType, deleteEventType, type EventType } from '@/lib/actions/events'
+import { updateEventType, deleteEventType, type EventType } from '@/lib/actions/events'
 import { useToast } from '@/hooks/use-toast'
 import {
   AlertDialog,
@@ -41,7 +41,18 @@ export function EventTypesTable() {
   const loadEventTypes = useCallback(async () => {
     try {
       setLoading(true)
-      const data = await fetchEventTypes()
+      const response = await fetch('/api/admin/events', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      })
+      
+      if (!response.ok) {
+        throw new Error('Failed to fetch event types')
+      }
+      
+      const data = await response.json()
       setEventTypes(data)
     } catch (_error) {
       toast({

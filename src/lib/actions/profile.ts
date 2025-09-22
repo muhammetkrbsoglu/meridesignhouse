@@ -289,7 +289,10 @@ export async function getOrderStats(userId: string) {
 
     const stats = {
       totalOrders: data.length,
-      totalSpent: data.reduce((sum, order) => sum + Number(order.totalAmount), 0),
+      totalSpent: data.reduce((sum, order) => {
+        const amount = Number(order.totalAmount) || 0
+        return sum + amount
+      }, 0),
       pendingOrders: data.filter(order => ['PENDING', 'CONFIRMED', 'PROCESSING'].includes(order.status)).length,
       completedOrders: data.filter(order => order.status === 'DELIVERED').length
     }

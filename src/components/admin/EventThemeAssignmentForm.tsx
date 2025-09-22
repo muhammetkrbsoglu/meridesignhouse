@@ -26,13 +26,10 @@ import { Badge } from '@/components/ui/badge'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Package, Calendar, Palette } from 'lucide-react'
 import {
-  fetchEventTypes,
-  fetchThemeStyles,
   assignProductToEventTheme,
   type EventType,
   type ThemeStyle
 } from '@/lib/actions/events'
-import { fetchProducts } from '@/lib/actions/products'
 import { useToast } from '@/hooks/use-toast'
 
 const assignmentSchema = z.object({
@@ -75,10 +72,16 @@ export function EventThemeAssignmentForm() {
 
   const loadData = useCallback(async () => {
     try {
+      const [eventTypesResponse, themeStylesResponse, productsResponse] = await Promise.all([
+        fetch('/api/admin/events', { method: 'POST', headers: { 'Content-Type': 'application/json' } }),
+        fetch('/api/admin/themes', { method: 'POST', headers: { 'Content-Type': 'application/json' } }),
+        fetch('/api/admin/products', { method: 'POST', headers: { 'Content-Type': 'application/json' } })
+      ])
+      
       const [eventTypesData, themeStylesData, productsData] = await Promise.all([
-        fetchEventTypes(),
-        fetchThemeStyles(),
-        fetchProducts()
+        eventTypesResponse.json(),
+        themeStylesResponse.json(),
+        productsResponse.json()
       ])
       
       setEventTypes(eventTypesData.filter(et => et.isActive))

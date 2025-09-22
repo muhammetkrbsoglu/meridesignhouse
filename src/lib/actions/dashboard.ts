@@ -1,7 +1,5 @@
 ﻿import { getSupabaseAdmin } from '@/lib/supabase'
 import { unstable_cache } from 'next/cache'
-import { prisma } from '../prisma'
-import { MessageStatus } from '@prisma/client'
 
 export const getDashboardStats = unstable_cache(
   async () => {
@@ -9,95 +7,101 @@ export const getDashboardStats = unstable_cache(
     const thirtyDaysAgo = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000)
     const sevenDaysAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000)
     
-    // Optimize with database-level aggregations using Prisma
+    const supabase = getSupabaseAdmin()
+    
+    // Products - Supabase queries
     const [
-      productStats,
-      categoryStats,
-      userStats,
-      orderStats,
-      messageStats
+      { count: totalProducts },
+      { count: activeProducts },
+      { count: recentProducts }
     ] = await Promise.all([
-      // Products - optimized aggregation
-      Promise.all([
-        prisma.product.count(),
-        prisma.product.count({ where: { isActive: true } }),
-        prisma.product.count({ where: { createdAt: { gte: thirtyDaysAgo } } })
-      ]),
-      
-      // Categories - optimized aggregation
-      Promise.all([
-        prisma.category.count(),
-        prisma.category.count({ where: { isActive: true } })
-      ]),
-      
-      // Users - optimized aggregation
-      Promise.all([
-        prisma.user.count(),
-        prisma.user.count({ where: { role: 'ADMIN' } }),
-        prisma.user.count({ where: { createdAt: { gte: thirtyDaysAgo } } })
-      ]),
-      
-      // Orders - optimized aggregation
-      Promise.all([
-        prisma.order.count(),
-        prisma.order.count({ where: { createdAt: { gte: thirtyDaysAgo } } }),
-        prisma.order.count({ where: { status: 'PENDING' } }),
-        prisma.order.count({ 
-          where: { 
-            status: { 
-              in: ['DELIVERED', 'CONFIRMED', 'PROCESSING', 'SHIPPED'] 
-            } 
-          } 
-        }),
-        prisma.order.aggregate({
-          where: { status: 'DELIVERED' },
-          _sum: { totalAmount: true }
-        })
-      ]),
-      
-      // Messages - optimized aggregation
-      Promise.all([
-        prisma.message.count(),
-        prisma.message.count({ where: { status: MessageStatus.UNREAD } }),
-        prisma.message.count({ where: { createdAt: { gte: sevenDaysAgo } } }),
-        prisma.message.count({ where: { status: MessageStatus.REPLIED } })
-      ])
+      supabase.from('products').select('*', { count: 'exact', head: true }),
+      supabase.from('products').select('*', { count: 'exact', head: true }).eq('isActive', true),
+      supabase.from('products').select('*', { count: 'exact', head: true }).gte('createdAt', thirtyDaysAgo.toISOString())
+    ])
+    
+    // Categories - Supabase queries
+    const [
+      { count: totalCategories },
+      { count: activeCategories }
+    ] = await Promise.all([
+      supabase.from('categories').select('*', { count: 'exact', head: true }),
+      supabase.from('categories').select('*', { count: 'exact', head: true }).eq('isActive', true)
+    ])
+    
+    // Users - Supabase queries
+    const [
+      { count: totalUsers },
+      { count: adminUsers },
+      { count: recentUsers }
+    ] = await Promise.all([
+      supabase.from('users').select('*', { count: 'exact', head: true }),
+      supabase.from('users').select('*', { count: 'exact', head: true }).eq('role', 'ADMIN'),
+      supabase.from('users').select('*', { count: 'exact', head: true }).gte('createdAt', thirtyDaysAgo.toISOString())
+    ])
+    
+    // Orders - Supabase queries
+    const [
+      { count: totalOrders },
+      { count: recentOrders },
+      { count: pendingOrders },
+      { count: completedOrders },
+      { data: revenueData }
+    ] = await Promise.all([
+      supabase.from('orders').select('*', { count: 'exact', head: true }),
+      supabase.from('orders').select('*', { count: 'exact', head: true }).gte('createdAt', thirtyDaysAgo.toISOString()),
+      supabase.from('orders').select('*', { count: 'exact', head: true }).eq('status', 'PENDING'),
+      supabase.from('orders').select('*', { count: 'exact', head: true }).in('status', ['DELIVERED', 'CONFIRMED', 'PROCESSING', 'SHIPPED']),
+      supabase.from('orders').select('totalAmount').eq('status', 'DELIVERED')
+    ])
+    
+    // Messages - Supabase queries
+    const [
+      { count: totalMessages },
+      { count: unreadMessages },
+      { count: recentMessages },
+      { count: repliedMessages }
+    ] = await Promise.all([
+      supabase.from('messages').select('*', { count: 'exact', head: true }),
+      supabase.from('messages').select('*', { count: 'exact', head: true }).eq('status', 'UNREAD'),
+      supabase.from('messages').select('*', { count: 'exact', head: true }).gte('createdAt', sevenDaysAgo.toISOString()),
+      supabase.from('messages').select('*', { count: 'exact', head: true }).eq('status', 'REPLIED')
     ])
 
-    const [totalProducts, activeProducts, recentProducts] = productStats
-    const [totalCategories, activeCategories] = categoryStats
-    const [totalUsers, adminUsers, recentUsers] = userStats
-    const [totalOrders, recentOrders, pendingOrders, completedOrders, revenueAgg] = orderStats
-    const [totalMessages, unreadMessages, recentMessages, repliedMessages] = messageStats
+    // Calculate revenue from delivered orders
+    const totalRevenue = revenueData?.reduce((sum, order) => {
+      const amount = Number(order.totalAmount) || 0
+      return sum + amount
+    }, 0) || 0
 
     return {
       products: {
-        total: totalProducts,
-        active: activeProducts,
-        recent: recentProducts
+        total: totalProducts || 0,
+        active: activeProducts || 0,
+        recent: recentProducts || 0
       },
       categories: {
-        total: totalCategories,
-        active: activeCategories
+        total: totalCategories || 0,
+        active: activeCategories || 0
       },
       users: {
-        total: totalUsers,
-        admin: adminUsers,
-        regular: totalUsers - adminUsers,
-        recent: recentUsers
+        total: totalUsers || 0,
+        admin: adminUsers || 0,
+        regular: (totalUsers || 0) - (adminUsers || 0),
+        recent: recentUsers || 0
       },
       orders: {
-        total: totalOrders,
-        recent: recentOrders,
-        pending: pendingOrders,
-        completed: completedOrders,
-        revenue: Number(revenueAgg._sum.totalAmount) || 0
+        total: totalOrders || 0,
+        recent: recentOrders || 0,
+        pending: pendingOrders || 0,
+        completed: completedOrders || 0,
+        revenue: totalRevenue
       },
       messages: {
-        total: totalMessages,
-        unread: unreadMessages,
-        recent: recentMessages,
-        replied: repliedMessages
+        total: totalMessages || 0,
+        unread: unreadMessages || 0,
+        recent: recentMessages || 0,
+        replied: repliedMessages || 0
       }
     }
   } catch (error) {
@@ -115,90 +119,74 @@ export const getDashboardStats = unstable_cache(
   { revalidate: 300 } // 5 dakika cache - performans için artırıldı
 )
 
-// Son aktiviteleri getir - optimize edildi
+// Son aktiviteleri getir - Supabase ile optimize edildi
 export const getRecentActivity = unstable_cache(
   async () => {
     try {
+      const supabase = getSupabaseAdmin()
+      
       // Tek sorgu ile son aktiviteleri al - performans optimizasyonu
       const [recentOrders, recentMessages, recentProducts] = await Promise.all([
         // Son siparişler - limit azaltıldı
-        prisma.order.findMany({
-          select: {
-            id: true,
-            orderNumber: true,
-            status: true,
-            customerName: true,
-            totalAmount: true,
-            createdAt: true
-          },
-          orderBy: { createdAt: 'desc' },
-          take: 3 // 5'ten 3'e düşürüldü
-        }),
+        supabase
+          .from('orders')
+          .select('id, orderNumber, status, customerName, totalAmount, createdAt')
+          .order('createdAt', { ascending: false })
+          .limit(3),
         
         // Son mesajlar - limit azaltıldı
-        prisma.message.findMany({
-          select: {
-            id: true,
-            name: true,
-            subject: true,
-            status: true,
-            createdAt: true
-          },
-          orderBy: { createdAt: 'desc' },
-          take: 3 // 5'ten 3'e düşürüldü
-        }),
+        supabase
+          .from('messages')
+          .select('id, name, subject, status, createdAt')
+          .order('createdAt', { ascending: false })
+          .limit(3),
         
         // Son ürünler - limit azaltıldı
-        prisma.product.findMany({
-          select: {
-            id: true,
-            name: true,
-            isActive: true,
-            createdAt: true
-          },
-          orderBy: { createdAt: 'desc' },
-          take: 2 // 3'ten 2'ye düşürüldü
-        })
+        supabase
+          .from('products')
+          .select('id, name, isActive, createdAt')
+          .order('createdAt', { ascending: false })
+          .limit(2)
       ])
 
       const activities: Array<{ id: string; type: string; title: string; description: string; amount?: number; status?: string; time: Date; href: string }> = []
 
       // Sipariş aktiviteleri
-      recentOrders.forEach(order => {
+      recentOrders.data?.forEach(order => {
         activities.push({
           id: `order-${order.id}`,
           type: 'order',
           title: 'Yeni Sipariş',
           description: `${order.customerName} - ${order.orderNumber}`,
-          amount: Number(order.totalAmount),
+          amount: Number(order.totalAmount) || 0,
           status: order.status,
-          time: order.createdAt,
+          time: new Date(order.createdAt),
           href: `/admin/orders/${order.id}`
         })
       })
 
       // Mesaj aktiviteleri
-      recentMessages.forEach(message => {
+      recentMessages.data?.forEach(message => {
         activities.push({
           id: `message-${message.id}`,
           type: 'message',
           title: message.status === 'UNREAD' ? 'Yeni Mesaj' : 'Mesaj Yanıtlandı',
           description: `${message.name} - ${message.subject}`,
           status: message.status,
-          time: message.createdAt,
+          time: new Date(message.createdAt),
           href: `/admin/messages/${message.id}`
         })
       })
 
       // Ürün aktiviteleri
-      recentProducts.forEach(product => {
+      recentProducts.data?.forEach(product => {
         activities.push({
           id: `product-${product.id}`,
           type: 'product',
           title: 'Yeni Ürün',
           description: product.name,
           status: product.isActive ? 'active' : 'inactive',
-          time: product.createdAt,
+          time: new Date(product.createdAt),
           href: `/admin/products/${product.id}`
         })
       })
