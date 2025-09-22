@@ -8,11 +8,29 @@ import { revalidatePath } from 'next/cache'
 import { fetchEventTypes, fetchThemeStyles } from '@/lib/actions/events'
 
 export default async function BundlesListPage() {
-  const [bundles, eventTypes, themeStyles] = await Promise.all([
-    fetchBundles(),
-    fetchEventTypes(),
-    fetchThemeStyles(),
-  ])
+  let bundles: any[] = [], eventTypes: any[] = [], themeStyles: any[] = []
+  
+  try {
+    [bundles, eventTypes, themeStyles] = await Promise.all([
+      fetchBundles(),
+      fetchEventTypes(),
+      fetchThemeStyles(),
+    ])
+  } catch (error) {
+    console.error('CRITICAL ERROR - Bundles Page Data Loading Failed:', {
+      error: error instanceof Error ? error.message : 'Unknown error',
+      stack: error instanceof Error ? error.stack : undefined,
+      timestamp: new Date().toISOString(),
+      page: 'admin/bundles',
+      action: 'fetchBundles_fetchEventTypes_fetchThemeStyles'
+    })
+    
+    // Fallback to prevent page crash
+    bundles = []
+    eventTypes = []
+    themeStyles = []
+  }
+  
   const eventNameById = Object.fromEntries(eventTypes.map((e: any) => [e.id, e.name]))
   const themeNameById = Object.fromEntries(themeStyles.map((t: any) => [t.id, t.name]))
   return (

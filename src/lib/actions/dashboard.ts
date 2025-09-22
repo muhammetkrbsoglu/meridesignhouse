@@ -9,99 +9,117 @@ export const getDashboardStats = unstable_cache(
     
     const supabase = getSupabaseAdmin()
     
-    // Products - Supabase queries
+    // Optimize: Sadece gerekli verileri al
     const [
-      { count: totalProducts },
-      { count: activeProducts },
-      { count: recentProducts }
+      productsResult,
+      categoriesResult,
+      usersResult,
+      ordersResult,
+      messagesResult,
+      // Toplam sayılar için ayrı sorgular
+      totalProductsResult,
+      totalCategoriesResult,
+      totalUsersResult,
+      totalOrdersResult,
+      totalMessagesResult
     ] = await Promise.all([
+      // Products - sadece son 30 günün verileri
+      supabase
+        .from('products')
+        .select('isActive', { count: 'exact' })
+        .gte('createdAt', thirtyDaysAgo.toISOString()),
+      
+      // Categories - sadece aktif durumu
+      supabase
+        .from('categories')
+        .select('isActive', { count: 'exact' }),
+      
+      // Users - sadece son 30 günün verileri
+      supabase
+        .from('users')
+        .select('role', { count: 'exact' })
+        .gte('createdAt', thirtyDaysAgo.toISOString()),
+      
+      // Orders - sadece son 30 günün verileri
+      supabase
+        .from('orders')
+        .select('status, totalAmount', { count: 'exact' })
+        .gte('createdAt', thirtyDaysAgo.toISOString()),
+      
+      // Messages - sadece son 7 günün verileri
+      supabase
+        .from('messages')
+        .select('status', { count: 'exact' })
+        .gte('createdAt', sevenDaysAgo.toISOString()),
+      
+      // Toplam sayılar
       supabase.from('products').select('*', { count: 'exact', head: true }),
-      supabase.from('products').select('*', { count: 'exact', head: true }).eq('isActive', true),
-      supabase.from('products').select('*', { count: 'exact', head: true }).gte('createdAt', thirtyDaysAgo.toISOString())
-    ])
-    
-    // Categories - Supabase queries
-    const [
-      { count: totalCategories },
-      { count: activeCategories }
-    ] = await Promise.all([
       supabase.from('categories').select('*', { count: 'exact', head: true }),
-      supabase.from('categories').select('*', { count: 'exact', head: true }).eq('isActive', true)
-    ])
-    
-    // Users - Supabase queries
-    const [
-      { count: totalUsers },
-      { count: adminUsers },
-      { count: recentUsers }
-    ] = await Promise.all([
       supabase.from('users').select('*', { count: 'exact', head: true }),
-      supabase.from('users').select('*', { count: 'exact', head: true }).eq('role', 'ADMIN'),
-      supabase.from('users').select('*', { count: 'exact', head: true }).gte('createdAt', thirtyDaysAgo.toISOString())
-    ])
-    
-    // Orders - Supabase queries
-    const [
-      { count: totalOrders },
-      { count: recentOrders },
-      { count: pendingOrders },
-      { count: completedOrders },
-      { data: revenueData }
-    ] = await Promise.all([
       supabase.from('orders').select('*', { count: 'exact', head: true }),
-      supabase.from('orders').select('*', { count: 'exact', head: true }).gte('createdAt', thirtyDaysAgo.toISOString()),
-      supabase.from('orders').select('*', { count: 'exact', head: true }).eq('status', 'PENDING'),
-      supabase.from('orders').select('*', { count: 'exact', head: true }).in('status', ['DELIVERED', 'CONFIRMED', 'PROCESSING', 'SHIPPED']),
-      supabase.from('orders').select('totalAmount').eq('status', 'DELIVERED')
-    ])
-    
-    // Messages - Supabase queries
-    const [
-      { count: totalMessages },
-      { count: unreadMessages },
-      { count: recentMessages },
-      { count: repliedMessages }
-    ] = await Promise.all([
-      supabase.from('messages').select('*', { count: 'exact', head: true }),
-      supabase.from('messages').select('*', { count: 'exact', head: true }).eq('status', 'UNREAD'),
-      supabase.from('messages').select('*', { count: 'exact', head: true }).gte('createdAt', sevenDaysAgo.toISOString()),
-      supabase.from('messages').select('*', { count: 'exact', head: true }).eq('status', 'REPLIED')
+      supabase.from('messages').select('*', { count: 'exact', head: true })
     ])
 
-    // Calculate revenue from delivered orders
-    const totalRevenue = revenueData?.reduce((sum, order) => {
-      const amount = Number(order.totalAmount) || 0
-      return sum + amount
-    }, 0) || 0
+    // Process data efficiently
+    const products = productsResult.data || []
+    const categories = categoriesResult.data || []
+    const users = usersResult.data || []
+    const orders = ordersResult.data || []
+    const messages = messagesResult.data || []
+
+    // Calculate stats from fetched data
+    const totalProducts = totalProductsResult.count || 0
+    const activeProducts = products.filter(p => p.isActive).length
+    const recentProducts = products.length
+
+    const totalCategories = totalCategoriesResult.count || 0
+    const activeCategories = categories.filter(c => c.isActive).length
+
+    const totalUsers = totalUsersResult.count || 0
+    const adminUsers = users.filter(u => u.role === 'ADMIN').length
+    const recentUsers = users.length
+
+    const totalOrders = totalOrdersResult.count || 0
+    const recentOrders = orders.length
+    const pendingOrders = orders.filter(o => o.status === 'PENDING').length
+    const completedOrders = orders.filter(o => ['DELIVERED', 'CONFIRMED', 'PROCESSING', 'SHIPPED'].includes(o.status)).length
+    const totalRevenue = orders
+      .filter(o => o.status === 'DELIVERED')
+      .reduce((sum, order) => sum + (Number(order.totalAmount) || 0), 0)
+
+    const totalMessages = totalMessagesResult.count || 0
+    const unreadMessages = messages.filter(m => m.status === 'UNREAD').length
+    const recentMessages = messages.length
+    const repliedMessages = messages.filter(m => m.status === 'REPLIED').length
 
     return {
       products: {
-        total: totalProducts || 0,
-        active: activeProducts || 0,
-        recent: recentProducts || 0
+        total: totalProducts,
+        active: activeProducts,
+        recent: recentProducts
       },
       categories: {
-        total: totalCategories || 0,
-        active: activeCategories || 0
+        total: totalCategories,
+        active: activeCategories
       },
       users: {
-        total: totalUsers || 0,
-        admin: adminUsers || 0,
-        regular: (totalUsers || 0) - (adminUsers || 0),
-        recent: recentUsers || 0
+        total: totalUsers,
+        admin: adminUsers,
+        regular: totalUsers - adminUsers,
+        recent: recentUsers
       },
       orders: {
-        total: totalOrders || 0,
-        recent: recentOrders || 0,
-        pending: pendingOrders || 0,
-        completed: completedOrders || 0,
+        total: totalOrders,
+        recent: recentOrders,
+        pending: pendingOrders,
+        completed: completedOrders,
         revenue: totalRevenue
       },
       messages: {
-        total: totalMessages || 0,
-        unread: unreadMessages || 0,
-        recent: recentMessages || 0,
-        replied: repliedMessages || 0
+        total: totalMessages,
+        unread: unreadMessages,
+        recent: recentMessages,
+        replied: repliedMessages
       }
     }
   } catch (error) {
@@ -116,10 +134,10 @@ export const getDashboardStats = unstable_cache(
   }
 },
   ['dashboard-stats'],
-  { revalidate: 300 } // 5 dakika cache - performans için artırıldı
+  { revalidate: 60 } // 1 dakika cache - daha sık güncelleme
 )
 
-// Son aktiviteleri getir - Supabase ile optimize edildi
+// Son aktiviteleri getir - optimize edildi
 export const getRecentActivity = unstable_cache(
   async () => {
     try {
@@ -127,21 +145,21 @@ export const getRecentActivity = unstable_cache(
       
       // Tek sorgu ile son aktiviteleri al - performans optimizasyonu
       const [recentOrders, recentMessages, recentProducts] = await Promise.all([
-        // Son siparişler - limit azaltıldı
+        // Son siparişler - sadece gerekli alanlar
         supabase
           .from('orders')
           .select('id, orderNumber, status, customerName, totalAmount, createdAt')
           .order('createdAt', { ascending: false })
           .limit(3),
         
-        // Son mesajlar - limit azaltıldı
+        // Son mesajlar - sadece gerekli alanlar
         supabase
           .from('messages')
           .select('id, name, subject, status, createdAt')
           .order('createdAt', { ascending: false })
           .limit(3),
         
-        // Son ürünler - limit azaltıldı
+        // Son ürünler - sadece gerekli alanlar
         supabase
           .from('products')
           .select('id, name, isActive, createdAt')
@@ -202,6 +220,6 @@ export const getRecentActivity = unstable_cache(
     }
   },
   ['recent-activity'],
-  { revalidate: 120 } // 2 dakika cache - performans için artırıldı
+  { revalidate: 60 } // 1 dakika cache - daha sık güncelleme
 )
 

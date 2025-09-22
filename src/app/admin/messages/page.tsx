@@ -97,11 +97,28 @@ export default function MessagesPage() {
 
   useEffect(() => {
     const load = async () => {
-      const messagesResult = await fetchMessages(page, limit)
-      setMessages(messagesResult.messages)
-      setTotalMessages(messagesResult.totalCount)
-      const unreadCount = await getUnreadMessagesCount()
-      setUnreadMessages(unreadCount)
+      try {
+        const messagesResult = await fetchMessages(page, limit)
+        setMessages(messagesResult.messages)
+        setTotalMessages(messagesResult.totalCount)
+        const unreadCount = await getUnreadMessagesCount()
+        setUnreadMessages(unreadCount)
+      } catch (error) {
+        console.error('CRITICAL ERROR - Messages Page Data Loading Failed:', {
+          error: error instanceof Error ? error.message : 'Unknown error',
+          stack: error instanceof Error ? error.stack : undefined,
+          timestamp: new Date().toISOString(),
+          page: 'admin/messages',
+          action: 'fetchMessages_and_getUnreadMessagesCount',
+          pageNumber: page,
+          limit: limit
+        })
+        
+        // Fallback to prevent page crash
+        setMessages([])
+        setTotalMessages(0)
+        setUnreadMessages(0)
+      }
     }
     load()
     const channel = supabase

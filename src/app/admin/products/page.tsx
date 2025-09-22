@@ -15,6 +15,9 @@ export const metadata = {
   description: 'Ürün yönetimi sayfası',
 }
 
+export const revalidate = 60 // 1 dakika cache
+export const dynamic = 'auto' // Cache'i kullan
+
 interface PageProps {
   searchParams?: {
     query?: string
@@ -27,7 +30,24 @@ export default async function ProductsPage({ searchParams }: PageProps) {
   const query = resolvedSearchParams?.query || ''
   const currentPage = Number(resolvedSearchParams?.page) || 1
 
-  const totalPages = await fetchProductsPages(query)
+  let totalPages = 1
+  
+  try {
+    totalPages = await fetchProductsPages(query)
+  } catch (error) {
+    console.error('CRITICAL ERROR - Products Page Data Loading Failed:', {
+      error: error instanceof Error ? error.message : 'Unknown error',
+      stack: error instanceof Error ? error.stack : undefined,
+      timestamp: new Date().toISOString(),
+      page: 'admin/products',
+      action: 'fetchProductsPages',
+      query: query,
+      currentPage: currentPage
+    })
+    
+    // Fallback to prevent page crash
+    totalPages = 1
+  }
 
   return (
     <AdminGuard>

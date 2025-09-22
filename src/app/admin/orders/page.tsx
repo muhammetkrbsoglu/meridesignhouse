@@ -14,6 +14,9 @@ export const metadata = {
   description: 'Sipariş yönetimi sayfası',
 };
 
+export const revalidate = 30 // 30 saniye cache - siparişler daha sık güncellenir
+export const dynamic = 'auto' // Cache'i kullan
+
 function LoadingStats() {
   return (
     <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6">
@@ -57,7 +60,31 @@ function LoadingTable() {
 }
 
 async function OrdersStatsWrapper() {
-  const stats = await getOrderStatistics();
+  let stats
+  
+  try {
+    stats = await getOrderStatistics();
+  } catch (error) {
+    console.error('CRITICAL ERROR - Orders Statistics Loading Failed:', {
+      error: error instanceof Error ? error.message : 'Unknown error',
+      stack: error instanceof Error ? error.stack : undefined,
+      timestamp: new Date().toISOString(),
+      page: 'admin/orders',
+      action: 'getOrderStatistics'
+    })
+    
+    // Fallback data to prevent page crash
+    stats = {
+      totalOrders: 0,
+      processingOrders: 0,
+      pendingOrders: 0,
+      shippedOrders: 0,
+      deliveredOrders: 0,
+      cancelledOrders: 0,
+      totalRevenue: 0,
+      monthlyRevenue: 0
+    }
+  }
   
   return (
     <OrdersStats
@@ -74,7 +101,22 @@ async function OrdersStatsWrapper() {
 }
 
 async function OrdersTableWrapper() {
-  const orders = await getAllOrders();
+  let orders = []
+  
+  try {
+    orders = await getAllOrders();
+  } catch (error) {
+    console.error('CRITICAL ERROR - Orders Data Loading Failed:', {
+      error: error instanceof Error ? error.message : 'Unknown error',
+      stack: error instanceof Error ? error.stack : undefined,
+      timestamp: new Date().toISOString(),
+      page: 'admin/orders',
+      action: 'getAllOrders'
+    })
+    
+    // Fallback to prevent page crash
+    orders = []
+  }
   
   return (
     <Card>

@@ -95,15 +95,30 @@ function DashboardLoading() {
   )
 }
 
-export const revalidate = 0
-export const dynamic = 'force-dynamic'
+export const revalidate = 60 // 1 dakika cache
+export const dynamic = 'auto' // Cache'i kullan
 
 export default async function AdminDashboard() {
-  // Fetch all statistics and recent activity
-  const [stats, recentActivity] = await Promise.all([
-    getDashboardStats(),
-    getRecentActivity()
-  ])
+  // Fetch all statistics and recent activity with error handling
+  let stats, recentActivity
+  
+  try {
+    [stats, recentActivity] = await Promise.all([
+      getDashboardStats(),
+      getRecentActivity()
+    ])
+  } catch (error) {
+    console.error('Dashboard data fetch error:', error)
+    // Fallback data
+    stats = {
+      products: { total: 0, active: 0, recent: 0 },
+      categories: { total: 0, active: 0 },
+      users: { total: 0, admin: 0, regular: 0, recent: 0 },
+      orders: { total: 0, recent: 0, pending: 0, completed: 0, revenue: 0 },
+      messages: { total: 0, unread: 0, recent: 0, replied: 0 }
+    }
+    recentActivity = []
+  }
   return (
     <AdminGuard fallback={<DashboardLoading />}> 
       <AdminLayout>

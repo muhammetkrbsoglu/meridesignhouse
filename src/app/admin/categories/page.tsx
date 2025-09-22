@@ -15,6 +15,9 @@ export const metadata = {
   description: 'Kategori yönetimi sayfası',
 }
 
+export const revalidate = 60 // 1 dakika cache
+export const dynamic = 'auto' // Cache'i kullan
+
 interface PageProps {
   searchParams?: Promise<{
     query?: string
@@ -27,7 +30,24 @@ export default async function CategoriesPage({ searchParams }: PageProps) {
   const query = resolvedSearchParams?.query || ''
   const currentPage = Number(resolvedSearchParams?.page) || 1
 
-  const totalPages = await fetchCategoriesPages(query)
+  let totalPages = 1
+  
+  try {
+    totalPages = await fetchCategoriesPages(query)
+  } catch (error) {
+    console.error('CRITICAL ERROR - Categories Page Data Loading Failed:', {
+      error: error instanceof Error ? error.message : 'Unknown error',
+      stack: error instanceof Error ? error.stack : undefined,
+      timestamp: new Date().toISOString(),
+      page: 'admin/categories',
+      action: 'fetchCategoriesPages',
+      query: query,
+      currentPage: currentPage
+    })
+    
+    // Fallback to prevent page crash
+    totalPages = 1
+  }
 
   return (
     <AdminGuard>

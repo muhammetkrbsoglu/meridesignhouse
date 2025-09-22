@@ -10,7 +10,26 @@ export const metadata = {
 }
 
 export default async function CreateProductPage() {
-  const [categories, colors] = await Promise.all([fetchCategories(), listActiveColors()])
+  let categories, colors
+  
+  try {
+    [categories, colors] = await Promise.all([
+      fetchCategories(), 
+      listActiveColors()
+    ])
+  } catch (error) {
+    console.error('CRITICAL ERROR - Product Creation Page Data Loading Failed:', {
+      error: error instanceof Error ? error.message : 'Unknown error',
+      stack: error instanceof Error ? error.stack : undefined,
+      timestamp: new Date().toISOString(),
+      page: 'admin/products/create',
+      action: 'fetchCategories_and_listActiveColors'
+    })
+    
+    // Fallback data to prevent page crash
+    categories = []
+    colors = []
+  }
 
   return (
     <AdminGuard>
