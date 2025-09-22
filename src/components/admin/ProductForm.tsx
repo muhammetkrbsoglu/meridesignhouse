@@ -16,6 +16,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
+import type { Color } from '@/lib/actions/colors'
 import { Switch } from '@/components/ui/switch'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Alert, AlertDescription } from '@/components/ui/alert'
@@ -181,7 +182,23 @@ type SupabaseImageRow = {
 
 interface ProductFormProps {
   categories: Category[]
+  colors: Color[]
   product?: ProductWithVariants | null
+}
+
+const CUSTOM_COLOR_VALUE = '__custom__'
+const FALLBACK_BADGE_HEX = '#F97316'
+
+const normalizeHex = (hex?: string | null): string | null => {
+  if (!hex) return null
+  const trimmed = hex.trim()
+  if (!trimmed) return null
+  const withHash = trimmed.startsWith('#') ? trimmed : `#${trimmed}`
+  return withHash.toUpperCase()
+}
+
+const withFallbackHex = (hex: string | null | undefined, fallback: string): string => {
+  return normalizeHex(hex) ?? fallback
 }
 
 const buildOptionValueKey = (optionOrder: string[], selections: Array<{ optionId: string; valueId: string }>) => {
@@ -254,7 +271,7 @@ const deriveBuilderStateFromProduct = (product?: ProductWithVariants | null): Va
       optionId: option.id,
       value: value.value,
       label: value.label,
-      hexValue: value.hexValue ?? null,
+      hexValue: normalizeHex(value.hexValue),
       sortOrder: value.sortOrder ?? valueIndex,
     })),
   }))
@@ -279,7 +296,7 @@ const deriveBuilderStateFromProduct = (product?: ProductWithVariants | null): Va
     stock: variant.stock ?? 0,
     sortOrder: variant.sortOrder ?? variantIndex,
     isActive: variant.isActive ?? true,
-    badgeHex: variant.badgeHex ?? null,
+    badgeHex: normalizeHex(variant.badgeHex),
     optionSelections: (variant.optionValues || []).map((value) => ({
       optionId: value.optionId,
       valueId: value.valueId,
@@ -509,12 +526,35 @@ const buildPersonalizationPayload = (state: PersonalizationBuilderState) => {
 
 const stepLabels = ['Genel Bilgiler', 'Varyasyonlar', 'Kişiselleştirme', 'Görseller & Yayın']
 
-export function ProductForm({ categories, product }: ProductFormProps) {
+export function ProductForm({ categories, colors, product }: ProductFormProps) {
   const router = useRouter()
   const initialBuilderState = useMemo(() => deriveBuilderStateFromProduct(product), [product])
   const initialPersonalizationState = useMemo(() => derivePersonalizationStateFromProduct(product), [product])
   const [builderState, setBuilderState] = useState<VariantBuilderState>(initialBuilderState)
   const [personalizationState, setPersonalizationState] = useState<PersonalizationBuilderState>(initialPersonalizationState)
+
+  const colorPalette = useMemo(() => {
+    const seen = new Set<string>()
+    const palette: Array<{ hex: string; name: string }> = []
+    for (const color of colors) {
+      const normalized = normalizeHex(color.hex)
+      if (!normalized || seen.has(normalized)) continue
+      seen.add(normalized)
+      palette.push({ hex: normalized, name: color.name })
+    }
+    return palette
+  }, [colors])
+
+  const colorMap = useMemo(() => {
+    const map = new Map<string, string>()
+    for (const entry of colorPalette) {
+      map.set(entry.hex, entry.name)
+    }
+    return map
+  }, [colorPalette])
+
+  const defaultPaletteHex = colorPalette[0]?.hex ?? FALLBACK_BADGE_HEX
+  const hasPalette = colorPalette.length > 0
   const [activeStep, setActiveStep] = useState(0)
 
   useEffect(() => {
@@ -775,7 +815,7 @@ export function ProductForm({ categories, product }: ProductFormProps) {
         stock: 0,
         sortOrder: index,
         isActive: true,
-        badgeHex: undefined,
+        badgeHex: defaultPaletteHex,
         optionSelections,
         images: [],
       }
@@ -790,7 +830,7 @@ export function ProductForm({ categories, product }: ProductFormProps) {
         : nextVariants[0]?.id,
     }))
     setError(null)
-  }, [builderState])
+  }, [builderState, defaultPaletteHex])
 
   const handleUpdateOptionMeta = useCallback((optionId: string, patch: Partial<BuilderOption>) => {
     setBuilderState((prev) => ({
@@ -801,7 +841,7 @@ export function ProductForm({ categories, product }: ProductFormProps) {
         if (patch.displayType && patch.displayType !== option.displayType) {
           nextValues = option.values.map((value) => ({
             ...value,
-            hexValue: patch.displayType === 'swatch' ? value.hexValue ?? '#ffffff' : null,
+            hexValue: patch.displayType === 'swatch' ? withFallbackHex(value.hexValue, defaultPaletteHex) : null,
           }))
         }
         return {
@@ -811,7 +851,7 @@ export function ProductForm({ categories, product }: ProductFormProps) {
         }
       }),
     }))
-  }, [])
+  }, [defaultPaletteHex])
 
   const handleAddOptionValue = useCallback((optionId: string) => {
     setBuilderState((prev) => ({
@@ -828,14 +868,14 @@ export function ProductForm({ categories, product }: ProductFormProps) {
               optionId,
               value: '',
               label: '',
-              hexValue: option.displayType === 'swatch' ? '#ffffff' : null,
+              hexValue: option.displayType === 'swatch' ? defaultPaletteHex : null,
               sortOrder: option.values.length,
             },
           ],
         }
       }),
     }))
-  }, [])
+  }, [defaultPaletteHex])
 
   const handleUpdateOptionValue = useCallback((optionId: string, valueId: string, patch: Partial<BuilderOptionValue>) => {
     setBuilderState((prev) => ({
@@ -1228,45 +1268,76 @@ export function ProductForm({ categories, product }: ProductFormProps) {
                   Bu seçenek için henüz değer eklenmedi.
                 </div>
               )}
-              {option.values.map((value) => (
-                <div key={value.id} className="grid grid-cols-1 gap-3 rounded-md border p-3 md:grid-cols-12">
-                  <div className="md:col-span-4 space-y-1">
-                    <Label className="text-xs">Değer Etiketi</Label>
-                    <Input
-                      value={value.label}
-                      onChange={(event) => handleUpdateOptionValue(option.id, value.id, { label: event.target.value })}
-                      placeholder="Örn. Gold"
-                    />
-                  </div>
-                  <div className="md:col-span-4 space-y-1">
-                    <Label className="text-xs">Sistem Anahtarı</Label>
-                    <Input
-                      value={value.value}
-                      onChange={(event) => handleUpdateOptionValue(option.id, value.id, { value: event.target.value })}
-                      placeholder="örn. gold"
-                    />
-                  </div>
-                  {option.displayType === 'swatch' && (
-                    <div className="md:col-span-2 space-y-1">
-                      <Label className="text-xs">Renk</Label>
-                      <div className="flex items-center gap-2">
-                        <input
-                          type="color"
-                          className="h-10 w-full rounded-md border"
-                          value={value.hexValue || '#ffffff'}
-                          onChange={(event) => handleUpdateOptionValue(option.id, value.id, { hexValue: event.target.value })}
-                        />
-                      </div>
+              {option.values.map((value) => {
+                const normalizedValueHex = withFallbackHex(value.hexValue, defaultPaletteHex)
+                const selectValue = colorMap.has(normalizedValueHex) ? normalizedValueHex : CUSTOM_COLOR_VALUE
+
+                return (
+                  <div key={value.id} className="grid grid-cols-1 gap-3 rounded-md border p-3 md:grid-cols-12">
+                    <div className="md:col-span-4 space-y-1">
+                      <Label className="text-xs">Değer Etiketi</Label>
+                      <Input
+                        value={value.label}
+                        onChange={(event) => handleUpdateOptionValue(option.id, value.id, { label: event.target.value })}
+                        placeholder="Örn. Gold"
+                      />
                     </div>
-                  )}
-                  <div className="md:col-span-2 flex items-end justify-end">
-                    <Button variant="ghost" size="icon" onClick={() => handleRemoveOptionValue(option.id, value.id)}>
-                      <X className="h-4 w-4" />
-                      <span className="sr-only">Sil</span>
-                    </Button>
+                    <div className="md:col-span-4 space-y-1">
+                      <Label className="text-xs">Sistem Anahtarı</Label>
+                      <Input
+                        value={value.value}
+                        onChange={(event) => handleUpdateOptionValue(option.id, value.id, { value: event.target.value })}
+                        placeholder="örn. gold"
+                      />
+                    </div>
+                    {option.displayType === 'swatch' && (
+                      <div className="md:col-span-2 space-y-1">
+                        <Label className="text-xs">Renk</Label>
+                        {hasPalette ? (
+                          <Select
+                            value={selectValue}
+                            onValueChange={(selected) => {
+                              if (selected === CUSTOM_COLOR_VALUE) return
+                              handleUpdateOptionValue(option.id, value.id, { hexValue: selected })
+                            }}
+                          >
+                            <SelectTrigger className="w-full">
+                              <SelectValue placeholder="Renk seçin" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              {colorPalette.map(({ hex, name }) => (
+                                <SelectItem key={hex} value={hex}>
+                                  {name} ({hex})
+                                </SelectItem>
+                              ))}
+                              {selectValue === CUSTOM_COLOR_VALUE && (
+                                <SelectItem value={CUSTOM_COLOR_VALUE} disabled>
+                                  {`Özel renk (${normalizedValueHex})`}
+                                </SelectItem>
+                              )}
+                            </SelectContent>
+                          </Select>
+                        ) : (
+                          <div className="flex items-center gap-2">
+                            <input
+                              type="color"
+                              className="h-10 w-full rounded-md border"
+                              value={normalizedValueHex}
+                              onChange={(event) => handleUpdateOptionValue(option.id, value.id, { hexValue: event.target.value })}
+                            />
+                          </div>
+                        )}
+                      </div>
+                    )}
+                    <div className="md:col-span-2 flex items-end justify-end">
+                      <Button variant="ghost" size="icon" onClick={() => handleRemoveOptionValue(option.id, value.id)}>
+                        <X className="h-4 w-4" />
+                        <span className="sr-only">Sil</span>
+                      </Button>
+                    </div>
                   </div>
-                </div>
-              ))}
+                )
+              })}
             </div>
           </CardContent>
         </Card>
@@ -1291,6 +1362,8 @@ export function ProductForm({ categories, product }: ProductFormProps) {
                 return `${option.label}: ${value.label || value.value}`
               })
               .filter(Boolean) as string[]
+            const normalizedBadgeHex = withFallbackHex(variant.badgeHex, defaultPaletteHex)
+            const badgeSelectValue = colorMap.has(normalizedBadgeHex) ? normalizedBadgeHex : CUSTOM_COLOR_VALUE
 
             return (
               <Card key={variant.id} className={cn('border shadow-sm transition', !variant.isActive && 'opacity-60')}
@@ -1354,12 +1427,38 @@ export function ProductForm({ categories, product }: ProductFormProps) {
                     </div>
                     <div className="md:col-span-2 space-y-1">
                       <Label className="text-xs">Etiket Rengi</Label>
-                      <input
-                        type="color"
-                        className="h-10 w-full cursor-pointer rounded-md border"
-                        value={variant.badgeHex || '#f97316'}
-                        onChange={(event) => handleUpdateVariant(variant.id, { badgeHex: event.target.value })}
-                      />
+                      {hasPalette ? (
+                        <Select
+                          value={badgeSelectValue}
+                          onValueChange={(selected) => {
+                            if (selected === CUSTOM_COLOR_VALUE) return
+                            handleUpdateVariant(variant.id, { badgeHex: selected })
+                          }}
+                        >
+                          <SelectTrigger className="w-full">
+                            <SelectValue placeholder="Renk seçin" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {colorPalette.map(({ hex, name }) => (
+                              <SelectItem key={hex} value={hex}>
+                                {name} ({hex})
+                              </SelectItem>
+                            ))}
+                            {badgeSelectValue === CUSTOM_COLOR_VALUE && (
+                              <SelectItem value={CUSTOM_COLOR_VALUE} disabled>
+                                {`Özel renk (${normalizedBadgeHex})`}
+                              </SelectItem>
+                            )}
+                          </SelectContent>
+                        </Select>
+                      ) : (
+                        <input
+                          type="color"
+                          className="h-10 w-full cursor-pointer rounded-md border"
+                          value={normalizedBadgeHex}
+                          onChange={(event) => handleUpdateVariant(variant.id, { badgeHex: event.target.value })}
+                        />
+                      )}
                     </div>
                     <div className="md:col-span-1 flex items-end justify-end">
                       <div className="flex items-center gap-2">

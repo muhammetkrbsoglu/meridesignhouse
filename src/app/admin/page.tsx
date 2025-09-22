@@ -16,13 +16,13 @@ import {
   AlertCircle
 } from 'lucide-react'
 
-// Loading component
+// Enhanced loading component with better UX
 function DashboardLoading() {
   return (
     <div className="space-y-6">
       <div>
-        <div className="h-8 bg-gray-200 rounded w-48 animate-pulse mb-2"></div>
-        <div className="h-4 bg-gray-200 rounded w-64 animate-pulse"></div>
+        <div className="h-8 animate-shimmer rounded w-48 mb-2"></div>
+        <div className="h-4 animate-shimmer rounded w-64"></div>
       </div>
       
       <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
@@ -31,20 +31,65 @@ function DashboardLoading() {
             <CardContent className="p-6">
               <div className="flex items-center justify-between">
                 <div className="flex items-center">
-                  <div className="w-8 h-8 bg-gray-200 rounded animate-pulse"></div>
+                  <div className="w-8 h-8 animate-shimmer rounded"></div>
                   <div className="ml-4">
-                    <div className="h-4 bg-gray-200 rounded w-24 animate-pulse mb-2"></div>
-                    <div className="h-6 bg-gray-200 rounded w-16 animate-pulse"></div>
+                    <div className="h-4 animate-shimmer rounded w-24 mb-2"></div>
+                    <div className="h-6 animate-shimmer rounded w-16"></div>
                   </div>
                 </div>
               </div>
               <div className="mt-4">
-                <div className="h-4 bg-gray-200 rounded w-20 animate-pulse mb-1"></div>
-                <div className="h-3 bg-gray-200 rounded w-32 animate-pulse"></div>
+                <div className="h-4 animate-shimmer rounded w-20 mb-1"></div>
+                <div className="h-3 animate-shimmer rounded w-32"></div>
               </div>
             </CardContent>
           </Card>
         ))}
+      </div>
+      
+      {/* Activity section loading */}
+      <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
+        <Card>
+          <CardHeader>
+            <div className="h-5 animate-shimmer rounded w-32 mb-2"></div>
+            <div className="h-4 animate-shimmer rounded w-48"></div>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-3">
+              {[...Array(3)].map((_, i) => (
+                <div key={i} className="flex items-center space-x-3 p-2">
+                  <div className="w-4 h-4 animate-shimmer rounded"></div>
+                  <div className="flex-1">
+                    <div className="h-4 animate-shimmer rounded w-3/4 mb-1"></div>
+                    <div className="h-3 animate-shimmer rounded w-1/2"></div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+        
+        <Card>
+          <CardHeader>
+            <div className="h-5 animate-shimmer rounded w-32 mb-2"></div>
+            <div className="h-4 animate-shimmer rounded w-48"></div>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-3">
+              {[...Array(4)].map((_, i) => (
+                <div key={i} className="rounded-lg border border-gray-200 p-4">
+                  <div className="flex items-center space-x-3">
+                    <div className="w-5 h-5 animate-shimmer rounded"></div>
+                    <div className="flex-1">
+                      <div className="h-4 animate-shimmer rounded w-2/3 mb-1"></div>
+                      <div className="h-3 animate-shimmer rounded w-1/3"></div>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
       </div>
     </div>
   )

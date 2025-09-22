@@ -21,7 +21,7 @@ export function AuthGuard({
   const router = useRouter()
   const { user, loading, isAuthenticated, isAuthorized, userProfile } = useRequireAuth(requiredRole)
   
-  // Watchdog: if loading persists unusually long, fail-fast to login
+  // Optimized watchdog: reduced timeout for faster UX
   useEffect(() => {
     if (!loading) return
     const id = setTimeout(() => {
@@ -30,7 +30,7 @@ export function AuthGuard({
         console.debug('[AuthGuard] watchdog redirect triggered: no user, redirecting to', redirectTo)
         router.push(redirectTo)
       }
-    }, 7000)
+    }, 3000) // 7000'den 3000'e düşürüldü - daha hızlı timeout
     return () => clearTimeout(id)
   }, [loading, user, router, redirectTo])
 

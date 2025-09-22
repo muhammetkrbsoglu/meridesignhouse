@@ -3,6 +3,7 @@ import { AdminGuard } from '@/components/auth/AuthGuard'
 import { AdminLayout } from '@/components/admin/AdminLayout'
 import { ProductForm } from '@/components/admin/ProductForm'
 import { fetchProductById, fetchCategories } from '@/lib/actions/products'
+import { listActiveColors } from '@/lib/actions/colors'
 
 export const metadata = {
   title: 'Ürün Düzenle | Admin Panel',
@@ -18,9 +19,10 @@ interface PageProps {
 export default async function EditProductPage({ params }: PageProps) {
   const resolvedParams = await params;
   const id = resolvedParams.id
-  const [product, categories] = await Promise.all([
+  const [product, categories, colors] = await Promise.all([
     fetchProductById(id),
     fetchCategories(),
+    listActiveColors(),
   ])
 
   if (!product) {
@@ -35,7 +37,7 @@ export default async function EditProductPage({ params }: PageProps) {
             <h1 className="text-2xl font-bold">Ürün Düzenle</h1>
           </div>
           <div className="mt-4 md:mt-8">
-            <ProductForm categories={categories} product={product} />
+            <ProductForm categories={categories} colors={colors} product={product} />
           </div>
         </div>
       </AdminLayout>

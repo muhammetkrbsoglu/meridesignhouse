@@ -81,8 +81,20 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     return () => subscription.unsubscribe()
   }, [])
 
+  // Cache for user profiles to avoid repeated fetches
+  const profileCache = new Map<string, { profile: UserProfile; timestamp: number }>()
+  const CACHE_DURATION = 5 * 60 * 1000 // 5 dakika cache
+
   const fetchUserProfile = async (userId: string) => {
     try {
+      // Check cache first - performans optimizasyonu
+      const cached = profileCache.get(userId)
+      if (cached && Date.now() - cached.timestamp < CACHE_DURATION) {
+        console.debug('[Auth] using cached profile for', userId)
+        setUserProfile(cached.profile)
+        return
+      }
+
       const { data, error } = await supabase
         .from('users')
         .select('*')
@@ -121,6 +133,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             } else if (createdProfile) {
               console.log('Profile created successfully')
               setUserProfile(createdProfile)
+              // Cache the new profile
+              profileCache.set(userId, { profile: createdProfile, timestamp: Date.now() })
               return
             }
           }
@@ -131,6 +145,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       }
 
       setUserProfile(data)
+      // Cache the fetched profile
+      profileCache.set(userId, { profile: data, timestamp: Date.now() })
     } catch (error) {
       console.error('Unexpected error in fetchUserProfile:', error)
     }
