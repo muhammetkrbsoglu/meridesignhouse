@@ -276,7 +276,7 @@ export function NewArrivals({ products }: NewArrivalsProps) {
                 </div>
               </div>
             </motion.div>
-          )})
+          )})}
         </motion.div>
 
         {/* View All Button */}

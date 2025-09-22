@@ -255,7 +255,7 @@ export function FeaturedProducts({ products }: FeaturedProductsProps) {
                 </button>
               </div>
             </motion.div>
-          )})
+          )})}
         </motion.div>
 
         <div className="text-center mt-16">
